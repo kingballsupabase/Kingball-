@@ -835,7 +835,7 @@
         let usuarioActivo = null;
         let usuarioData = null;
         let listaActivaId = null;
-        let turnoActual = '';
+        let turnoActual = 'Cerrado';
         let bancoBloqueadoPorHorario = false;
         let fraudeHoraDetectado = false;
         let ultimaHoraVerificada = Date.now();
@@ -859,6 +859,8 @@
             const errorDiv = document.getElementById('mensajeError');
             const exitoDiv = document.getElementById('mensajeExito');
             
+            if(!errorDiv || !exitoDiv) return;
+
             errorDiv.style.display = 'none';
             exitoDiv.style.display = 'none';
             
@@ -900,12 +902,11 @@
             mostrarMensaje('', '');
 
             try {
-                // Verificar usuario
                 const { data: usuario, error } = await supabase
                     .from('usuarios_listeros')
                     .select('*')
                     .eq('usuario', usuarioInput)
-                    .single();
+                    .maybeSingle();
 
                 if (error || !usuario) {
                     mostrarMensaje('Usuario no encontrado. Regístrate primero.', 'error');
@@ -913,7 +914,6 @@
                     return;
                 }
 
-                // Verificar bloqueo
                 if (usuario.bloqueado_hasta && new Date(usuario.bloqueado_hasta) > new Date()) {
                     const tiempoRestante = Math.ceil((new Date(usuario.bloqueado_hasta) - new Date()) / 60000);
                     mostrarMensaje(`Usuario bloqueado. Intenta nuevamente en ${tiempoRestante} minutos.`, 'error');
@@ -921,14 +921,12 @@
                     return;
                 }
 
-                // Verificar estado
                 if (usuario.estado !== 'activo') {
                     mostrarMensaje(`Usuario ${usuario.estado}. Contacta al administrador.`, 'error');
                     mostrarLoading(false);
                     return;
                 }
 
-                // Verificar contraseña
                 const passwordHash = await hashPassword(passwordInput);
                 
                 if (passwordHash !== usuario.password_hash) {
@@ -938,6 +936,8 @@
                     if (nuevosIntentos >= 5) {
                         bloqueadoHasta = new Date(Date.now() + 15 * 60000);
                         mostrarMensaje('Demasiados intentos fallidos. Usuario bloqueado por 15 minutos.', 'error');
+                    } else {
+                        mostrarMensaje('Contraseña incorrecta.', 'error');
                     }
                     
                     await supabase
@@ -948,12 +948,10 @@
                         })
                         .eq('id', usuario.id);
                     
-                    mostrarMensaje('Contraseña incorrecta.', 'error');
                     mostrarLoading(false);
                     return;
                 }
 
-                // Login exitoso
                 await supabase
                     .from('usuarios_listeros')
                     .update({
@@ -970,7 +968,7 @@
                 document.getElementById('seccionLogin').style.display = 'none';
                 document.getElementById('seccionListero').style.display = 'flex';
 
-                await inicializarTurno();
+                inicializarTurno();
                 await obtenerOCrearListaActiva();
                 await cargarApuestasDeLista();
 
@@ -1055,7 +1053,6 @@
             mostrarMensaje('', '');
 
             try {
-                // Verificar usuario existente
                 const { data: existente, error: checkError } = await supabase
                     .from('usuarios_listeros')
                     .select('usuario, email')
@@ -1092,15 +1089,30 @@
                     throw new Error('Error al registrar usuario: ' + insertError.message);
                 }
 
-                mostrarMensaje('✅ Usuario registrado exitosamente. Ahora puedes iniciar sesión.', 'exito');
-                setTimeout(() => volverLogin(), 2000);
+                mostrarMensaje('✅ Usuario registrado exitosamente. Redirigiendo...', 'exito');
+                
+                // Login Automático para empezar a trabajar de una vez
+                setTimeout(async () => {
+                    usuarioActivo = nuevoUsuario.usuario;
+                    usuarioData = nuevoUsuario;
+                    
+                    const elNombreSup = document.getElementById('nombreListaSuperior');
+                    if (elNombreSup) elNombreSup.innerText = `Lista: ${nuevoUsuario.nombre_completo || nuevoUsuario.usuario.toUpperCase()}`;
+                    
+                    document.getElementById('seccionLogin').style.display = 'none';
+                    document.getElementById('seccionListero').style.display = 'flex';
+                    
+                    inicializarTurno();
+                    await obtenerOCrearListaActiva();
+                    await cargarApuestasDeLista();
+                    mostrarLoading(false);
+                }, 1500);
 
             } catch (error) {
                 console.error('Error en registro:', error);
                 mostrarMensaje('Error al registrar: ' + error.message, 'error');
+                mostrarLoading(false);
             }
-
-            mostrarLoading(false);
         }
 
         // ==========================================
@@ -1127,10 +1139,10 @@
         }
 
         async function obtenerOCrearListaActiva() {
+            if (!usuarioActivo) return;
             const hoy = new Date().toISOString().split('T')[0];
             
             try {
-                // Buscar lista activa
                 const { data: listaExistente, error } = await supabase
                     .from('listas_de_trabajo')
                     .select('*')
@@ -1140,11 +1152,6 @@
                     .eq('estado', 'activa')
                     .maybeSingle();
 
-                if (error && error.code !== 'PGRST116') {
-                    console.error('Error al buscar lista:', error);
-                    return;
-                }
-
                 if (listaExistente) {
                     listaActivaId = listaExistente.id;
                     document.getElementById('totalImporta').innerText = `$${formatNumber(listaExistente.total_importa || 0)}`;
@@ -1152,7 +1159,6 @@
                     return;
                 }
 
-                // Crear nueva lista
                 const { data: nuevaLista, error: createError } = await supabase
                     .from('listas_de_trabajo')
                     .insert({
@@ -1173,7 +1179,6 @@
 
                 listaActivaId = nuevaLista.id;
 
-                // Registrar en logs
                 await supabase
                     .from('logs_actividad')
                     .insert({
@@ -1208,12 +1213,12 @@
 
         async function procesarJugada() {
             if (bancoBloqueadoPorHorario || fraudeHoraDetectado) {
-                alert("Operación rechazada. Banco Cerrado.");
+                alert("Operación rechazada. Banco Cerrado o Hora Corrupta.");
                 return;
             }
 
             if (!listaActivaId) {
-                alert('No hay una lista activa. Reinicia la sesión.');
+                alert('No hay una lista activa para este turno. Reinicia sesión.');
                 return;
             }
 
@@ -1223,7 +1228,7 @@
             const stringPrecio = campoPrecio.value.trim();
 
             if (!stringNumeros || !stringPrecio) {
-                alert('Completa todos los campos.');
+                alert('Completa todos los campos necesarios.');
                 return;
             }
 
@@ -1236,7 +1241,7 @@
                 if (unionDigitos.length === 3) {
                     const numPrecio = parseFloat(stringPrecio);
                     if (isNaN(numPrecio) || numPrecio < 1 || numPrecio > 10000) {
-                        alert("El precio debe ser entre 1 y 10000");
+                        alert("El precio debe estar entre 1 y 10000");
                         return;
                     }
                     const comision = (numPrecio * COMISION_CENTENAS) / 100;
@@ -1254,7 +1259,7 @@
                 } else if (bloques.length === 1) {
                     const numeroFijo = bloques[0];
                     if (numeroFijo.length !== 2) {
-                        alert("El número debe tener 2 dígitos obligatoriamente.");
+                        alert("El número debe poseer 2 dígitos obligatoriamente.");
                         return;
                     }
 
@@ -1271,7 +1276,7 @@
 
                     if ((precioFijo > 0 && (precioFijo < 1 || precioFijo > 10000)) || 
                         (precioCorrido > 0 && (precioCorrido < 1 || precioCorrido > 10000))) {
-                        alert("Los precios deben estar entre 1 y 10000");
+                        alert("Los precios ingresados deben ubicarse entre 1 y 10000");
                         return;
                     }
 
@@ -1292,14 +1297,14 @@
                 } else if (bloques.length >= 2) {
                     for (let i = 0; i < bloques.length; i++) {
                         if (bloques[i].length !== 2) {
-                            alert("Todos los números del parle deben tener 2 dígitos.");
+                            alert("Cada número que conforma el parle debe tener 2 dígitos.");
                             return;
                         }
                     }
 
                     const basePrecioParle = parseFloat(stringPrecio);
                     if (isNaN(basePrecioParle) || basePrecioParle < 1 || basePrecioParle > 10000) {
-                        alert("El precio del parle debe ser entre 1 y 10000");
+                        alert("El precio del parle debe encontrarse entre 1 y 10000");
                         return;
                     }
 
@@ -1320,7 +1325,6 @@
                 }
 
                 if (nuevaJugadaObj) {
-                    // Guardar en Supabase
                     const { data: apuestaGuardada, error: insertError } = await supabase
                         .from('apuestas')
                         .insert({
@@ -1339,15 +1343,12 @@
 
                     if (insertError) {
                         console.error('Error al guardar apuesta:', insertError);
-                        alert('Error al guardar la apuesta. Intenta de nuevo.');
+                        alert('Problema de comunicación al guardar la jugada.');
                         return;
                     }
 
-                    // Actualizar UI
                     inyectarRenglonEnPantalla(nuevaJugadaObj.tipo, nuevaJugadaObj.texto);
                     actualizarValoresYTotales(nuevaJugadaObj.tipo, nuevaJugadaObj.bruto, nuevaJugadaObj.limpio);
-                    
-                    // Actualizar totales en la lista
                     await actualizarTotalesLista(nuevaJugadaObj.bruto, nuevaJugadaObj.limpio);
                 }
 
@@ -1357,7 +1358,7 @@
 
             } catch (error) {
                 console.error('Error en procesarJugada:', error);
-                alert('Error al procesar la jugada: ' + error.message);
+                alert('Error crítico de procesamiento: ' + error.message);
             }
         }
 
@@ -1369,25 +1370,18 @@
                     .eq('id', listaActivaId)
                     .single();
 
-                if (getError) {
-                    console.error('Error al obtener totales:', getError);
-                    return;
-                }
+                if (getError) return;
 
                 const nuevoTotalImporta = (listaActual.total_importa || 0) + importeBruto;
                 const nuevoTotalLimpio = (listaActual.total_limpio || 0) + importeLimpio;
 
-                const { error: updateError } = await supabase
+                await supabase
                     .from('listas_de_trabajo')
                     .update({
                         total_importa: nuevoTotalImporta,
                         total_limpio: nuevoTotalLimpio
                     })
                     .eq('id', listaActivaId);
-
-                if (updateError) {
-                    console.error('Error al actualizar totales:', updateError);
-                }
 
             } catch (error) {
                 console.error('Error en actualizarTotalesLista:', error);
@@ -1402,7 +1396,9 @@
             if (tipo === 'fc') destinoId = 'pantallaFijosCorridos';
             else if (tipo === 'parles') destinoId = 'pantallaParles';
             else if (tipo === 'centenas') destinoId = 'pantallaCentenas';
-            document.getElementById(destinoId).innerHTML += '<div class="renglon-jugada">' + texto + '</div>';
+            
+            const element = document.getElementById(destinoId);
+            if(element) element.innerHTML += '<div class="renglon-jugada">' + texto + '</div>';
         }
 
         function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma) {
@@ -1418,11 +1414,13 @@
                 elLimpio = document.getElementById('limpioCentenas');
             }
 
-            const brutoActual = parseFloat(elImporte.innerText.replace('$', '')) || 0;
-            const limpioActual = parseFloat(elLimpio.innerText.replace('$', '')) || 0;
-            
-            elImporte.innerText = "$" + formatNumber(brutoActual + brutoSuma);
-            elLimpio.innerText = "$" + formatNumber(limpioActual + limpioSuma);
+            if(elImporte && elLimpio) {
+                const brutoActual = parseFloat(elImporte.innerText.replace('$', '')) || 0;
+                const limpioActual = parseFloat(elLimpio.innerText.replace('$', '')) || 0;
+                
+                elImporte.innerText = "$" + formatNumber(brutoActual + brutoSuma);
+                elLimpio.innerText = "$" + formatNumber(limpioActual + limpioSuma);
+            }
 
             const impFC = parseFloat(document.getElementById('importaFC').innerText.replace('$', '')) || 0;
             const impPar = parseFloat(document.getElementById('importaParles').innerText.replace('$', '')) || 0;
@@ -1438,7 +1436,6 @@
 
         async function cargarApuestasDeLista() {
             if (!listaActivaId) return;
-            
             limpiarPantallasVisuales();
 
             try {
@@ -1448,10 +1445,7 @@
                     .eq('lista_id', listaActivaId)
                     .order('hora_apuesta', { ascending: true });
 
-                if (error) {
-                    console.error('Error al cargar apuestas:', error);
-                    return;
-                }
+                if (error) return;
 
                 for (const apuesta of apuestas) {
                     const texto = apuesta.metadata?.texto || apuesta.numero + ` ($${apuesta.precio})`;
@@ -1485,82 +1479,32 @@
         async function limpiarDatosUsuario() {
             if (!usuarioActivo || !listaActivaId) return;
             
-            const confirmar = confirm(`¿Estás seguro de que deseas borrar TODAS las jugadas de la lista de ${usuarioActivo.toUpperCase()}? Esto no se puede deshacer.`);
+            const confirmar = confirm(`¿Estás seguro de vaciar la lista activa de ${usuarioActivo.toUpperCase()}? Acción irreversible.`);
             
             if (confirmar) {
                 mostrarLoading(true);
                 try {
-                    const { error: deleteError } = await supabase
-                        .from('apuestas')
-                        .delete()
-                        .eq('lista_id', listaActivaId);
-
-                    if (deleteError) {
-                        console.error('Error al borrar apuestas:', deleteError);
-                        alert('Error al borrar. Intenta de nuevo.');
-                        mostrarLoading(false);
-                        return;
-                    }
-
-                    await supabase
-                        .from('listas_de_trabajo')
-                        .update({ total_importa: 0, total_limpio: 0 })
-                        .eq('id', listaActivaId);
-
+                    await supabase.from('apuestas').delete().eq('lista_id', listaActivaId);
+                    await supabase.from('listas_de_trabajo').update({ total_importa: 0, total_limpio: 0 }).eq('id', listaActivaId);
                     limpiarPantallasVisuales();
-                    alert("Lista borrada con éxito.");
-
+                    alert("Lista reiniciada con éxito.");
                 } catch (error) {
-                    console.error('Error en limpiarDatosUsuario:', error);
-                    alert('Error al borrar la lista.');
+                    console.error(error);
                 }
                 mostrarLoading(false);
             }
         }
 
-        // ==========================================
-        // FUNCIONES DE CIERRE DE SESIÓN
-        // ==========================================
         async function cerrarSesion() {
-            if (!usuarioActivo) return;
-            
-            const confirmar = confirm('¿Estás seguro de que quieres cerrar sesión?');
-            if (!confirmar) return;
-
-            mostrarLoading(true);
-
-            try {
-                if (usuarioData) {
-                    await supabase
-                        .from('usuarios_listeros')
-                        .update({ ultimo_acceso: new Date().toISOString() })
-                        .eq('id', usuarioData.id);
-                }
-
-                usuarioActivo = null;
-                usuarioData = null;
-                listaActivaId = null;
-                
-                document.getElementById('loginForm').reset();
-                document.getElementById('seccionLogin').style.display = 'block';
-                document.getElementById('seccionListero').style.display = 'none';
-                limpiarPantallasVisuales();
-                
-                location.reload();
-
-            } catch (error) {
-                console.error('Error en cerrarSesion:', error);
-            }
-
-            mostrarLoading(false);
+            usuarioActivo = null;
+            usuarioData = null;
+            listaActivaId = null;
+            location.reload();
         }
 
-        // ==========================================
-        // FUNCIONES DEL MENÚ
-        // ==========================================
         function toggleMenu() {
             const menu = document.getElementById('menuDesglegable');
-            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+            if(menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
         }
 
         window.onclick = function(event) {
@@ -1572,24 +1516,12 @@
             }
         }
 
-        function abrirReglamento() {
-            document.getElementById('modalReglamento').style.display = 'flex';
-        }
+        function abrirReglamento() { document.getElementById('modalReglamento').style.display = 'flex'; }
+        function cerrarReglamento() { document.getElementById('modalReglamento').style.display = 'none'; }
+        function verNumerosLimitados() { alert('🚫 Números Limitados Fijos:\n\n11, 55, 90'); }
 
-        function cerrarReglamento() {
-            document.getElementById('modalReglamento').style.display = 'none';
-        }
-
-        function verNumerosLimitados() {
-            alert('🚫 Números Limitados (Fijos):\n\n11, 55, 90');
-        }
-
-        // ==========================================
-        // FUNCIONES DE LISTAS GUARDADAS
-        // ==========================================
         async function verListasGuardadas() {
             if (!usuarioActivo) return;
-            
             mostrarLoading(true);
 
             try {
@@ -1599,76 +1531,36 @@
                     .eq('usuario', usuarioActivo)
                     .neq('estado', 'activa')
                     .order('fecha_creacion', { ascending: false })
-                    .limit(20);
-
-                if (error) {
-                    console.error('Error al obtener listas:', error);
-                    mostrarLoading(false);
-                    return;
-                }
+                    .limit(10);
 
                 if (!listas || listas.length === 0) {
-                    alert("No tienes listas archivadas.");
-                    mostrarLoading(false);
-                    return;
+                    alert("No posees registros archivados todavía.");
+                } else {
+                    let textoListas = "📚 HISTORIAL DE LISTAS\n\n";
+                    listas.forEach((l, i) => {
+                        textoListas += `${i+1}. ${l.fecha} (${l.turno}) -> Bruto: $${formatNumber(l.total_importa)}\n`;
+                    });
+                    alert(textoListas);
                 }
-
-                let textoListas = "📚 LISTAS ARCHIVADAS\n\n";
-                for (let i = 0; i < listas.length; i++) {
-                    const l = listas[i];
-                    textoListas += `${i+1}. ${l.fecha} (${l.turno})\n`;
-                    textoListas += `   Total: $${formatNumber(l.total_importa || 0)}\n`;
-                    textoListas += `   Estado: ${l.estado}\n\n`;
-                }
-                alert(textoListas);
-
             } catch (error) {
-                console.error('Error en verListasGuardadas:', error);
-                alert('Error al cargar las listas.');
+                console.error(error);
             }
-
             mostrarLoading(false);
         }
 
-        // ==========================================
-        // FUNCIÓN DE CAMBIO DE CONTRASEÑA
-        // ==========================================
         async function cambiarContrasena() {
             if (!usuarioActivo) return;
-            
-            const nuevaPassword = prompt('Ingresa tu nueva contraseña (mínimo 6 caracteres):');
-            if (!nuevaPassword) return;
-            
-            if (nuevaPassword.length < 6) {
-                alert('La contraseña debe tener al menos 6 caracteres.');
-                return;
-            }
-
-            const confirmar = confirm('¿Estás seguro de que quieres cambiar tu contraseña?');
-            if (!confirmar) return;
+            const nuevaPassword = prompt('Nueva contraseña (min 6 caracteres):');
+            if (!nuevaPassword || nuevaPassword.length < 6) return;
 
             mostrarLoading(true);
-
             try {
                 const passwordHash = await hashPassword(nuevaPassword);
-
-                const { error } = await supabase
-                    .from('usuarios_listeros')
-                    .update({ password_hash: passwordHash })
-                    .eq('usuario', usuarioActivo);
-
-                if (error) {
-                    console.error('Error al cambiar contraseña:', error);
-                    alert('Error al cambiar contraseña.');
-                } else {
-                    alert('✅ Contraseña cambiada exitosamente.');
-                }
-
+                await supabase.from('usuarios_listeros').update({ password_hash: passwordHash }).eq('usuario', usuarioActivo);
+                alert('✅ Contraseña actualizada correctamente.');
             } catch (error) {
-                console.error('Error en cambiarContrasena:', error);
-                alert('Error al cambiar la contraseña.');
+                alert('Ocurrió un error.');
             }
-
             mostrarLoading(false);
         }
 
@@ -1677,7 +1569,6 @@
         // ==========================================
         function actualizarReloj() {
             const ahora = new Date();
-            
             const tiempoRealEjecucion = Date.now();
             const diferenciaMonitoreo = tiempoRealEjecucion - ultimaHoraVerificada;
             
@@ -1687,8 +1578,11 @@
             ultimaHoraVerificada = Date.now();
 
             if (fraudeHoraDetectado) {
-                document.getElementById('relojDigital').innerText = "BLOQUEADO";
-                document.getElementById('relojDigital').style.color = "#ef4444";
+                const reloj = document.getElementById('relojDigital');
+                if(reloj) {
+                    reloj.innerText = "BLOQUEADO";
+                    reloj.style.color = "#ef4444";
+                }
                 bloquearBancoPorFraude();
                 return;
             }
@@ -1698,112 +1592,81 @@
             const segundos = ahora.getSeconds();
             const ampm = horas >= 12 ? 'PM' : 'AM';
             
-            evaluarTrancaHorarios(horas, minutos);
+            evaluarTrancaHorarios(horas, minutes = minutos);
 
             const horasDoce = horas % 12 || 12;
             const tiempoTexto = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
-            document.getElementById('relojDigital').innerText = tiempoTexto;
+            const relojElement = document.getElementById('relojDigital');
+            if(relojElement) relojElement.innerText = tiempoTexto;
         }
 
-        function machined(valor) {
-            return valor < 10 ? '0' + valor : valor;
-        }
+        function machined(valor) { return valor < 10 ? '0' + valor : valor; }
 
         function evaluarTrancaHorarios(hora, minuto) {
             if (fraudeHoraDetectado) return;
-
             const tiempoEnMinutos = (hora * 60) + minuto;
             
             const dentroTurnoManana = (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805);
             const dentroTurnoNoche = (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290);
 
-            if (tiempoEnMinutos === 805) {
-                ejecutarCierreAutomatico("Mañana");
-            }
-            if (tiempoEnMinutos === 1290) {
-                ejecutarCierreAutomatico("Noche");
-            }
+            if (tiempoEnMinutos === 805 && turnoActual === 'Mañana') ejecutarCierreAutomatico("Mañana");
+            if (tiempoEnMinutos === 1290 && turnoActual === 'Noche') ejecutarCierreAutomatico("Noche");
+
+            const aviso = document.getElementById('avisoBancoCerrado');
+            const num = document.getElementById('campoNumero');
+            const pre = document.getElementById('campoPrecio');
+            const btn = document.getElementById('btnAnotarJugada');
 
             if (dentroTurnoManana || dentroTurnoNoche) {
                 bancoBloqueadoPorHorario = false;
-                document.getElementById('avisoBancoCerrado').style.display = "none";
-                document.getElementById('campoNumero').disabled = false;
-                document.getElementById('campoPrecio').disabled = false;
-                document.getElementById('btnAnotarJugada').disabled = false;
+                if(aviso) aviso.style.display = "none";
+                if(num) num.disabled = false;
+                if(pre) pre.disabled = false;
+                if(btn) btn.disabled = false;
             } else {
                 bancoBloqueadoPorHorario = true;
-                document.getElementById('avisoBancoCerrado').style.display = "flex";
-                document.getElementById('campoNumero').disabled = true;
-                document.getElementById('campoPrecio').disabled = true;
-                document.getElementById('btnAnotarJugada').disabled = true;
+                if(aviso) aviso.style.display = "flex";
+                if(num) num.disabled = true;
+                if(pre) pre.disabled = true;
+                if(btn) btn.disabled = true;
             }
         }
 
         function bloquearBancoPorFraude() {
-            document.getElementById('avisoBancoCerrado').innerText = "HORA CORRUPTA";
-            document.getElementById('avisoBancoCerrado').style.display = "flex";
+            const aviso = document.getElementById('avisoBancoCerrado');
+            if(aviso) {
+                aviso.innerText = "HORA CORRUPTA";
+                aviso.style.display = "flex";
+            }
             document.getElementById('campoNumero').disabled = true;
             document.getElementById('campoPrecio').disabled = true;
             document.getElementById('btnAnotarJugada').disabled = true;
-            alert("No puedes cambiar la hora. Activa la hora automática en los ajustes del teléfono.");
         }
 
         async function ejecutarCierreAutomatico(nombreTurno) {
             if (!usuarioActivo || !listaActivaId) return;
 
             try {
-                const { data: listaActual, error: getError } = await supabase
-                    .from('listas_de_trabajo')
-                    .select('*')
-                    .eq('id', listaActivaId)
-                    .single();
+                const { data: listaActual } = await supabase.from('listas_de_trabajo').select('*').eq('id', listaActivaId).single();
+                if (!listaActual) return;
 
-                if (getError) {
-                    console.error('Error al obtener lista para cierre:', getError);
-                    return;
-                }
+                const { count } = await supabase.from('apuestas').select('*', { count: 'exact', head: true }).eq('lista_id', listaActivaId);
 
-                // Registrar cierre
-                await supabase
-                    .from('cierre_turno')
-                    .insert({
-                        lista_id: listaActivaId,
-                        usuario: usuarioActivo,
-                        turno: nombreTurno,
-                        total_importa: listaActual.total_importa || 0,
-                        total_limpio: listaActual.total_limpio || 0,
-                        total_apuestas: await contarApuestasDeLista(listaActivaId),
-                        observaciones: `Cierre automático turno ${nombreTurno}`
-                    });
+                await supabase.from('cierre_turno').insert({
+                    lista_id: listaActivaId,
+                    usuario: usuarioActivo,
+                    turno: nombreTurno,
+                    total_importa: listaActual.total_importa || 0,
+                    total_limpio: listaActual.total_limpio || 0,
+                    total_apuestas: count || 0,
+                    observaciones: `Cierre automático de sistema`
+                });
 
-                // Cerrar lista
-                await supabase
-                    .from('listas_de_trabajo')
-                    .update({ estado: 'cerrada' })
-                    .eq('id', listaActivaId);
-
-                limpiarPantallasVisuales();
-                await obtenerOCrearListaActiva();
-                await cargarApuestasDeLista();
-
-                alert(`✅ Turno de ${nombreTurno} cerrado correctamente.`);
-
+                await supabase.from('listas_de_trabajo').update({ estado: 'cerrada' }).eq('id', listaActivaId);
+                alert(`El turno de la ${nombreTurno} ha cerrado.`);
+                cerrarSesion();
             } catch (error) {
-                console.error('Error en ejecutarCierreAutomatico:', error);
-            }
-        }
-
-        async function contarApuestasDeLista(listaId) {
-            try {
-                const { count, error } = await supabase
-                    .from('apuestas')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('lista_id', listaId);
-                
-                return count || 0;
-            } catch (error) {
-                console.error('Error en contarApuestasDeLista:', error);
-                return 0;
+                console.error(error);
             }
         }
 
@@ -1812,9 +1675,7 @@
         // ==========================================
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
-
-        console.log('🚀 Sistema Kingball iniciado correctamente');
-        console.log('📦 Conectado a Supabase:', SUPABASE_URL);
+        console.log('🚀 Kingball cargado con automatización de flujos.');
     </script>
 </body>
 </html>
