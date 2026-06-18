@@ -774,7 +774,9 @@
     <script>
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Inicialización corregida sin conflictos de nombres
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let usuarioActivo = null;
         let usuarioData = null;
@@ -837,7 +839,7 @@
             mostrarMensaje('', '');
 
             try {
-                const { data: usuario, error } = await supabase
+                const { data: usuario, error } = await supabaseClient
                     .from('usuarios_listeros')
                     .select('*')
                     .eq('usuario', usuarioInput)
@@ -875,7 +877,7 @@
                         mostrarMensaje('Contraseña incorrecta.', 'error');
                     }
                     
-                    await supabase
+                    await supabaseClient
                         .from('usuarios_listeros')
                         .update({
                             intentos_fallidos: nuevosIntentos,
@@ -887,7 +889,7 @@
                     return;
                 }
 
-                await supabase
+                await supabaseClient
                     .from('usuarios_listeros')
                     .update({
                         intentos_fallidos: 0,
@@ -972,7 +974,7 @@
             mostrarMensaje('', '');
 
             try {
-                const { data: existente } = await supabase
+                const { data: existente } = await supabaseClient
                     .from('usuarios_listeros')
                     .select('usuario, email')
                     .or(`usuario.eq.${usuario},email.eq.${email}`);
@@ -989,7 +991,7 @@
 
                 const passwordHash = await hashPassword(password);
 
-                const { data: nuevo, error: insErr } = await supabase
+                const { data: nuevo, error: insErr } = await supabaseClient
                     .from('usuarios_listeros')
                     .insert({
                         usuario,
@@ -1053,7 +1055,7 @@
             const hoy = new Date().toISOString().split('T')[0];
             
             try {
-                const { data: listaExistente } = await supabase
+                const { data: listaExistente } = await supabaseClient
                     .from('listas_de_trabajo')
                     .select('*')
                     .eq('usuario', usuarioActivo)
@@ -1069,7 +1071,7 @@
                     return;
                 }
 
-                const { data: nuevaLista } = await supabase
+                const { data: nuevaLista } = await supabaseClient
                     .from('listas_de_trabajo')
                     .insert({
                         usuario: usuarioActivo,
@@ -1165,7 +1167,7 @@
             }
 
             if (nuevaJugadaObj) {
-                const { error } = await supabase.from('apuestas').insert({
+                const { error } = await supabaseClient.from('apuestas').insert({
                     lista_id: listaActivaId,
                     usuario: usuarioActivo,
                     tipo: nuevaJugadaObj.tipo,
@@ -1190,8 +1192,8 @@
 
         async function actualizarTotalesLista(b, l) {
             try {
-                const { data } = await supabase.from('listas_de_trabajo').select('total_importa, total_limpio').eq('id', listaActivaId).single();
-                await supabase.from('listas_de_trabajo').update({
+                const { data } = await supabaseClient.from('listas_de_trabajo').select('total_importa, total_limpio').eq('id', listaActivaId).single();
+                await supabaseClient.from('listas_de_trabajo').update({
                     total_importa: (data.total_importa || 0) + b,
                     total_limpio: (data.total_limpio || 0) + l
                 }).eq('id', listaActivaId);
@@ -1233,7 +1235,7 @@
             if (!listaActivaId) return;
             limpiarPantallasVisuales();
             try {
-                const { data } = await supabase.from('apuestas').select('*').eq('lista_id', listaActivaId).order('hora_apuesta', { ascending: true });
+                const { data } = await supabaseClient.from('apuestas').select('*').eq('lista_id', listaActivaId).order('hora_apuesta', { ascending: true });
                 if(data) {
                     for (const a of data) {
                         inyectarRenglonEnPantalla(a.tipo, a.metadata?.texto || a.numero);
@@ -1260,8 +1262,8 @@
         async function limpiarDatosUsuario() {
             if (!listaActivaId || !confirm("¿Vaciar lista actual?")) return;
             mostrarLoading(true);
-            await supabase.from('apuestas').delete().eq('lista_id', listaActivaId);
-            await supabase.from('listas_de_trabajo').update({ total_importa: 0, total_limpio: 0 }).eq('id', listaActivaId);
+            await supabaseClient.from('apuestas').delete().eq('lista_id', listaActivaId);
+            await supabaseClient.from('listas_de_trabajo').update({ total_importa: 0, total_limpio: 0 }).eq('id', listaActivaId);
             limpiarPantallasVisuales();
             mostrarLoading(false);
         }
@@ -1280,7 +1282,7 @@
         function verNumerosLimitados() { alert('🚫 Limitados: 11, 55, 90'); }
 
         async function verListasGuardadas() {
-            const { data } = await supabase.from('listas_de_trabajo').select('*').eq('usuario', usuarioActivo).neq('estado', 'activa').limit(10);
+            const { data } = await supabaseClient.from('listas_de_trabajo').select('*').eq('usuario', usuarioActivo).neq('estado', 'activa').limit(10);
             if(!data || data.length === 0) return alert("Sin listas guardadas.");
             alert(data.map(l => `${l.fecha} (${l.turno}) -> $${l.total_importa}`).join('\n'));
         }
@@ -1289,7 +1291,7 @@
             const p = prompt('Nueva clave (min 6 chars):');
             if(!p || p.length < 6) return;
             const h = await hashPassword(p);
-            await supabase.from('usuarios_listeros').update({ password_hash: h }).eq('usuario', usuarioActivo);
+            await supabaseClient.from('usuarios_listeros').update({ password_hash: h }).eq('usuario', usuarioActivo);
             alert('Cambiada.');
         }
 
