@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Apuestas - Kingball</title>
     
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -29,9 +30,6 @@
             padding: 10px;
         }
 
-        /* ==========================================
-           ESTILOS DE LOGIN Y REGISTRO
-           ========================================== */
         .login-container {
             background: #ffffff;
             padding: 40px;
@@ -149,9 +147,6 @@
             text-align: left;
         }
 
-        /* ==========================================
-           ESTILOS DEL ENTORNO DE TRABAJO
-           ========================================== */
         .panel-listero {
             display: none;
             width: 100%;
@@ -431,9 +426,6 @@
         .fila-total.principal .col-importa { color: #38bdf8; font-size: 13px; }
         .fila-total.principal .col-limpio { color: #4ade80; font-size: 13px; }
 
-        /* ==========================================
-           ESTILOS DEL MODAL REGLAMENTO
-           ========================================== */
         .modal-reglamento {
             display: none;
             position: fixed;
@@ -552,9 +544,6 @@
             background: #475569;
         }
 
-        /* ==========================================
-           ESTILOS DEL LOADING
-           ========================================== */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -607,11 +596,13 @@
 </head>
 <body>
 
+    <!-- LOADING OVERLAY -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
         <div class="loading-text">Procesando...</div>
     </div>
 
+    <!-- PANTALLA DE LOGIN / REGISTRO -->
     <div class="login-container" id="seccionLogin">
         <div id="loginContent">
             <h2>🏆 Kingball</h2>
@@ -640,6 +631,7 @@
         </div>
     </div>
 
+    <!-- ENTORNO DE TRABAJO DEL LISTERO -->
     <div class="panel-listero" id="seccionListero">
         
         <div class="barra-superior">
@@ -725,6 +717,7 @@
         </div>
     </div>
 
+    <!-- MODAL REGLAMENTO -->
     <div class="modal-reglamento" id="modalReglamento">
         <div class="contenido-reglamento">
             <div class="titulo-reglamento">Reglamento de Trabajo Oficial</div>
@@ -779,16 +772,10 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURACIÓN DE SUPABASE
-        // ==========================================
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ==========================================
-        // VARIABLES GLOBALES
-        // ==========================================
         let usuarioActivo = null;
         let usuarioData = null;
         let listaActivaId = null;
@@ -835,9 +822,6 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // ==========================================
-        // ENTRAR AL SISTEMA
-        // ==========================================
         async function entrarAlSistema(event) {
             event.preventDefault();
             
@@ -1044,9 +1028,6 @@
             }
         }
 
-        // ==========================================
-        // LOGICA OPERATIVA DE TURNOS
-        // ==========================================
         function inicializarTurno() {
             const ahora = new Date();
             const hora = ahora.getHours();
@@ -1138,7 +1119,6 @@
             const unionDigitos = bloques.join('');
             let nuevaJugadaObj = null;
 
-            // CENTENAS
             if (unionDigitos.length === 3) {
                 const price = parseFloat(stringPrecio);
                 if (isNaN(price) || price < 1) return;
@@ -1151,7 +1131,6 @@
                     precio_base: price
                 };
             } 
-            // FIJOS Y CORRIDOS
             else if (bloques.length === 1) {
                 let f = 0, c = 0;
                 if (stringPrecio.includes(',')) {
@@ -1171,7 +1150,6 @@
                     precio_base: f || c
                 };
             } 
-            // PARLES
             else if (bloques.length >= 2) {
                 const base = parseFloat(stringPrecio);
                 const combs = (bloques.length * (bloques.length - 1)) / 2;
@@ -1315,9 +1293,6 @@
             alert('Cambiada.');
         }
 
-        // ==========================================
-        // RELOJ Y SEGURIDAD DE HORAS
-        // ==========================================
         function machined(valor) { 
             return valor < 10 ? '0' + valor : valor; 
         }
