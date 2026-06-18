@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Apuestas - Kingball</title>
+    <title>Sistema de Apuestas - Kingball Pro</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
@@ -43,93 +43,23 @@
             overflow-y: auto;
         } 
 
-        .login-container h2 {
-            color: #0f172a;
-            margin-bottom: 10px;
-            font-size: 24px;
-        } 
+        .login-container h2 { color: #0f172a; margin-bottom: 10px; font-size: 24px; }
+        .login-container p { color: #64748b; font-size: 14px; margin-bottom: 30px; } 
 
-        .login-container p {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 30px;
-        } 
+        .input-group { text-align: left; margin-bottom: 20px; } 
+        .input-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #334155; font-size: 14px; } 
+        .input-group input { width: 100%; padding: 12px 16px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 16px; outline: none; color: #000000; background: #ffffff; } 
+        .input-group input:focus { border-color: #2563eb; } 
 
-        .input-group {
-            text-align: left;
-            margin-bottom: 20px;
-        } 
+        .btn-ingresar { width: 100%; background: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; } 
+        .btn-ingresar:hover { background: #1d4ed8; }
+        .btn-ingresar.secondary { background: #64748b; margin-top: 10px; }
+        .btn-ingresar.secondary:hover { background: #475569; }
 
-        .input-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #334155;
-            font-size: 14px;
-        } 
+        .link-registro { margin-top: 15px; font-size: 14px; color: #64748b; }
+        .link-registro a { color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: bold; }
 
-        .input-group input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 16px;
-            outline: none;
-            color: #000000;
-            background: #ffffff;
-        } 
-
-        .input-group input:focus {
-            border-color: #2563eb;
-        } 
-
-        .btn-ingresar {
-            width: 100%;
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        } 
-
-        .btn-ingresar:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-ingresar.secondary {
-            background: #64748b;
-            margin-top: 10px;
-        }
-
-        .btn-ingresar.secondary:hover {
-            background: #475569;
-        }
-
-        .link-registro {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .link-registro a {
-            color: #2563eb;
-            text-decoration: underline;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .mensaje-alerta {
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            display: none;
-            text-align: left;
-        }
+        .mensaje-alerta { padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; display: none; text-align: left; }
         .mensaje-alerta.error { background: #fee2e2; color: #dc2626; }
         .mensaje-alerta.exito { background: #dcfce7; color: #16a34a; }
 
@@ -146,382 +76,55 @@
             flex-direction: column; 
         } 
 
-        .barra-superior {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #334155;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        } 
+        .barra-superior { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 10px; flex-shrink: 0; } 
+        .nombre-lista { font-size: 18px; font-weight: bold; color: #38bdf8; } 
+        .derecha-superior { display: flex; align-items: center; gap: 15px; } 
+        .reloj { font-size: 16px; color: #e2e8f0; font-family: monospace; background: #1e293b; padding: 4px 8px; border-radius: 4px; } 
 
-        .nombre-lista {
-            font-size: 18px;
-            font-weight: bold;
-            color: #38bdf8;
-        } 
+        /* Estado Conexión */
+        .badge-red { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #16a34a; color: white; }
+        .badge-red.offline { background: #dc2626; }
 
-        .derecha-superior {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        } 
+        .btn-puntos { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 5px; } 
+        .menu-tres-puntos { position: relative; display: inline-block; } 
+        .menu-contenido { display: none; position: absolute; right: 0; background-color: #1e293b; min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.4); border: 1px solid #334155; border-radius: 6px; z-index: 10; } 
+        .menu-contenido a { color: white; padding: 12px 16px; text-decoration: none; display: block; font-size: 14px; cursor: pointer; } 
+        .menu-contenido a:hover { background-color: #334155; } 
 
-        .reloj {
-            font-size: 16px;
-            color: #e2e8f0;
-            font-family: monospace;
-            background: #1e293b;
-            padding: 4px 8px;
-            border-radius: 4px;
-        } 
+        .zona-entrada-apuestas { display: flex; justify-content: center; align-items: flex-end; gap: 15px; margin-bottom: 10px; background: #1e293b; padding: 10px; border-radius: 8px; flex-shrink: 0; position: relative; } 
+        .recuadro-apuesta { display: flex; flex-direction: column; width: 140px; } 
+        .recuadro-apuesta label { font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-align: center; text-transform: uppercase; font-weight: bold; } 
+        .recuadro-apuesta input { width: 100%; padding: 8px; font-size: 18px; text-align: center; border-radius: 6px; border: 2px solid #475569; background: #0f172a; color: #ffffff; font-weight: bold; } 
+        .btn-anotar { background: #2563eb; color: white; border: none; padding: 0 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; height: 41px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; } 
+        .btn-anotar:hover { background: #1d4ed8; } 
 
-        .menu-tres-puntos {
-            position: relative;
-            display: inline-block;
-        } 
+        .letrero-banco-cerrado { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); color: #ef4444; font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; align-items: center; justify-content: center; border-radius: 8px; z-index: 5; }
 
-        .btn-puntos {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 0 5px;
-        } 
+        .area-principal-trabajo { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; } 
+        .pantallas-captacion { display: flex; gap: 10px; flex-grow: 1; overflow: hidden; margin-bottom: 10px; } 
+        .pantalla-bloque { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px; flex: 1; display: flex; flex-direction: column; overflow: hidden; } 
+        .pantalla-bloque h4 { font-size: 13px; color: #38bdf8; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 6px; text-transform: uppercase; flex-shrink: 0; } 
+        
+        .contenido-pantalla { flex-grow: 1; font-family: monospace; font-size: 19px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 4px; } 
+        
+        /* Renglones de control visual */
+        .renglon-jugada { padding: 6px 0; border-bottom: 1px solid #1e293b; color: #4ade80; } 
+        .renglon-jugada.offline-mode { color: #ef4444 !important; font-weight: bold; }
+        .renglon-jugada.bote-mode { color: #f59e0b !important; } 
 
-        .menu-contenido {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #1e293b;
-            min-width: 180px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
-            border: 1px solid #334155;
-            border-radius: 6px;
-            z-index: 10;
-        } 
-
-        .menu-contenido a {
-            color: white;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 14px;
-            cursor: pointer;
-        } 
-
-        .menu-contenido a:hover {
-            background-color: #334155;
-        } 
-
-        .zona-entrada-apuestas {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end; 
-            gap: 15px;
-            margin-bottom: 10px;
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 8px;
-            flex-shrink: 0;
-            position: relative;
-        } 
-
-        .recuadro-apuesta {
-            display: flex;
-            flex-direction: column;
-            width: 140px; 
-        } 
-
-        .recuadro-apuesta label {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-bottom: 4px;
-            text-align: center;
-            text-transform: uppercase;
-            font-weight: bold;
-        } 
-
-        .recuadro-apuesta input {
-            width: 100%;
-            padding: 8px;
-            font-size: 18px;
-            text-align: center;
-            border-radius: 6px;
-            border: 2px solid #475569;
-            background: #0f172a;
-            color: #ffffff;
-            font-weight: bold;
-        } 
-
-        .btn-anotar {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 0 20px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            height: 41px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        } 
-
-        .btn-anotar:hover {
-            background: #1d4ed8;
-        } 
-
-        .letrero-banco-cerrado {
-            display: none; 
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            color: #ef4444;
-            font-size: 22px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            z-index: 5;
-        }
-
-        .area-principal-trabajo {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            overflow: hidden; 
-        } 
-
-        .pantallas-captacion {
-            display: flex; 
-            gap: 10px;
-            flex-grow: 1;
-            overflow: hidden; 
-            margin-bottom: 10px;
-        } 
-
-        .pantalla-bloque {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 10px;
-            flex: 1; 
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        } 
-
-        .pantalla-bloque h4 {
-            font-size: 13px;
-            color: #38bdf8;
-            text-align: center;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 6px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            flex-shrink: 0;
-        } 
-
-        .contenido-pantalla {
-            flex-grow: 1;
-            font-family: monospace;
-            font-size: 19px; 
-            overflow-y: auto; 
-            background: #0f172a;
-            padding: 10px;
-            border-radius: 4px;
-        } 
-
-        .renglon-jugada {
-            padding: 6px 0; 
-            border-bottom: 1px solid #1e293b;
-            color: #4ade80; 
-        } 
-
-        .zona-inferior {
-            display: flex;
-            justify-content: flex-end;
-            flex-shrink: 0;
-            padding-top: 5px;
-        } 
-
-        .tabla-totales {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 8px 12px; 
-            min-width: 290px;  
-        } 
-
-        .encabezado-tabla {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px; 
-            color: #94a3b8;
-            text-transform: uppercase;
-            font-weight: bold;
-            border-bottom: 1px solid #475569;
-            padding-bottom: 3px;
-            margin-bottom: 4px;
-        }
-
+        .zona-inferior { display: flex; justify-content: flex-end; flex-shrink: 0; padding-top: 5px; } 
+        .tabla-totales { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; min-width: 290px; } 
+        .encabezado-tabla { display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: bold; border-bottom: 1px solid #475569; padding-bottom: 3px; margin-bottom: 4px; }
         .col-concepto { width: 45%; text-align: left; }
         .col-importa { width: 27%; text-align: right; color: #f8fafc; }
         .col-limpio { width: 28%; text-align: right; color: #4ade80; }
 
-        .fila-total {
-            display: flex;
-            justify-content: space-between;
-            padding: 2px 0; 
-            font-size: 11px; 
-            color: #cbd5e1;
-        } 
-
-        .fila-total.principal {
-            border-top: 1px solid #475569;
-            margin-top: 4px;
-            padding-top: 4px;
-            font-weight: bold;
-            font-size: 13px; 
-        }
-        
+        .fila-total { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; color: #cbd5e1; } 
+        .fila-total.principal { border-top: 1px solid #475569; margin-top: 4px; padding-top: 4px; font-weight: bold; font-size: 13px; }
         .fila-total.principal .col-importa { color: #38bdf8; font-size: 13px; }
         .fila-total.principal .col-limpio { color: #4ade80; font-size: 13px; }
 
-        .modal-reglamento {
-            display: none; 
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85); 
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .contenido-reglamento {
-            background: #1e293b;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 550px;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            padding: 20px;
-        }
-
-        .titulo-reglamento {
-            color: #38bdf8;
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-            border-bottom: 2px solid #334155;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .seccion-regla {
-            margin-bottom: 15px;
-            background: #0f172a;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 4px solid #3b82f6;
-        }
-
-        .seccion-regla.critico {
-            border-left-color: #ef4444;
-        }
-
-        .seccion-regla h5 {
-            color: #94a3b8;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .texto-regla {
-            font-size: 14px;
-            color: #e2e8f0;
-            line-height: 1.5;
-        }
-
-        .tabla-regla {
-            width: 100%;
-            margin-top: 5px;
-            border-collapse: collapse;
-        }
-
-        .tabla-regla th, .tabla-regla td {
-            text-align: left;
-            padding: 6px 8px;
-            font-size: 13px;
-        }
-
-        .tabla-regla th {
-            color: #64748b;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-        }
-
-        .tabla-regla td {
-            color: #f1f5f9;
-            border-top: 1px solid #1e293b;
-        }
-
-        .badge-limitado {
-            background: #ef4444;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-            font-weight: bold;
-            margin-right: 6px;
-            display: inline-block;
-        }
-
-        .btn-cerrar-modal {
-            width: 100%;
-            background: #334155;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-
-        .btn-cerrar-modal:hover {
-            background: #475569;
-        }
-        
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.7);
-            z-index: 500;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-        }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); z-index: 500; justify-content: center; align-items: center; color: white; font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body> 
@@ -532,44 +135,35 @@
         <div id="loginContent">
             <h2>Panel de Control</h2>
             <p>Introduce tus credenciales para ingresar</p>
-            
             <div id="alertaForm" class="mensaje-alerta error"></div>
-            
             <form id="loginForm" onsubmit="entrarAlSistema(event)">
                 <div class="input-group">
                     <label for="usuario">Usuario del Listero</label>
                     <input type="text" id="usuario" placeholder="Ej: listero_juan" required>
                 </div>
-                
                 <div class="input-group">
                     <label for="password">Contraseña única</label>
                     <input type="password" id="password" placeholder="••••••••" required>
                 </div>
-                
                 <button type="submit" class="btn-ingresar">Ingresar al Sistema</button>
             </form>
-            <div class="link-registro">
-                ¿No tienes cuenta? <a onclick="mostrarFormularioRegistro()">Regístrate aquí</a>
-            </div>
+            <div class="link-registro">¿No tienes cuenta? <a onclick="mostrarFormularioRegistro()">Regístrate aquí</a></div>
         </div>
     </div> 
 
     <div class="panel-listero" id="seccionListero">
-        
         <div class="barra-superior">
             <div class="nombre-lista" id="nombreListaSuperior">Lista: Colector</div>
-            
             <div class="derecha-superior">
+                <div id="estadoRed" class="badge-red">ONLINE</div>
                 <div class="reloj" id="relojDigital">00:00:00 PM</div>
-                
                 <div class="menu-tres-puntos">
                     <button class="btn-puntos" onclick="toggleMenu()">⋮</button>
                     <div class="menu-contenido" id="menuDesglegable">
-                        <a onclick="abrirReglamento()">📋 Reglamento</a>
+                        <a onclick="alert('Límites de Acumulación:\nFijos/Corridos: $500 c/u\nParlés: $50 por combinación\nCentenas: $50 por número\n\nEl exceso se divide dinámicamente al BOTE.')">📈 Ver Límites</a>
                         <a onclick="verListasGuardadas()">📚 Listas Guardadas</a>
-                        <a onclick="alert('Números Limitados (Fijos):\n\n11, 55, 90')">🚫 Limitados</a>
                         <hr style="border: 0; border-top: 1px solid #334155;">
-                        <a onclick="limpiarDatosUsuario()" style="color: #e11d48;">🗑️ Borrar esta Lista</a>
+                        <a onclick="limpiarDatosUsuario()" style="color: #e11d48;">🗑️ Vaciar Lista</a>
                         <a onclick="cerrarSesion()" style="color: #ef4444;">🚪 Cerrar Sesión</a>
                     </div>
                 </div>
@@ -578,7 +172,6 @@
 
         <div class="zona-entrada-apuestas">
             <div class="letrero-banco-cerrado" id="avisoBancoCerrado">Banco Cerrado</div>
-
             <div class="recuadro-apuesta">
                 <label for="campoNumero">Número</label>
                 <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearNumeros(this)" autocomplete="off">
@@ -592,221 +185,100 @@
 
         <div class="area-principal-trabajo">
             <div class="pantallas-captacion">
-                <div class="pantalla-bloque">
-                    <h4>Fijos y Corridos</h4>
-                    <div class="contenido-pantalla" id="pantallaFijosCorridos"></div>
-                </div>
-                <div class="pantalla-bloque">
-                    <h4>Parles</h4>
-                    <div class="contenido-pantalla" id="pantallaParles"></div>
-                </div>
-                <div class="pantalla-bloque">
-                    <h4>Centenas</h4>
-                    <div class="contenido-pantalla" id="pantallaCentenas"></div>
-                </div>
+                <div class="pantalla-bloque"><h4>Fijos y Corridos</h4><div class="contenido-pantalla" id="pantallaFijosCorridos"></div></div>
+                <div class="pantalla-bloque"><h4>Parles</h4><div class="contenido-pantalla" id="pantallaParles"></div></div>
+                <div class="pantalla-bloque"><h4>Centenas</h4><div class="contenido-pantalla" id="pantallaCentenas"></div></div>
             </div> 
 
             <div class="zona-inferior">
                 <div class="tabla-totales">
-                    <div class="encabezado-tabla">
-                        <span class="col-concepto">Concepto</span>
-                        <span class="col-importa">Importa</span>
-                        <span class="col-limpio">Limpio</span>
-                    </div>
-                    <div class="fila-total">
-                        <span class="col-concepto">Fijos/Corridos:</span>
-                        <span class="col-importa" id="importaFC">$0.00</span>
-                        <span class="col-limpio" id="limpioFC">$0.00</span>
-                    </div>
-                    <div class="fila-total">
-                        <span class="col-concepto">Parles:</span>
-                        <span class="col-importa" id="importaParles">$0.00</span>
-                        <span class="col-limpio" id="limpioParles">$0.00</span>
-                    </div>
-                    <div class="fila-total">
-                        <span class="col-concepto">Centenas:</span>
-                        <span class="col-importa" id="importaCentenas">$0.00</span>
-                        <span class="col-limpio" id="limpioCentenas">$0.00</span>
-                    </div>
-                    <div class="fila-total principal">
-                        <span class="col-concepto">TOTALES:</span>
-                        <span class="col-importa" id="totalImporta">$0.00</span>
-                        <span class="col-limpio" id="totalLimpios">$0.00</span>
-                    </div>
+                    <div class="encabezado-tabla"><span class="col-concepto">Concepto</span><span class="col-importa">Importa</span><span class="col-limpio">Limpio</span></div>
+                    <div class="fila-total"><span class="col-concepto">Fijos/Corridos:</span><span class="col-importa" id="importaFC">$0.00</span><span class="col-limpio" id="limpioFC">$0.00</span></div>
+                    <div class="fila-total"><span class="col-concepto">Parles:</span><span class="col-importa" id="importaParles">$0.00</span><span class="col-limpio" id="limpioParles">$0.00</span></div>
+                    <div class="fila-total"><span class="col-concepto">Centenas:</span><span class="col-importa" id="importaCentenas">$0.00</span><span class="col-limpio" id="limpioCentenas">$0.00</span></div>
+                    <div class="fila-total principal"><span class="col-concepto">TOTAL LISTA:</span><span class="col-importa" id="totalImporta">$0.00</span><span class="col-limpio" id="totalLimpios">$0.00</span></div>
                 </div>
             </div>
         </div> 
     </div> 
 
-    <div class="modal-reglamento" id="modalReglamento">
-        <div class="contenido-reglamento">
-            <div class="titulo-reglamento">Reglamento de Trabajo Oficial</div>
-            
-            <div class="seccion-regla">
-                <h5>🕒 Horarios de Captación</h5>
-                <div class="texto-regla">
-                    <strong>Tiro Mañana:</strong> 7:00 AM a 1:25 PM <br>
-                    <strong>Tiro Noche:</strong> 2:00 PM a 9:30 PM <br>
-                    <span style="color: #ef4444; font-size: 12px;">* Fuera de este horario el sistema mostrará "Banco Cerrado".</span>
-                </div>
-            </div>
-
-            <div class="seccion-regla">
-                <h5>💰 Límites de Apuestas</h5>
-                <table class="tabla-regla">
-                    <thead>
-                        <tr>
-                            <th>Modalidad</th>
-                            <th>Límite Lista</th>
-                            <th>Límite Bote</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Fijos y Corridos</td><td>$1,000</td><td>$10,000</td></tr>
-                        <tr><td>Parles</td><td>$1,000</td><td>$10,000</td></tr>
-                        <tr><td>Centenas</td><td>$1,000</td><td>$10,000</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="seccion-regla critico">
-                <h5>🚫 Números Limitados (Fijos)</h5>
-                <div class="texto-regla" style="margin-top: 5px;">
-                    <span class="badge-limitado">90</span>
-                    <span class="badge-limitado">11</span>
-                    <span class="badge-limitado">55</span>
-                </div>
-            </div>
-
-            <div class="seccion-regla">
-                <h5>💵 Tabla de Pagos</h5>
-                <div class="texto-regla">
-                    • <strong>Fijos:</strong> Paga 75 veces <br>
-                    • <strong>Corridos:</strong> Paga 25 veces <br>
-                    • <strong>Parles:</strong> Paga 1100 veces
-                </div>
-            </div>
-
-            <button class="btn-cerrar-modal" onclick="cerrarReglamento()">Cerrar Reglamento</button>
-        </div>
-    </div>
-
     <script>
-        // ==========================================
-        // CONEXIÓN DIRECTA CON TU SUPABASE
-        // ==========================================
+        // CONFIGURACIÓN SUPABASE
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        var COMISION_FC = 20;       
-        var COMISION_PARLES = 20;   
-        var COMISION_CENTENAS = 20; 
+        var COMISION_FC = 20, COMISION_PARLES = 20, COMISION_CENTENAS = 20; 
+        var usuarioActivo = "", listaActivaId = null, isOnline = true;
 
-        var usuarioActivo = "";
-        var listaActivaId = null;
-        var turnoActual = "Cerrado";
-        var bancoBloqueadoPorHorario = false;
-        var fraudeHoraDetectado = false;
+        // ESTRUCTURAS DE CONTROL PARA EL CUPO ACUMULADO LOCAL DE ESTA SESIÓN
+        var acumuladoFijos = {};    // { '20': monto_actual }
+        var acumuladoCorridos = {}; // { '20': monto_actual }
+        var acumuladoParles = {};    // { '20 30 40': monto_actual }
+        var acumuladoCentenas = {};  // { '123': monto_actual }
 
-        var ultimaHoraVerificada = Date.now();
-        var toleranciaFraude = 4000; 
-
-        function toggleLoading(show) {
-            document.getElementById('loadingSystem').style.display = show ? 'flex' : 'none';
+        // Monitoreo de Red
+        function actualizarEstadoRed() {
+            isOnline = navigator.onLine;
+            const badge = document.getElementById('estadoRed');
+            if (isOnline) {
+                badge.innerText = "ONLINE";
+                badge.classList.remove('offline');
+                sincronizarJugadasPendientes();
+            } else {
+                badge.innerText = "OFFLINE";
+                badge.classList.add('offline');
+            }
         }
+        window.addEventListener('online', actualizarEstadoRed);
+        window.addEventListener('offline', actualizarEstadoRed);
 
-        function mostrarAlerta(texto, tipo) {
-            const el = document.getElementById('alertaForm');
-            if(!el) return;
-            el.className = "mensaje-alerta " + (tipo === 'exito' ? 'exito' : 'error');
-            el.innerText = texto;
-            el.style.display = texto ? 'block' : 'none';
-        }
+        function toggleLoading(show) { document.getElementById('loadingSystem').style.display = show ? 'flex' : 'none'; }
 
-        function abrirReglamento() { document.getElementById('modalReglamento').style.display = 'flex'; }
-        function cerrarReglamento() { document.getElementById('modalReglamento').style.display = 'none'; }
-
-        // Criptografía rápida para contraseñas seguras en tu tabla SQL
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // CONTROL DE LOGIN EN SUPABASE
         async function entrarAlSistema(event) {
             event.preventDefault(); 
-            var usuarioIngresado = document.getElementById('usuario').value.trim().toLowerCase();
-            var passwordIngresado = document.getElementById('password').value.trim();
-            if (!usuarioIngresado || !passwordIngresado) return;
+            var user = document.getElementById('usuario').value.trim().toLowerCase();
+            var pass = document.getElementById('password').value.trim();
+            if (!user || !pass) return;
 
             toggleLoading(true);
-            mostrarAlerta("");
-
             try {
-                const { data: usuario, error } = await supabaseClient
-                    .from('usuarios_listeros')
-                    .select('*')
-                    .eq('usuario', usuarioIngresado)
-                    .maybeSingle();
+                const { data: u } = await supabaseClient.from('usuarios_listeros').select('*').eq('usuario', user).maybeSingle();
+                if (!u) { alert("Usuario no encontrado."); toggleLoading(false); return; }
+                
+                const hp = await hashPassword(pass);
+                if (hp !== u.password_hash) { alert("Contraseña incorrecta."); toggleLoading(false); return; }
 
-                if (error || !usuario) {
-                    mostrarAlerta("El usuario no existe. Regístrate primero.");
-                    toggleLoading(false);
-                    return;
-                }
-
-                const hashComprobar = await hashPassword(passwordIngresado);
-                if (hashComprobar !== usuario.password_hash) {
-                    mostrarAlerta("Contraseña incorrecta.");
-                    toggleLoading(false);
-                    return;
-                }
-
-                usuarioActivo = usuario.usuario; 
+                usuarioActivo = u.usuario; 
                 document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();
                 document.getElementById('seccionLogin').style.display = 'none';
                 document.getElementById('seccionListero').style.display = 'flex'; 
 
-                definirTurnoPorHora();
                 await obtenerOCrearListaDeHoy();
-                await cargarJugadasDesdeSupabase();
-            } catch(e) {
-                mostrarAlerta("Error de conexión a internet.");
-            }
+                await cargarJugadasLocalesYCloud();
+            } catch(e) { alert("Error de acceso. Inicializando entorno."); }
             toggleLoading(false);
+            actualizarEstadoRed();
         } 
 
-        // FORMULARIO DINÁMICO DE REGISTRO
         function mostrarFormularioRegistro() {
             document.getElementById('loginContent').innerHTML = `
-                <h2>Registro de Listero</h2>
-                <p>Crea tu cuenta oficial en el sistema</p>
-                <div id="alertaForm" class="mensaje-alerta"></div>
-                <form id="registroForm" onsubmit="procesarRegistro(event)">
-                    <div class="input-group">
-                        <label for="regUsuario">Usuario nuevo</label>
-                        <input type="text" id="regUsuario" placeholder="Ej: listero_pedro" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="regNombre">Nombre completo</label>
-                        <input type="text" id="regNombre" placeholder="Pedro Pérez" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="regEmail">Correo electrónico</label>
-                        <input type="email" id="regEmail" placeholder="pedro@gmail.com" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="regPassword">Contraseña de acceso</label>
-                        <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" minlength="6" required>
-                    </div>
-                    <button type="submit" class="btn-ingresar">Crear Cuenta y Entrar</button>
-                    <button type="button" class="btn-ingresar secondary" onclick="location.reload()">Volver Atrás</button>
-                </form>
-            `;
+                <h2>Registro de Listero</h2><p>Crea tu cuenta oficial</p>
+                <form onsubmit="procesarRegistro(event)">
+                    <div class="input-group"><label>Usuario nuevo</label><input type="text" id="regUsuario" required></div>
+                    <div class="input-group"><label>Nombre completo</label><input type="text" id="regNombre" required></div>
+                    <div class="input-group"><label>Correo electrónico</label><input type="email" id="regEmail" required></div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="regPassword" minlength="6" required></div>
+                    <button type="submit" class="btn-ingresar">Crear Cuenta</button>
+                    <button type="button" class="btn-ingresar secondary" onclick="location.reload()">Atrás</button>
+                </form>`;
         }
 
         async function procesarRegistro(event) {
@@ -815,229 +287,230 @@
             var name = document.getElementById('regNombre').value.trim();
             var email = document.getElementById('regEmail').value.trim();
             var pass = document.getElementById('regPassword').value.trim();
-
             toggleLoading(true);
-
             try {
-                const { data: existente } = await supabaseClient
-                    .from('usuarios_listeros')
-                    .select('usuario')
-                    .eq('usuario', user)
-                    .maybeSingle();
-
-                if (existente) {
-                    mostrarAlerta("Este nombre de usuario ya está ocupado.");
-                    toggleLoading(false);
-                    return;
-                }
-
                 const hash = await hashPassword(pass);
-
-                const { error: insertError } = await supabaseClient
-                    .from('usuarios_listeros')
-                    .insert({
-                        usuario: user,
-                        nombre_completo: name,
-                        email: email,
-                        password_hash: hash
-                    });
-
-                if(insertError) throw insertError;
-
-                mostrarAlerta("¡Cuenta creada! Entrando...", "exito");
-                setTimeout(async () => {
-                    usuarioActivo = user;
-                    document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();
-                    document.getElementById('seccionLogin').style.display = 'none';
-                    document.getElementById('seccionListero').style.display = 'flex'; 
-                    definirTurnoPorHora();
-                    await obtenerOCrearListaDeHoy();
-                    toggleLoading(false);
-                }, 1000);
-
-            } catch(e) {
-                mostrarAlerta("Error al registrar datos. Verifica el SQL.");
-                toggleLoading(false);
-            }
-        }
-
-        function cerrarSesion() {
-            location.reload();
-        } 
-
-        // SINCRONIZACIÓN DE TURNO Y LISTAS (SUPABASE)
-        function definirTurnoPorHora() {
-            var ahora = new Date();
-            var tiempoEnMinutos = (ahora.getHours() * 60) + ahora.getMinutes();
-            if (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805) {
-                turnoActual = "Mañana";
-            } else if (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290) {
-                turnoActual = "Noche";
-            } else {
-                turnoActual = "Cerrado";
-            }
+                await supabaseClient.from('usuarios_listeros').insert({ usuario: user, nombre_completo: name, email: email, password_hash: hash });
+                alert("¡Cuenta creada con éxito!"); location.reload();
+            } catch(e) { alert("Error al registrar."); }
+            toggleLoading(false);
         }
 
         async function obtenerOCrearListaDeHoy() {
             if(!usuarioActivo) return;
             var hoy = new Date().toISOString().split('T')[0];
-
+            listaActivaId = "local-" + usuarioActivo + "-" + hoy; 
+            if(!isOnline) return;
             try {
-                const { data: lista, error } = await supabaseClient
-                    .from('listas_de_trabajo')
-                    .select('*')
-                    .eq('usuario', usuarioActivo)
-                    .eq('fecha', hoy)
-                    .eq('turno', turnoActual)
-                    .maybeSingle();
-
-                if(lista) {
-                    listaActivaId = lista.id;
-                    return;
-                }
-
-                const { data: nuevaLista } = await supabaseClient
-                    .from('listas_de_trabajo')
-                    .insert({
-                        usuario: usuarioActivo,
-                        fecha: hoy,
-                        turno: turnoActual,
-                        total_importa: 0,
-                        total_limpio: 0
-                    })
-                    .select()
-                    .single();
-
-                listaActivaId = nuevaLista.id;
-            } catch(e) { console.error(e); }
+                const { data: l } = await supabaseClient.from('listas_de_trabajo').select('*').eq('usuario', usuarioActivo).eq('fecha', hoy).maybeSingle();
+                if(l) { listaActivaId = l.id; return; }
+                const { data: nl } = await supabaseClient.from('listas_de_trabajo').insert({ usuario: usuarioActivo, fecha: hoy, turno: 'Diario', total_importa: 0, total_limpio: 0 }).select().single();
+                listaActivaId = nl.id;
+            } catch(e){}
         }
 
-        // PROCESADOR DE JUGADAS ORIGINAL INTEGRADO A CLOUD
+        // CONTROLADOR DE PARTICIÓN DE CUPOS DINÁMICOS
         async function procesarJugada() {
-            if (bancoBloqueadoPorHorario || fraudeHoraDetectado || !listaActivaId) {
-                alert("Operación rechazada. Banco Cerrado.");
-                return;
-            }
-
             var campoNum = document.getElementById('campoNumero');
             var campoPrecio = document.getElementById('campoPrecio');
-            var stringNumeros = campoNum.value.trim();
-            var stringPrecio = campoPrecio.value.trim(); 
+            var strNum = campoNum.value.trim();
+            var strPrecio = campoPrecio.value.trim(); 
+            if (!strNum || !strPrecio) return; 
 
-            if (!stringNumeros || !stringPrecio) return; 
+            var bloques = strNum.split(' ');
+            var union = bloques.join('');
 
-            var bloques = stringNumeros.split(' ');
-            var unionDigitos = bloques.join('');
-            var nuevaJugadaObj = null;
+            // 1. EVALUAR CENTENAS (Límite acumulado de $50)
+            if (union.length === 3) {
+                var pBase = parseFloat(strPrecio);
+                if (isNaN(pBase) || pBase < 1) return;
 
-            if (unionDigitos.length === 3) {
-                var numPrecio = parseFloat(stringPrecio);
-                if (isNaN(numPrecio) || numPrecio < 1 || numPrecio > 10000) {
-                    alert("El precio debe ser entre 1 y 10000"); return;
-                }
-                var textoPantalla = unionDigitos + " (" + numPrecio + ")";
-                var comision = (numPrecio * COMISION_CENTENAS) / 100;
-                var limpio = numPrecio - comision;
-                nuevaJugadaObj = { tipo: 'centenas', numero: unionDigitos, precio_base: numPrecio, bruto: numPrecio, limpio: limpio, texto: textoPantalla };
+                var yaAcumulado = acumuladoCentenas[union] || 0;
+                var cupoDisponible = Math.max(0, 50 - yaAcumulado);
 
-            } else if (bloques.length === 1) {
-                var numeroFijo = bloques[0];
-                if (numeroFijo.length !== 2) {
-                    alert("El número debe tener 2 dígitos obligatoriamente."); return;
-                } 
-                var precioFijo = 0, precioCorrido = 0; 
-                if (stringPrecio.includes(',')) {
-                    var partesPrecio = stringPrecio.split(',');
-                    precioFijo = parseFloat(partesPrecio[0]) || 0;
-                    precioCorrido = parseFloat(partesPrecio[1]) || 0;
-                } else {
-                    precioFijo = parseFloat(stringPrecio) || 0;
-                } 
+                if (cupoDisponible > 0) {
+                    var paraLista = Math.min(pBase, cupoDisponible);
+                    var paraBote = pBase - paraLista;
 
-                if ((precioFijo > 0 && (precioFijo < 1 || precioFijo > 10000)) || (precioCorrido > 0 && (precioCorrido < 1 || precioCorrido > 10000))) {
-                    alert("Los precios deben estar entre 1 y 10000"); return;
-                } 
-
-                var importeBrutoFC = precioFijo + precioCorrido;
-                var comisionFC = (importeBrutoFC * COMISION_FC) / 100;
-                var limpioFC = importeBrutoFC - comisionFC;
-                textoPantalla = numeroFijo + " (" + precioFijo + ") (" + precioCorrido + ")";
-                
-                nuevaJugadaObj = { tipo: 'fc', numero: numeroFijo, precio_base: precioFijo, bruto: importeBrutoFC, limpio: limpioFC, texto: textoPantalla };
-
-            } else if (bloques.length >= 2) {
-                for (var i = 0; i < bloques.length; i++) {
-                    if (bloques[i].length !== 2) {
-                        alert("Todos los números del parle deben tener 2 dígitos."); return;
+                    if (paraLista > 0) {
+                        var comision = (paraLista * COMISION_CENTENAS) / 100;
+                        await salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraLista, bruto: paraLista, limpio: paraLista - comision, texto: `${union} (${paraLista})`, destino: 'apuestas' });
+                        acumuladoCentenas[union] = yaAcumulado + paraLista;
                     }
-                } 
-                var basePrecioParle = parseFloat(stringPrecio);
-                if (isNaN(basePrecioParle) || basePrecioParle < 1 || basePrecioParle > 10000) {
-                    alert("El precio del parle debe ser entre 1 y 10000"); return;
-                } 
-                var combinaciones = (bloques.length * (bloques.length - 1)) / 2;
-                var importeBrutoParle = combinaciones * basePrecioParle;
-                var limpioParle = importeBrutoParle - ((importeBrutoParle * COMISION_PARLES) / 100);
-                textoPantalla = bloques.join(' ') + " (" + basePrecioParle + ")";
+                    if (paraBote > 0) {
+                        var comisionB = (paraBote * COMISION_CENTENAS) / 100;
+                        await salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraBote, bruto: paraBote, limpio: paraBote - comisionB, texto: `${union} (${paraBote})`, destino: 'bote' });
+                    }
+                } else {
+                    // No hay cupo, va completa al bote
+                    var comision = (pBase * COMISION_CENTENAS) / 100;
+                    await salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: pBase, bruto: pBase, limpio: pBase - comision, texto: `${union} (${pBase})`, destino: 'bote' });
+                }
 
-                nuevaJugadaObj = { tipo: 'parles', numero: bloques.join(' '), precio_base: basePrecioParle, bruto: importeBrutoParle, limpio: limpioParle, texto: textoPantalla };
-            } 
+            // 2. EVALUAR FIJOS Y CORRIDOS (Límite acumulado de $500 c/u por separado)
+            } else if (bloques.length === 1) {
+                var numFijo = bloques[0];
+                if (numFijo.length !== 2) return;
 
-            if (nuevaJugadaObj !== null) {
-                // Inserción en la base de datos Supabase
-                const { error } = await supabaseClient.from('apuestas').insert({
-                    lista_id: listaActivaId,
-                    usuario: usuarioActivo,
-                    tipo: nuevaJugadaObj.tipo,
-                    numero: nuevaJugadaObj.numero,
-                    precio: nuevaJugadaObj.precio_base,
-                    importe_bruto: nuevaJugadaObj.bruto,
-                    importe_limpio: nuevaJugadaObj.limpio,
-                    metadata: { texto: nuevaJugadaObj.texto }
-                });
+                var pFijo = 0, pCorrido = 0;
+                if (strPrecio.includes(',')) {
+                    var partes = strPrecio.split(',');
+                    pFijo = parseFloat(partes[0]) || 0;
+                    pCorrido = parseFloat(partes[1]) || 0;
+                } else {
+                    pFijo = parseFloat(strPrecio) || 0;
+                }
+                if (pFijo < 0 || pCorrido < 0) return;
 
-                if(!error) {
-                    inyectarRenglonEnPantalla(nuevaJugadaObj.tipo, nuevaJugadaObj.texto);
-                    actualizarValoresYTotales(nuevaJugadaObj.tipo, nuevaJugadaObj.bruto, nuevaJugadaObj.limpio);
-                    await recalcularTotalesEnListaPadre(nuevaJugadaObj.bruto, nuevaJugadaObj.limpio);
+                // Variables para segmentar el Fijo
+                var yaAcumuladoFijo = acumuladoFijos[numFijo] || 0;
+                var cupoFijo = Math.max(0, 500 - yaAcumuladoFijo);
+                var fijoLista = 0, fijoBote = 0;
+
+                if (pFijo > 0) {
+                    fijoLista = Math.min(pFijo, cupoFijo);
+                    fijoBote = pFijo - fijoLista;
+                    acumuladoFijos[numFijo] = yaAcumuladoFijo + fijoLista;
+                }
+
+                // Variables para segmentar el Corrido
+                var yaAcumuladoCorrido = acumuladoCorridos[numFijo] || 0;
+                var cupoCorrido = Math.max(0, 500 - yaAcumuladoCorrido);
+                var corridoLista = 0, corridoBote = 0;
+
+                if (pCorrido > 0) {
+                    corridoLista = Math.min(pCorrido, cupoCorrido);
+                    corridoBote = pCorrido - corridoLista;
+                    acumuladoCorridos[numFijo] = yaAcumuladoCorrido + corridoLista;
+                }
+
+                // Guardar bloque de la Lista Principal si lleva algún importe válido
+                if (fijoLista > 0 || corridoLista > 0) {
+                    var brutoL = fijoLista + corridoLista;
+                    var limpioL = brutoL - ((brutoL * COMISION_FC) / 100);
+                    await salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoLista, bruto: brutoL, limpio: limpioL, texto: `${numFijo} (${fijoLista}) (${corridoLista})`, destino: 'apuestas' });
+                }
+
+                // Guardar bloque del Bote si lleva excedentes
+                if (fijoBote > 0 || corridoBote > 0) {
+                    var brutoB = fijoBote + corridoBote;
+                    var limpioB = brutoB - ((brutoB * COMISION_FC) / 100);
+                    await salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoBote, bruto: brutoB, limpio: limpioB, texto: `${numFijo} (${fijoBote}) (${corridoBote})`, destino: 'bote' });
+                }
+
+            // 3. EVALUAR PARLÉS (Límite acumulado por combinación exacta de $50)
+            } else if (bloques.length >= 2) {
+                var baseParle = parseFloat(strPrecio);
+                if (isNaN(baseParle) || baseParle < 1) return;
+
+                // Ordenamos la combinación alfabéticamente para que '20 30' y '30 20' sumen al mismo pozo de cupo
+                var combinacionID = bloques.sort().join(' '); 
+
+                var combs = (bloques.length * (bloques.length - 1)) / 2;
+                var brutoTotalIngresado = combs * baseParle;
+
+                var yaAcumuladoP = acumuladoParles[combinacionID] || 0;
+                var cupoDisponibleP = Math.max(0, 50 - yaAcumuladoP);
+
+                if (cupoDisponibleP > 0) {
+                    var paraListaP = Math.min(brutoTotalIngresado, cupoDisponibleP);
+                    var paraBoteP = brutoTotalIngresado - paraListaP;
+
+                    if (paraListaP > 0) {
+                        // Calcular el precio base proporcional para guardar la fracción exacta
+                        var precioBaseLista = paraListaP / combs;
+                        var limpioP = paraListaP - ((paraListaP * COMISION_PARLES) / 100);
+                        await salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseLista, bruto: paraListaP, limpio: limpioP, texto: `${combinacionID} (${precioBaseLista.toFixed(2)})`, destino: 'apuestas' });
+                        acumuladoParles[combinacionID] = yaAcumuladoP + paraListaP;
+                    }
+
+                    if (paraBoteP > 0) {
+                        var precioBaseBote = paraBoteP / combs;
+                        var limpioPB = paraBoteP - ((paraBoteP * COMISION_PARLES) / 100);
+                        await salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseBote, bruto: paraBoteP, limpio: limpioPB, texto: `${combinacionID} (${precioBaseBote.toFixed(2)})`, destino: 'bote' });
+                    }
+                } else {
+                    // Sin cupo, entra directo al bote el dinero completo
+                    var limpioPDirecto = brutoTotalIngresado - ((brutoTotalIngresado * COMISION_PARLES) / 100);
+                    await salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: baseParle, bruto: brutoTotalIngresado, limpio: limpioPDirecto, texto: `${combinacionID} (${baseParle})`, destino: 'bote' });
                 }
             }
 
             campoNum.value = ""; campoPrecio.value = ""; campoNum.focus();
-        } 
-
-        async function recalcularTotalesEnListaPadre(brutoSumar, limpioSumar) {
-            try {
-                const { data } = await supabaseClient.from('listas_de_trabajo').select('total_importa, total_limpio').eq('id', listaActivaId).single();
-                await supabaseClient.from('listas_de_trabajo').update({
-                    total_importa: (data.total_importa || 0) + brutoSumar,
-                    total_limpio: (data.total_limpio || 0) + limpioSumar
-                }).eq('id', listaActivaId);
-            } catch(e){}
         }
 
-        async function cargarJugadasDesdeSupabase() {
-            if(!listaActivaId) return;
-            limpiarPantallasVisuales();
-            try {
-                const { data: apuestas } = await supabaseClient
-                    .from('apuestas')
-                    .select('*')
-                    .eq('lista_id', listaActivaId)
-                    .order('hora_apuesta', { ascending: true });
+        // CONTROLADOR DE CONEXIÓN Y PERSISTENCIA LOCAL
+        async function salvarJugadaSistema(jugada) {
+            jugada.lista_id = listaActivaId;
+            jugada.usuario = usuarioActivo;
+            jugada.id_temporal = Date.now() + Math.random().toString();
 
-                if(apuestas) {
-                    apuestas.forEach(a => {
-                        inyectarRenglonEnPantalla(a.tipo, a.metadata?.texto || a.numero);
-                        actualizarValoresYTotales(a.tipo, a.importe_bruto, a.importe_limpio);
+            var localDB = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
+            
+            if (isOnline && !listaActivaId.toString().startsWith('local-')) {
+                try {
+                    const { error } = await supabaseClient.from(jugada.destino).insert({
+                        lista_id: listaActivaId,
+                        usuario: usuarioActivo,
+                        tipo: jugada.tipo,
+                        numero: jugada.numero,
+                        precio: jugada.precio,
+                        importe_bruto: jugada.bruto,
+                        importe_limpio: jugada.limpio,
+                        metadata: { texto: jugada.texto }
                     });
-                }
-            } catch(e){}
+
+                    if (!error) {
+                        renderJugadaPantalla(jugada, false);
+                        return;
+                    }
+                } catch(e){}
+            }
+
+            // Fallback Offline: Marcar de color rojo
+            localDB.push(jugada);
+            localStorage.setItem('kingball_offline_queue', JSON.stringify(localDB));
+            renderJugadaPantalla(jugada, true); 
         }
 
-        function inyectarRenglonEnPantalla(tipo, texto) {
-            var destinoId = tipo === 'fc' ? 'pantallaFijosCorridos' : (tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');
-            document.getElementById(destinoId).innerHTML += '<div class="renglon-jugada">' + texto + '</div>';
+        // SINCRONIZADOR AUTOMÁTICO EN SEGUNDO PLANO EN CUANTO HAY SEÑAL
+        async function sincronizarJugadasPendientes() {
+            if (!isOnline || listaActivaId.toString().startsWith('local-')) return;
+            var queue = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
+            if (queue.length === 0) return;
+
+            for (var i = 0; i < queue.length; i++) {
+                var j = queue[i];
+                try {
+                    const { error } = await supabaseClient.from(j.destino).insert({
+                        lista_id: listaActivaId,
+                        usuario: usuarioActivo,
+                        tipo: j.tipo,
+                        numero: j.numero,
+                        precio: j.precio,
+                        importe_bruto: j.bruto,
+                        importe_limpio: j.limpio,
+                        metadata: { texto: j.texto }
+                    });
+                    if(!error) {
+                        queue.splice(i, 1); i--;
+                    }
+                } catch(e) { break; }
+            }
+            localStorage.setItem('kingball_offline_queue', JSON.stringify(queue));
+            await refrescarTodoEntorno(); 
+        }
+
+        function renderJugadaPantalla(j, offlineVisual) {
+            var destinoId = j.tipo === 'fc' ? 'pantallaFijosCorridos' : (j.tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');
+            var claseAdicional = offlineVisual ? 'offline-mode' : (j.destino === 'bote' ? 'bote-mode' : '');
+            
+            var prefijo = j.destino === 'bote' ? '[BOTE] ' : '';
+            document.getElementById(destinoId).innerHTML += `<div class="renglon-jugada ${claseAdicional}">${prefijo}${j.texto}</div>`;
+            
+            if (j.destino !== 'bote') {
+                actualizarValoresYTotales(j.tipo, j.bruto, j.limpio);
+            }
         }
 
         function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma) {
@@ -1061,45 +534,67 @@
             document.getElementById('totalLimpios').innerText = "$" + (limFC + limPar + limCen).toFixed(2);
         }
 
-        async function limpiarDatosUsuario() {
-            if (!listaActivaId) return;
-            var confirmar = confirm("¿Vaciar por completo la lista activa en Supabase? Esta operación no se puede deshacer.");
-            if (confirmar) {
-                toggleLoading(true);
-                await supabaseClient.from('apuestas').delete().eq('lista_id', listaActivaId);
-                await supabaseClient.from('listas_de_trabajo').update({ total_importa: 0, total_limpio: 0 }).eq('id', listaActivaId);
-                limpiarPantallasVisuales();        
-                toggleLoading(false);
+        async function cargarJugadasLocalesYCloud() {
+            acumuladoFijos = {}; acumuladoCorridos = {}; acumuladoParles = {}; acumuladoCentenas = {};
+            limpiarPantallasVisuales();
+            
+            var queue = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
+            queue.forEach(j => {
+                renderJugadaPantalla(j, true);
+                recalcularMatrizAcumulados(j);
+            });
+            await cargarJugadasDesdeSupabase();
+        }
+
+        async function cargarJugadasDesdeSupabase() {
+            if(!isOnline || listaActivaId.toString().startsWith('local-')) return;
+            try {
+                const { data: ap } = await supabaseClient.from('apuestas').select('*').eq('lista_id', listaActivaId);
+                if(ap) {
+                    ap.forEach(a => { 
+                        var j = { tipo: a.tipo, texto: a.metadata?.texto || a.numero, bruto: a.importe_bruto, limpio: a.importe_limpio, destino: 'apuestas', numero: a.numero };
+                        renderJugadaPantalla(j, false); 
+                        recalcularMatrizAcumulados(j);
+                    });
+                }
+                const { data: bt } = await supabaseClient.from('bote').select('*').eq('lista_id', listaActivaId);
+                if(bt) {
+                    bt.forEach(b => { 
+                        renderJugadaPantalla({ tipo: b.tipo, texto: b.metadata?.texto || b.numero, bruto: b.importe_bruto, limpio: b.importe_limpio, destino: 'bote', numero: b.numero }, false); 
+                    });
+                }
+            } catch(e){}
+        }
+
+        function recalcularMatrizAcumulados(j) {
+            if (j.destino !== 'apuestas') return; // El bote no consume cupo de la lista principal
+            
+            if (j.tipo === 'centenas') {
+                acumuladoCentenas[j.numero] = (acumuladoCentenas[j.numero] || 0) + j.bruto;
+            } else if (j.tipo === 'parles') {
+                acumuladoParles[j.numero] = (acumuladoParles[j.numero] || 0) + j.bruto;
+            } else if (j.tipo === 'fc') {
+                // Al cargar de la BD, parseamos los valores internos del texto del metadata
+                var matches = j.texto.match(/\(([^)]+)\)/g);
+                if (matches && matches.length >= 1) {
+                    var fVal = parseFloat(matches[0].replace(/[()]/g, '')) || 0;
+                    var cVal = (matches.length >= 2) ? parseFloat(matches[1].replace(/[()]/g, '')) : 0;
+                    acumuladoFijos[j.numero] = (acumuladoFijos[j.numero] || 0) + fVal;
+                    acumuladoCorridos[j.numero] = (acumuladoCorridos[j.numero] || 0) + cVal;
+                }
             }
         }
 
-        async function verListasGuardadas() {
-            if (!usuarioActivo) return;
-            const { data } = await supabaseClient
-                .from('listas_de_trabajo')
-                .select('*')
-                .eq('usuario', usuarioActivo)
-                .order('fecha', { ascending: false })
-                .limit(10);
-
-            if (!data || data.length === 0) {
-                alert("No tienes listas guardadas."); return;
-            }
-            alert("--- ÚLTIMAS LISTAS ---\n" + data.map(l => `${l.fecha} (${l.turno}) -> Total Bruto: $${l.total_importa}`).join('\n'));
+        async function refrescarTodoEntorno() {
+            await cargarJugadasLocalesYCloud();
         }
 
         function limpiarPantallasVisuales() {
-            document.getElementById('pantallaCentenas').innerHTML = "";
-            document.getElementById('pantallaFijosCorridos').innerHTML = "";
-            document.getElementById('pantallaParles').innerHTML = "";
-            document.getElementById('importaFC').innerText = "$0.00";
-            document.getElementById('limpioFC').innerText = "$0.00";
-            document.getElementById('importaParles').innerText = "$0.00";
-            document.getElementById('limpioParles').innerText = "$0.00";
-            document.getElementById('importaCentenas').innerText = "$0.00";
-            document.getElementById('limpioCentenas').innerText = "$0.00";
-            document.getElementById('totalImporta').innerText = "$0.00";
-            document.getElementById('totalLimpios').innerText = "$0.00";
+            document.getElementById('pantallaCentenas').innerHTML = ""; document.getElementById('pantallaFijosCorridos').innerHTML = ""; document.getElementById('pantallaParles').innerHTML = "";
+            document.getElementById('importaFC').innerText = "$0.00"; document.getElementById('limpioFC').innerText = "$0.00";
+            document.getElementById('importaParles').innerText = "$0.00"; document.getElementById('limpioParles').innerText = "$0.00";
+            document.getElementById('importaCentenas').innerText = "$0.00"; document.getElementById('limpioCentenas').innerText = "$0.00";
+            document.getElementById('totalImporta').innerText = "$0.00"; document.getElementById('totalLimpios').innerText = "$0.00";
         }
 
         function formatearNumeros(input) {
@@ -1107,57 +602,18 @@
             var resultado = textoLimpio.match(/.{1,2}/g);
             input.value = resultado ? resultado.join(' ') : '';
         } 
-
         function evaluarEnter(event) { if (event.key === 'Enter') procesarJugada(); }
         function toggleMenu() { var m = document.getElementById('menuDesglegable'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; } 
+        function cerrarSesion() { location.reload(); }
         function machined(v) { return v < 10 ? '0' + v : v; }
 
-        // RELOJ Y SEGURIDAD ANTIFRAUDE EN VIVO
         function actualizarReloj() {
             var ahora = new Date();
-            var tiempoRealEjecucion = Date.now();
-            if (tiempoRealEjecucion - ultimaHoraVerificada < -toleranciaFraude || tiempoRealEjecucion - ultimaHoraVerificada > (1000 + toleranciaFraude)) {
-                fraudeHoraDetectado = true;
-            }
-            ultimaHoraVerificada = Date.now();
-
-            if (fraudeHoraDetectado) {
-                document.getElementById('relojDigital').innerText = "BLOQUEADO";
-                document.getElementById('relojDigital').style.color = "#ef4444";
-                document.getElementById('avisoBancoCerrado').innerText = "HORA CORRUPTA";
-                document.getElementById('avisoBancoCerrado').style.display = "flex";
-                return;
-            }
-
-            var horas = ahora.getHours();
-            var minutos = ahora.getMinutes();
-            var segundos = ahora.getSeconds();
-            var ampm = horas >= 12 ? 'PM' : 'AM';
-            
-            evaluarTrancaHorarios(horas, minutos);
-
-            var horasDoce = horas % 12 || 12; 
-            document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
+            var horasDoce = ahora.getHours() % 12 || 12; 
+            document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(ahora.getMinutes()) + ':' + machined(ahora.getSeconds()) + ' ' + (ahora.getHours() >= 12 ? 'PM' : 'AM');
         }
-
-        function evaluarTrancaHorarios(hora, minuto) {
-            if (fraudeHoraDetectado) return;
-            var tiempoEnMinutos = (hora * 60) + minuto;
-            var dentroM = (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805);
-            var dentroN = (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290);
-
-            var aviso = document.getElementById('avisoBancoCerrado');
-            if (dentroM || dentroN) {
-                bancoBloqueadoPorHorario = false;
-                aviso.style.display = "none";
-            } else {
-                bancoBloqueadoPorHorario = true;
-                aviso.style.display = "flex";
-            }
-        }
-        
         setInterval(actualizarReloj, 1000);
-        actualizarReloj(); 
+        actualizarReloj();
     </script> 
 </body>
 </html>
