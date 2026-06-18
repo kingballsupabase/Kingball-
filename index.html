@@ -29,7 +29,7 @@
             padding: 10px;
         } 
 
-        /* PANTALLA DE LOGIN Y REGISTRO */
+        /* PANTALLA DE LOGIN */
         .login-container {
             background: #ffffff;
             padding: 40px;
@@ -59,11 +59,7 @@
         .link-registro { margin-top: 15px; font-size: 14px; color: #64748b; }
         .link-registro a { color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: bold; }
 
-        .mensaje-alerta { padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; display: none; text-align: left; }
-        .mensaje-alerta.error { background: #fee2e2; color: #dc2626; }
-        .mensaje-alerta.exito { background: #dcfce7; color: #16a34a; }
-
-        /* ENTORNO DE TRABAJO FIJO */
+        /* ENTORNO DE TRABAJO */
         .panel-listero {
             display: none; 
             width: 100%;
@@ -83,7 +79,7 @@
 
         /* Estado Conexión */
         .badge-red { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #16a34a; color: white; }
-        .badge-red.offline { background: #dc2626; }
+        .badge-red.offline { background: #dc2626 !important; }
 
         .btn-puntos { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 5px; } 
         .menu-tres-puntos { position: relative; display: inline-block; } 
@@ -98,8 +94,6 @@
         .btn-anotar { background: #2563eb; color: white; border: none; padding: 0 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; height: 41px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; } 
         .btn-anotar:hover { background: #1d4ed8; } 
 
-        .letrero-banco-cerrado { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); color: #ef4444; font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; align-items: center; justify-content: center; border-radius: 8px; z-index: 5; }
-
         .area-principal-trabajo { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; } 
         .pantallas-captacion { display: flex; gap: 10px; flex-grow: 1; overflow: hidden; margin-bottom: 10px; } 
         .pantalla-bloque { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px; flex: 1; display: flex; flex-direction: column; overflow: hidden; } 
@@ -107,10 +101,10 @@
         
         .contenido-pantalla { flex-grow: 1; font-family: monospace; font-size: 19px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 4px; } 
         
-        /* Renglones de control visual */
-        .renglon-jugada { padding: 6px 0; border-bottom: 1px solid #1e293b; color: #4ade80; } 
-        .renglon-jugada.offline-mode { color: #ef4444 !important; font-weight: bold; }
-        .renglon-jugada.bote-mode { color: #f59e0b !important; } 
+        /* CONTROL EXCLUSIVO DE COLORES EN RENGLONES */
+        .renglon-jugada { padding: 6px 0; border-bottom: 1px solid #1e293b; color: #22c55e; } /* Verde por defecto (Online) */
+        .renglon-jugada.offline-mode { color: #ef4444 !important; font-weight: bold; }       /* Rojo Estricto (Sin red) */
+        .renglon-jugada.bote-mode { color: #f59e0b !important; }                             /* Naranja para el Bote */
 
         .zona-inferior { display: flex; justify-content: flex-end; flex-shrink: 0; padding-top: 5px; } 
         .tabla-totales { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; min-width: 290px; } 
@@ -135,7 +129,6 @@
         <div id="loginContent">
             <h2>Panel de Control</h2>
             <p>Introduce tus credenciales para ingresar</p>
-            <div id="alertaForm" class="mensaje-alerta error"></div>
             <form id="loginForm" onsubmit="entrarAlSistema(event)">
                 <div class="input-group">
                     <label for="usuario">Usuario del Listero</label>
@@ -160,10 +153,9 @@
                 <div class="menu-tres-puntos">
                     <button class="btn-puntos" onclick="toggleMenu()">⋮</button>
                     <div class="menu-contenido" id="menuDesglegable">
-                        <a onclick="alert('Límites de Acumulación:\nFijos/Corridos: $500 c/u\nParlés: $50 por combinación\nCentenas: $50 por número\n\nEl exceso se divide dinámicamente al BOTE.')">📈 Ver Límites</a>
-                        <a onclick="verListasGuardadas()">📚 Listas Guardadas</a>
+                        <a onclick="alert('Límites por número:\nFijos/Corridos: $500 c/u\nParlés: $50\nCentenas: $50\n\nEl exceso va directo al BOTE.')">📈 Ver Límites</a>
+                        <a onclick="location.reload()">🔄 Forzar Refresco</a>
                         <hr style="border: 0; border-top: 1px solid #334155;">
-                        <a onclick="limpiarDatosUsuario()" style="color: #e11d48;">🗑️ Vaciar Lista</a>
                         <a onclick="cerrarSesion()" style="color: #ef4444;">🚪 Cerrar Sesión</a>
                     </div>
                 </div>
@@ -171,7 +163,6 @@
         </div> 
 
         <div class="zona-entrada-apuestas">
-            <div class="letrero-banco-cerrado" id="avisoBancoCerrado">Banco Cerrado</div>
             <div class="recuadro-apuesta">
                 <label for="campoNumero">Número</label>
                 <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearNumeros(this)" autocomplete="off">
@@ -203,25 +194,23 @@
     </div> 
 
     <script>
-        // CONFIGURACIÓN SUPABASE
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         var COMISION_FC = 20, COMISION_PARLES = 20, COMISION_CENTENAS = 20; 
-        var usuarioActivo = "", listaActivaId = null, isOnline = true;
+        var usuarioActivo = "", listaActivaId = null;
 
-        // ESTRUCTURAS DE CONTROL PARA EL CUPO ACUMULADO LOCAL DE ESTA SESIÓN
-        var acumuladoFijos = {};    // { '20': monto_actual }
-        var acumuladoCorridos = {}; // { '20': monto_actual }
-        var acumuladoParles = {};    // { '20 30 40': monto_actual }
-        var acumuladoCentenas = {};  // { '123': monto_actual }
+        // ESTRUCTURAS DINÁMICAS GLOBALES DE CONTROL DE CUPOS
+        var acumuladoFijos = {};    
+        var acumuladoCorridos = {}; 
+        var acumuladoParles = {};    
+        var acumuladoCentenas = {};  
 
-        // Monitoreo de Red
-        function actualizarEstadoRed() {
-            isOnline = navigator.onLine;
+        // VERIFICACIÓN INMEDIATA Y FORZADA DE ESTADO DE RED
+        function monitorearRedFijo() {
             const badge = document.getElementById('estadoRed');
-            if (isOnline) {
+            if (navigator.onLine) {
                 badge.innerText = "ONLINE";
                 badge.classList.remove('offline');
                 sincronizarJugadasPendientes();
@@ -230,8 +219,9 @@
                 badge.classList.add('offline');
             }
         }
-        window.addEventListener('online', actualizarEstadoRed);
-        window.addEventListener('offline', actualizarEstadoRed);
+        window.addEventListener('online', monitorearRedFijo);
+        window.addEventListener('offline', monitorearRedFijo);
+        setInterval(monitoredRedFijo, 3000); // Doble chequeo cada 3 segundos
 
         function toggleLoading(show) { document.getElementById('loadingSystem').style.display = show ? 'flex' : 'none'; }
 
@@ -263,9 +253,9 @@
 
                 await obtenerOCrearListaDeHoy();
                 await cargarJugadasLocalesYCloud();
-            } catch(e) { alert("Error de acceso. Inicializando entorno."); }
+            } catch(e) { alert("Error de acceso de red. Trabajando local."); }
             toggleLoading(false);
-            actualizarEstadoRed();
+            monitoredRedFijo();
         } 
 
         function mostrarFormularioRegistro() {
@@ -300,7 +290,7 @@
             if(!usuarioActivo) return;
             var hoy = new Date().toISOString().split('T')[0];
             listaActivaId = "local-" + usuarioActivo + "-" + hoy; 
-            if(!isOnline) return;
+            if(!navigator.onLine) return;
             try {
                 const { data: l } = await supabaseClient.from('listas_de_trabajo').select('*').eq('usuario', usuarioActivo).eq('fecha', hoy).maybeSingle();
                 if(l) { listaActivaId = l.id; return; }
@@ -309,7 +299,7 @@
             } catch(e){}
         }
 
-        // CONTROLADOR DE PARTICIÓN DE CUPOS DINÁMICOS
+        // CÁLCULO ESTRICTO Y DIVISIÓN DE CUPOS POR EXCESOS
         async function procesarJugada() {
             var campoNum = document.getElementById('campoNumero');
             var campoPrecio = document.getElementById('campoPrecio');
@@ -320,7 +310,7 @@
             var bloques = strNum.split(' ');
             var union = bloques.join('');
 
-            // 1. EVALUAR CENTENAS (Límite acumulado de $50)
+            // A. EVALUAR CENTENAS (Límite acumulado de $50 por número)
             if (union.length === 3) {
                 var pBase = parseFloat(strPrecio);
                 if (isNaN(pBase) || pBase < 1) return;
@@ -334,20 +324,19 @@
 
                     if (paraLista > 0) {
                         var comision = (paraLista * COMISION_CENTENAS) / 100;
-                        await salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraLista, bruto: paraLista, limpio: paraLista - comision, texto: `${union} (${paraLista})`, destino: 'apuestas' });
+                        salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraLista, bruto: paraLista, limpio: paraLista - comision, texto: `${union} (${paraLista})`, destino: 'apuestas' });
                         acumuladoCentenas[union] = yaAcumulado + paraLista;
                     }
                     if (paraBote > 0) {
                         var comisionB = (paraBote * COMISION_CENTENAS) / 100;
-                        await salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraBote, bruto: paraBote, limpio: paraBote - comisionB, texto: `${union} (${paraBote})`, destino: 'bote' });
+                        salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraBote, bruto: paraBote, limpio: paraBote - comisionB, texto: `${union} (${paraBote})`, destino: 'bote' });
                     }
                 } else {
-                    // No hay cupo, va completa al bote
                     var comision = (pBase * COMISION_CENTENAS) / 100;
-                    await salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: pBase, bruto: pBase, limpio: pBase - comision, texto: `${union} (${pBase})`, destino: 'bote' });
+                    salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: pBase, bruto: pBase, limpio: pBase - comision, texto: `${union} (${pBase})`, destino: 'bote' });
                 }
 
-            // 2. EVALUAR FIJOS Y CORRIDOS (Límite acumulado de $500 c/u por separado)
+            // B. EVALUAR FIJOS Y CORRIDOS (Límite acumulado de $500 c/u por separado)
             } else if (bloques.length === 1) {
                 var numFijo = bloques[0];
                 if (numFijo.length !== 2) return;
@@ -362,7 +351,6 @@
                 }
                 if (pFijo < 0 || pCorrido < 0) return;
 
-                // Variables para segmentar el Fijo
                 var yaAcumuladoFijo = acumuladoFijos[numFijo] || 0;
                 var cupoFijo = Math.max(0, 500 - yaAcumuladoFijo);
                 var fijoLista = 0, fijoBote = 0;
@@ -373,7 +361,6 @@
                     acumuladoFijos[numFijo] = yaAcumuladoFijo + fijoLista;
                 }
 
-                // Variables para segmentar el Corrido
                 var yaAcumuladoCorrido = acumuladoCorridos[numFijo] || 0;
                 var cupoCorrido = Math.max(0, 500 - yaAcumuladoCorrido);
                 var corridoLista = 0, corridoBote = 0;
@@ -384,28 +371,24 @@
                     acumuladoCorridos[numFijo] = yaAcumuladoCorrido + corridoLista;
                 }
 
-                // Guardar bloque de la Lista Principal si lleva algún importe válido
                 if (fijoLista > 0 || corridoLista > 0) {
                     var brutoL = fijoLista + corridoLista;
                     var limpioL = brutoL - ((brutoL * COMISION_FC) / 100);
-                    await salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoLista, bruto: brutoL, limpio: limpioL, texto: `${numFijo} (${fijoLista}) (${corridoLista})`, destino: 'apuestas' });
+                    salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoLista, bruto: brutoL, limpio: limpioL, texto: `${numFijo} (${fijoLista}) (${corridoLista})`, destino: 'apuestas' });
                 }
 
-                // Guardar bloque del Bote si lleva excedentes
                 if (fijoBote > 0 || corridoBote > 0) {
                     var brutoB = fijoBote + corridoBote;
                     var limpioB = brutoB - ((brutoB * COMISION_FC) / 100);
-                    await salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoBote, bruto: brutoB, limpio: limpioB, texto: `${numFijo} (${fijoBote}) (${corridoBote})`, destino: 'bote' });
+                    salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoBote, bruto: brutoB, limpio: limpioB, texto: `${numFijo} (${fijoBote}) (${corridoBote})`, destino: 'bote' });
                 }
 
-            // 3. EVALUAR PARLÉS (Límite acumulado por combinación exacta de $50)
+            // C. EVALUAR PARLÉS (Límite acumulado por combinación exacta de $50)
             } else if (bloques.length >= 2) {
                 var baseParle = parseFloat(strPrecio);
                 if (isNaN(baseParle) || baseParle < 1) return;
 
-                // Ordenamos la combinación alfabéticamente para que '20 30' y '30 20' sumen al mismo pozo de cupo
                 var combinacionID = bloques.sort().join(' '); 
-
                 var combs = (bloques.length * (bloques.length - 1)) / 2;
                 var brutoTotalIngresado = combs * baseParle;
 
@@ -417,68 +400,73 @@
                     var paraBoteP = brutoTotalIngresado - paraListaP;
 
                     if (paraListaP > 0) {
-                        // Calcular el precio base proporcional para guardar la fracción exacta
                         var precioBaseLista = paraListaP / combs;
                         var limpioP = paraListaP - ((paraListaP * COMISION_PARLES) / 100);
-                        await salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseLista, bruto: paraListaP, limpio: limpioP, texto: `${combinacionID} (${precioBaseLista.toFixed(2)})`, destino: 'apuestas' });
+                        salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseLista, bruto: paraListaP, limpio: limpioP, texto: `${combinacionID} (${precioBaseLista.toFixed(1)})`, destino: 'apuestas' });
                         acumuladoParles[combinacionID] = yaAcumuladoP + paraListaP;
                     }
 
                     if (paraBoteP > 0) {
                         var precioBaseBote = paraBoteP / combs;
                         var limpioPB = paraBoteP - ((paraBoteP * COMISION_PARLES) / 100);
-                        await salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseBote, bruto: paraBoteP, limpio: limpioPB, texto: `${combinacionID} (${precioBaseBote.toFixed(2)})`, destino: 'bote' });
+                        salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseBote, bruto: paraBoteP, limpio: limpioPB, texto: `${combinacionID} (${precioBaseBote.toFixed(1)})`, destino: 'bote' });
                     }
                 } else {
-                    // Sin cupo, entra directo al bote el dinero completo
                     var limpioPDirecto = brutoTotalIngresado - ((brutoTotalIngresado * COMISION_PARLES) / 100);
-                    await salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: baseParle, bruto: brutoTotalIngresado, limpio: limpioPDirecto, texto: `${combinacionID} (${baseParle})`, destino: 'bote' });
+                    salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: baseParle, bruto: brutoTotalIngresado, limpio: limpioPDirecto, texto: `${combinacionID} (${baseParle})`, destino: 'bote' });
                 }
             }
 
             campoNum.value = ""; campoPrecio.value = ""; campoNum.focus();
         }
 
-        // CONTROLADOR DE CONEXIÓN Y PERSISTENCIA LOCAL
-        async function salvarJugadaSistema(jugada) {
+        // CONTROL EXCLUSIVO DE INTERFAZ GRÁFICA INSTANTÁNEA (PINTA EN ROJO SI NO HAY RED)
+        function salvarJugadaSistema(jugada) {
             jugada.lista_id = listaActivaId;
             jugada.usuario = usuarioActivo;
             jugada.id_temporal = Date.now() + Math.random().toString();
 
-            var localDB = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
-            
-            if (isOnline && !listaActivaId.toString().startsWith('local-')) {
-                try {
-                    const { error } = await supabaseClient.from(jugada.destino).insert({
-                        lista_id: listaActivaId,
-                        usuario: usuarioActivo,
-                        tipo: jugada.tipo,
-                        numero: jugada.numero,
-                        precio: jugada.precio,
-                        importe_bruto: jugada.bruto,
-                        importe_limpio: jugada.limpio,
-                        metadata: { texto: jugada.texto }
-                    });
+            // 1. CHEQUEAR RED AL INSTANTE
+            var onlineStatus = navigator.onLine;
 
-                    if (!error) {
-                        renderJugadaPantalla(jugada, false);
-                        return;
+            // 2. MOSTRAR EN PANTALLA DE FORMA INMEDIATA (Cero retraso visual)
+            renderJugadaPantalla(jugada, !onlineStatus);
+
+            // 3. ENRUTAR LOS DATOS EN SEGUNDO PLANO
+            if (onlineStatus && !listaActivaId.toString().startsWith('local-')) {
+                // Envío asíncrono silencioso a Supabase
+                supabaseClient.from(jugada.destino).insert({
+                    lista_id: listaActivaId,
+                    usuario: usuarioActivo,
+                    tipo: jugada.tipo,
+                    numero: jugada.numero,
+                    precio: jugada.precio,
+                    importe_bruto: jugada.bruto,
+                    importe_limpio: jugada.limpio,
+                    metadata: { texto: jugada.texto }
+                }).then(({ error }) => {
+                    if (error) {
+                        ponerEnColaOffline(jugada);
                     }
-                } catch(e){}
+                });
+            } else {
+                ponerEnColaOffline(jugada);
             }
-
-            // Fallback Offline: Marcar de color rojo
-            localDB.push(jugada);
-            localStorage.setItem('kingball_offline_queue', JSON.stringify(localDB));
-            renderJugadaPantalla(jugada, true); 
         }
 
-        // SINCRONIZADOR AUTOMÁTICO EN SEGUNDO PLANO EN CUANTO HAY SEÑAL
+        function ponerEnColaOffline(jugada) {
+            var localDB = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
+            localDB.push(jugada);
+            localStorage.setItem('kingball_offline_queue', JSON.stringify(localDB));
+        }
+
+        // SINCRONIZADOR DE RESPALDO AUTOMÁTICO
         async function sincronizarJugadasPendientes() {
-            if (!isOnline || listaActivaId.toString().startsWith('local-')) return;
+            if (!navigator.onLine || listaActivaId.toString().startsWith('local-')) return;
             var queue = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
             if (queue.length === 0) return;
 
+            var limpiados = 0;
             for (var i = 0; i < queue.length; i++) {
                 var j = queue[i];
                 try {
@@ -493,19 +481,23 @@
                         metadata: { texto: j.texto }
                     });
                     if(!error) {
-                        queue.splice(i, 1); i--;
+                        queue.splice(i, 1); i--; limpiados++;
                     }
                 } catch(e) { break; }
             }
             localStorage.setItem('kingball_offline_queue', JSON.stringify(queue));
-            await refrescarTodoEntorno(); 
+            if(limpiados > 0) {
+                await cargarJugadasLocalesYCloud(); // Limpia los renglones rojos viejos y pinta todo unificado en verde
+            }
         }
 
         function renderJugadaPantalla(j, offlineVisual) {
             var destinoId = j.tipo === 'fc' ? 'pantallaFijosCorridos' : (j.tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');
-            var claseAdicional = offlineVisual ? 'offline-mode' : (j.destino === 'bote' ? 'bote-mode' : '');
             
+            // Si offlineVisual es true, le clava la clase 'offline-mode' para ponerlo en ROJO
+            var claseAdicional = offlineVisual ? 'offline-mode' : (j.destino === 'bote' ? 'bote-mode' : '');
             var prefijo = j.destino === 'bote' ? '[BOTE] ' : '';
+            
             document.getElementById(destinoId).innerHTML += `<div class="renglon-jugada ${claseAdicional}">${prefijo}${j.texto}</div>`;
             
             if (j.destino !== 'bote') {
@@ -526,6 +518,7 @@
             var impFC = parseFloat(document.getElementById('importaFC').innerText.replace('$', '')) || 0;
             var impPar = parseFloat(document.getElementById('importaParles').innerText.replace('$', '')) || 0;
             var impCen = parseFloat(document.getElementById('importaCentenas').innerText.replace('$', '')) || 0;
+            
             var limFC = parseFloat(document.getElementById('limpioFC').innerText.replace('$', '')) || 0;
             var limPar = parseFloat(document.getElementById('limpioParles').innerText.replace('$', '')) || 0;
             var limCen = parseFloat(document.getElementById('limpioCentenas').innerText.replace('$', '')) || 0;
@@ -547,7 +540,7 @@
         }
 
         async function cargarJugadasDesdeSupabase() {
-            if(!isOnline || listaActivaId.toString().startsWith('local-')) return;
+            if(!navigator.onLine || listaActivaId.toString().startsWith('local-')) return;
             try {
                 const { data: ap } = await supabaseClient.from('apuestas').select('*').eq('lista_id', listaActivaId);
                 if(ap) {
@@ -567,14 +560,12 @@
         }
 
         function recalcularMatrizAcumulados(j) {
-            if (j.destino !== 'apuestas') return; // El bote no consume cupo de la lista principal
-            
+            if (j.destino !== 'apuestas') return; 
             if (j.tipo === 'centenas') {
                 acumuladoCentenas[j.numero] = (acumuladoCentenas[j.numero] || 0) + j.bruto;
             } else if (j.tipo === 'parles') {
                 acumuladoParles[j.numero] = (acumuladoParles[j.numero] || 0) + j.bruto;
             } else if (j.tipo === 'fc') {
-                // Al cargar de la BD, parseamos los valores internos del texto del metadata
                 var matches = j.texto.match(/\(([^)]+)\)/g);
                 if (matches && matches.length >= 1) {
                     var fVal = parseFloat(matches[0].replace(/[()]/g, '')) || 0;
@@ -583,10 +574,6 @@
                     acumuladoCorridos[j.numero] = (acumuladoCorridos[j.numero] || 0) + cVal;
                 }
             }
-        }
-
-        async function refrescarTodoEntorno() {
-            await cargarJugadasLocalesYCloud();
         }
 
         function limpiarPantallasVisuales() {
