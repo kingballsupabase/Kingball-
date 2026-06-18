@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Apuestas - Kingball</title>
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            background: #1e293b;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* ==========================================
+           ESTILOS DE LOGIN Y REGISTRO
+           ========================================== */
+        .login-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            display: block;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .login-container h2 {
+            color: #0f172a;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .login-container p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            color: #000000;
+        }
+
+        .input-group input:focus {
+            border-color: #2563eb;
+        }
+
+        .btn-ingresar {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-ingresar:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-ingresar.secondary {
+            background: #64748b;
+            margin-top: 10px;
+        }
+
+        .btn-ingresar.secondary:hover {
+            background: #475569;
+        }
+
+        .link-registro {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .link-registro a {
+            color: #2563eb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .link-registro a:hover {
+            color: #1d4ed8;
+        }
+
+        /* ==========================================
+           ESTILOS DEL ENTORNO DE TRABAJO
+           ========================================== */
+        .panel-listero {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            height: 95vh;
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            flex-direction: column;
+        }
+
+        .barra-superior {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .nombre-lista {
+            font-size: 18px;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        .derecha-superior {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .reloj {
+            font-size: 16px;
+            color: #e2e8f0;
+            font-family: monospace;
+            background: #1e293b;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .menu-tres-puntos {
+            position: relative;
+            display: inline-block;
+        }
+
+        .btn-puntos {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        .menu-contenido {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #1e293b;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
+            border: 1px solid #334155;
+            border-radius: 6px;
+            z-index: 10;
+        }
+
+        .menu-contenido a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .menu-contenido a:hover {
+            background-color: #334155;
+        }
+
+        .menu-contenido hr {
+            border: 0;
+            border-top: 1px solid #334155;
+        }
+
+        .zona-entrada-apuestas {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            margin-bottom: 10px;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .recuadro-apuesta {
+            display: flex;
+            flex-direction: column;
+            width: 140px;
+        }
+
+        .recuadro-apuesta label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .recuadro-apuesta input {
+            width: 100%;
+            padding: 8px;
+            font-size: 18px;
+            text-align: center;
+            border-radius: 6px;
+            border: 2px solid #475569;
+            background: #0f172a;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .recuadro-apuesta input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-anotar {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            height: 41px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .btn-anotar:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-anotar:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .letrero-banco-cerrado {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            color: #ef4444;
+            font-size: 22px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            z-index: 5;
+        }
+
+        .area-principal-trabajo {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .pantallas-captacion {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .pantalla-bloque {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .pantalla-bloque h4 {
+            font-size: 13px;
+            color: #38bdf8;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 6px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .contenido-pantalla {
+            flex-grow: 1;
+            font-family: monospace;
+            font-size: 19px;
+            overflow-y: auto;
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .renglon-jugada {
+            padding: 6px 0;
+            border-bottom: 1px solid #1e293b;
+            color: #4ade80;
+        }
+
+        .zona-inferior {
+            display: flex;
+            justify-content: flex-end;
+            flex-shrink: 0;
+            padding-top: 5px;
+        }
+
+        .tabla-totales {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-width: 290px;
+        }
+
+        .encabezado-tabla {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: bold;
+            border-bottom: 1px solid #475569;
+            padding-bottom: 3px;
+            margin-bottom: 4px;
+        }
+
+        .col-concepto { width: 45%; text-align: left; }
+        .col-importa { width: 27%; text-align: right; color: #f8fafc; }
+        .col-limpio { width: 28%; text-align: right; color: #4ade80; }
+
+        .fila-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .fila-total.principal {
+            border-top: 1px solid #475569;
+            margin-top: 4px;
+            padding-top: 4px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .fila-total.principal .col-importa { color: #38bdf8; font-size: 13px; }
+        .fila-total.principal .col-limpio { color: #4ade80; font-size: 13px; }
+
+        /* ==========================================
+           ESTILOS DEL MODAL REGLAMENTO
+           ========================================== */
+        .modal-reglamento {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .contenido-reglamento {
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            padding: 20px;
+        }
+
+        .titulo-reglamento {
+            color: #38bdf8;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .seccion-regla {
+            margin-bottom: 15px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .seccion-regla.critico {
+            border-left-color: #ef4444;
+        }
+
+        .seccion-regla h5 {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .texto-regla {
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .tabla-regla {
+            width: 100%;
+            margin-top: 5px;
+            border-collapse: collapse;
+        }
+
+        .tabla-regla th, .tabla-regla td {
+            text-align: left;
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        .tabla-regla th {
+            color: #64748b;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .tabla-regla td {
+            color: #f1f5f9;
+            border-top: 1px solid #1e293b;
+        }
+
+        .badge-limitado {
+            background: #ef4444;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 6px;
+            display: inline-block;
+        }
+
+        .btn-cerrar-modal {
+            width: 100%;
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-cerrar-modal:hover {
+            background: #475569;
+        }
+
+        /* ==========================================
+           ESTILOS DEL LOADING
+           ========================================== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #334155;
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: #e2e8f0;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
+        @media (max-width: 768px) {
+            .pantallas-captacion {
+                flex-direction: column;
+            }
+            
+            .zona-entrada-apuestas {
+                flex-wrap: wrap;
+            }
+            
+            .recuadro-apuesta {
+                width: 100px;
+            }
+            
+            .tabla-totales {
+                min-width: 200px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+    LOADING OVERLAY
+    ========================================== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Cargando datos...</div>
+    </div>
+
+    <!-- ==========================================
+    PANTALLA DE LOGIN / REGISTRO
+    ========================================== -->
+    <div class="login-container" id="seccionLogin">
+        <div id="loginContent">
+            <h2>Panel de Control</h2>
+            <p>Introduce tus credenciales para ingresar</p>
+            
+            <form id="loginForm" onsubmit="entrarAlSistema(event)">
+                <div class="input-group">
+                    <label for="usuario">Usuario del Listero</label>
+                    <input type="text" id="usuario" placeholder="Ej: listero_juan" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="btn-ingresar">Ingresar al Sistema</button>
+            </form>
+            
+            <div class="link-registro">
+                ¿No tienes cuenta? <a onclick="mostrarFormularioRegistro()">Regístrate aquí</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    ENTORNO DE TRABAJO DEL LISTERO
+    ========================================== -->
+    <div class="panel-listero" id="seccionListero">
+        
+        <div class="barra-superior">
+            <div class="nombre-lista" id="nombreListaSuperior">Lista: Colector</div>
+            
+            <div class="derecha-superior">
+                <div class="reloj" id="relojDigital">00:00:00 PM</div>
+                
+                <div class="menu-tres-puntos">
+                    <button class="btn-puntos" onclick="toggleMenu()">⋮</button>
+                    <div class="menu-contenido" id="menuDesglegable">
+                        <a onclick="abrirReglamento()">📋 Reglamento</a>
+                        <a onclick="verListasGuardadas()">📚 Listas Guardadas</a>
+                        <a onclick="verNumerosLimitados()">🚫 Limitados</a>
+                        <a onclick="cambiarContrasena()">🔑 Cambiar Contraseña</a>
+                        <hr>
+                        <a onclick="limpiarDatosUsuario()" style="color: #e11d48;">🗑️ Borrar esta Lista</a>
+                        <a onclick="cerrarSesion()" style="color: #ef4444;">🚪 Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="zona-entrada-apuestas">
+            <div class="letrero-banco-cerrado" id="avisoBancoCerrado">🔒 Banco Cerrado</div>
+
+            <div class="recuadro-apuesta">
+                <label for="campoNumero">Número</label>
+                <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearNumeros(this)" autocomplete="off">
+            </div>
+            <div class="recuadro-apuesta">
+                <label for="campoPrecio">Precio</label>
+                <input type="text" id="campoPrecio" inputmode="decimal" placeholder="$" onkeypress="evaluarEnter(event)">
+            </div>
+            <button class="btn-anotar" id="btnAnotarJugada" onclick="procesarJugada()">Anotar</button>
+        </div>
+
+        <div class="area-principal-trabajo">
+            <div class="pantallas-captacion">
+                <div class="pantalla-bloque">
+                    <h4>Fijos y Corridos</h4>
+                    <div class="contenido-pantalla" id="pantallaFijosCorridos"></div>
+                </div>
+                <div class="pantalla-bloque">
+                    <h4>Parles</h4>
+                    <div class="contenido-pantalla" id="pantallaParles"></div>
+                </div>
+                <div class="pantalla-bloque">
+                    <h4>Centenas</h4>
+                    <div class="contenido-pantalla" id="pantallaCentenas"></div>
+                </div>
+            </div>
+
+            <div class="zona-inferior">
+                <div class="tabla-totales">
+                    <div class="encabezado-tabla">
+                        <span class="col-concepto">Concepto</span>
+                        <span class="col-importa">Importa</span>
+                        <span class="col-limpio">Limpio</span>
+                    </div>
+                    <div class="fila-total">
+                        <span class="col-concepto">Fijos/Corridos:</span>
+                        <span class="col-importa" id="importaFC">$0.00</span>
+                        <span class="col-limpio" id="limpioFC">$0.00</span>
+                    </div>
+                    <div class="fila-total">
+                        <span class="col-concepto">Parles:</span>
+                        <span class="col-importa" id="importaParles">$0.00</span>
+                        <span class="col-limpio" id="limpioParles">$0.00</span>
+                    </div>
+                    <div class="fila-total">
+                        <span class="col-concepto">Centenas:</span>
+                        <span class="col-importa" id="importaCentenas">$0.00</span>
+                        <span class="col-limpio" id="limpioCentenas">$0.00</span>
+                    </div>
+                    <div class="fila-total principal">
+                        <span class="col-concepto">TOTALES:</span>
+                        <span class="col-importa" id="totalImporta">$0.00</span>
+                        <span class="col-limpio" id="totalLimpios">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    MODAL REGLAMENTO
+    ========================================== -->
+    <div class="modal-reglamento" id="modalReglamento">
+        <div class="contenido-reglamento">
+            <div class="titulo-reglamento">Reglamento de Trabajo Oficial</div>
+            
+            <div class="seccion-regla">
+                <h5>🕒 Horarios de Captación</h5>
+                <div class="texto-regla">
+                    <strong>Tiro Mañana:</strong> 7:00 AM a 1:25 PM<br>
+                    <strong>Tiro Noche:</strong> 2:00 PM a 9:30 PM<br>
+                    <span style="color: #ef4444; font-size: 12px;">* Fuera de este horario el sistema mostrará "Banco Cerrado".</span>
+                </div>
+            </div>
+
+            <div class="seccion-regla">
+                <h5>💰 Límites de Apuestas</h5>
+                <table class="tabla-regla">
+                    <thead>
+                        <tr>
+                            <th>Modalidad</th>
+                            <th>Límite Lista</th>
+                            <th>Límite Bote</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Fijos y Corridos</td><td>$1,000</td><td>$10,000</td></tr>
+                        <tr><td>Parles</td><td>$1,000</td><td>$10,000</td></tr>
+                        <tr><td>Centenas</td><td>$1,000</td><td>$10,000</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="seccion-regla critico">
+                <h5>🚫 Números Limitados (Fijos)</h5>
+                <div class="texto-regla" style="margin-top: 5px;">
+                    <span class="badge-limitado">90</span>
+                    <span class="badge-limitado">11</span>
+                    <span class="badge-limitado">55</span>
+                </div>
+            </div>
+
+            <div class="seccion-regla">
+                <h5>💵 Tabla de Pagos</h5>
+                <div class="texto-regla">
+                    • <strong>Fijos:</strong> Paga 75 veces<br>
+                    • <strong>Corridos:</strong> Paga 25 veces<br>
+                    • <strong>Parles:</strong> Paga 1100 veces
+                </div>
+            </div>
+
+            <div class="seccion-regla">
+                <h5>📊 Porcentaje y Ganancia</h5>
+                <table class="tabla-regla">
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Porcentaje Lista</th>
+                            <th>Porcentaje Bote</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Fijos y Corridos</td><td>20%</td><td>10% todo</td></tr>
+                        <tr><td>Parles</td><td>20%</td><td>10% todo</td></tr>
+                        <tr><td>Centenas</td><td>20%</td><td>10% todo</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="btn-cerrar-modal" onclick="cerrarReglamento()">Cerrar Reglamento</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN DE SUPABASE
+        // ==========================================
+        const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // VARIABLES GLOBALES
+        // ==========================================
+        let usuarioActivo = null;
+        let usuarioData = null;
+        let listaActivaId = null;
+        let turnoActual = '';
+        let bancoBloqueadoPorHorario = false;
+        let fraudeHoraDetectado = false;
+        let ultimaHoraVerificada = Date.now();
+        let toleranciaFraude = 4000;
+        let COMISION_FC = 20;
+        let COMISION_PARLES = 20;
+        let COMISION_CENTENAS = 20;
+
+        // ==========================================
+        // FUNCIONES DE UTILIDAD
+        // ==========================================
+        function mostrarLoading(mostrar) {
+            document.getElementById('loadingOverlay').style.display = mostrar ? 'flex' : 'none';
+        }
+
+        function formatNumber(n) {
+            return n.toFixed(2);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ==========================================
+        // FUNCIONES DE HASH DE CONTRASEÑA
+        // ==========================================
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // ==========================================
+        // FUNCIONES DE LOGIN Y REGISTRO
+        // ==========================================
+        async function entrarAlSistema(event) {
+            event.preventDefault();
+            
+            const usuarioInput = document.getElementById('usuario').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('password').value.trim();
+            
+            if (!usuarioInput || !passwordInput) {
+                alert('Por favor, ingresa usuario y contraseña.');
+                return;
+            }
+
+            mostrarLoading(true);
+
+            try {
+                // Verificar usuario
+                const { data: usuario, error } = await supabase
+                    .from('usuarios_listeros')
+                    .select('*')
+                    .eq('usuario', usuarioInput)
+                    .single();
+
+                if (error || !usuario) {
+                    alert('Usuario no encontrado. Regístrate primero.');
+                    mostrarLoading(false);
+                    return;
+                }
+
+                // Verificar bloqueo
+                if (usuario.bloqueado_hasta && new Date(usuario.bloqueado_hasta) > new Date()) {
+                    const tiempoRestante = Math.ceil((new Date(usuario.bloqueado_hasta) - new Date()) / 60000);
+                    alert(`Usuario bloqueado. Intenta nuevamente en ${tiempoRestante} minutos.`);
+                    mostrarLoading(false);
+                    return;
+                }
+
+                // Verificar estado
+                if (usuario.estado !== 'activo') {
+                    alert(`Usuario ${usuario.estado}. Contacta al administrador.`);
+                    mostrarLoading(false);
+                    return;
+                }
+
+                // Verificar contraseña
+                const passwordHash = await hashPassword(passwordInput);
+                
+                if (passwordHash !== usuario.password_hash) {
+                    const nuevosIntentos = (usuario.intentos_fallidos || 0) + 1;
+                    let bloqueadoHasta = null;
+                    
+                    if (nuevosIntentos >= 5) {
+                        bloqueadoHasta = new Date(Date.now() + 15 * 60000);
+                        alert('Demasiados intentos fallidos. Usuario bloqueado por 15 minutos.');
+                    }
+                    
+                    await supabase
+                        .from('usuarios_listeros')
+                        .update({
+                            intentos_fallidos: nuevosIntentos,
+                            bloqueado_hasta: bloqueadoHasta
+                        })
+                        .eq('id', usuario.id);
+                    
+                    alert('Contraseña incorrecta.');
+                    mostrarLoading(false);
+                    return;
+                }
+
+                // Login exitoso
+                await supabase
+                    .from('usuarios_listeros')
+                    .update({
+                        intentos_fallidos: 0,
+                        bloqueado_hasta: null,
+                        ultimo_acceso: new Date().toISOString()
+                    })
+                    .eq('id', usuario.id);
+
+                usuarioActivo = usuario.usuario;
+                usuarioData = usuario;
+
+                document.getElementById('nombreListaSuperior').innerText = `Lista: ${usuario.nombre_completo || usuario.usuario.toUpperCase()}`;
+                document.getElementById('seccionLogin').style.display = 'none';
+                document.getElementById('seccionListero').style.display = 'flex';
+
+                await inicializarTurno();
+                await obtenerOCrearListaActiva();
+                await cargarApuestasDeLista();
+
+            } catch (error) {
+                console.error('Error en login:', error);
+                alert('Error al iniciar sesión. Intenta de nuevo.');
+            }
+
+            mostrarLoading(false);
+        }
+
+        function mostrarFormularioRegistro() {
+            const loginContainer = document.getElementById('seccionLogin');
+            loginContainer.innerHTML = `
+                <h2>Registro de Listero</h2>
+                <p>Completa tus datos para crear una cuenta</p>
+                
+                <form id="registroForm" onsubmit="registrarUsuario(event)">
+                    <div class="input-group">
+                        <label for="regUsuario">Usuario *</label>
+                        <input type="text" id="regUsuario" placeholder="Ej: listero_juan" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="regNombre">Nombre Completo *</label>
+                        <input type="text" id="regNombre" placeholder="Juan Pérez" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="regEmail">Email *</label>
+                        <input type="email" id="regEmail" placeholder="juan@ejemplo.com" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="regPassword">Contraseña (mínimo 6 caracteres) *</label>
+                        <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="regTelefono">Teléfono (opcional)</label>
+                        <input type="text" id="regTelefono" placeholder="+1234567890">
+                    </div>
+                    
+                    <button type="submit" class="btn-ingresar">Crear Cuenta</button>
+                    <button type="button" class="btn-ingresar secondary" onclick="volverLogin()">Volver al Login</button>
+                </form>
+            `;
+        }
+
+        function volverLogin() {
+            location.reload();
+        }
+
+        async function registrarUsuario(event) {
+            event.preventDefault();
+            
+            const usuario = document.getElementById('regUsuario').value.trim().toLowerCase();
+            const nombre = document.getElementById('regNombre').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const telefono = document.getElementById('regTelefono').value.trim();
+
+            if (!usuario || !nombre || !email || !password) {
+                alert('Todos los campos obligatorios deben ser llenados.');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('La contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                alert('Email inválido.');
+                return;
+            }
+
+            mostrarLoading(true);
+
+            try {
+                // Verificar usuario existente
+                const { data: existente, error: checkError } = await supabase
+                    .from('usuarios_listeros')
+                    .select('usuario, email')
+                    .or(`usuario.eq.${usuario},email.eq.${email}`);
+
+                if (existente && existente.length > 0) {
+                    if (existente.some(u => u.usuario === usuario)) {
+                        alert('El nombre de usuario ya está registrado.');
+                    } else {
+                        alert('El email ya está registrado.');
+                    }
+                    mostrarLoading(false);
+                    return;
+                }
+
+                const passwordHash = await hashPassword(password);
+
+                const { data: nuevoUsuario, error: insertError } = await supabase
+                    .from('usuarios_listeros')
+                    .insert({
+                        usuario: usuario,
+                        nombre_completo: nombre,
+                        email: email,
+                        password_hash: passwordHash,
+                        telefono: telefono || null,
+                        rol: 'listero',
+                        estado: 'activo',
+                        intentos_fallidos: 0
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) {
+                    throw new Error('Error al registrar usuario: ' + insertError.message);
+                }
+
+                alert('✅ Usuario registrado exitosamente. Ahora puedes iniciar sesión.');
+                volverLogin();
+
+            } catch (error) {
+                console.error('Error en registro:', error);
+                alert('Error al registrar: ' + error.message);
+            }
+
+            mostrarLoading(false);
+        }
+
+        // ==========================================
+        // FUNCIONES DE TURNOS Y LISTAS
+        // ==========================================
+        function inicializarTurno() {
+            const ahora = new Date();
+            const hora = ahora.getHours();
+            const minutos = ahora.getMinutes();
+            const tiempoEnMinutos = (hora * 60) + minutos;
+            
+            if (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805) {
+                turnoActual = 'Mañana';
+            } else if (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290) {
+                turnoActual = 'Noche';
+            } else {
+                turnoActual = 'Cerrado';
+                bancoBloqueadoPorHorario = true;
+                document.getElementById('avisoBancoCerrado').style.display = 'flex';
+                document.getElementById('campoNumero').disabled = true;
+                document.getElementById('campoPrecio').disabled = true;
+                document.getElementById('btnAnotarJugada').disabled = true;
+                alert('El banco está cerrado en este momento.');
+            }
+        }
+
+        async function obtenerOCrearListaActiva() {
+            const hoy = new Date().toISOString().split('T')[0];
+            
+            try {
+                // Buscar lista activa
+                const { data: listaExistente, error } = await supabase
+                    .from('listas_de_trabajo')
+                    .select('*')
+                    .eq('usuario', usuarioActivo)
+                    .eq('turno', turnoActual)
+                    .eq('fecha', hoy)
+                    .eq('estado', 'activa')
+                    .maybeSingle();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('Error al buscar lista:', error);
+                    return;
+                }
+
+                if (listaExistente) {
+                    listaActivaId = listaExistente.id;
+                    document.getElementById('totalImporta').innerText = `$${formatNumber(listaExistente.total_importa || 0)}`;
+                    document.getElementById('totalLimpios').innerText = `$${formatNumber(listaExistente.total_limpio || 0)}`;
+                    return;
+                }
+
+                // Crear nueva lista
+                const { data: nuevaLista, error: createError } = await supabase
+                    .from('listas_de_trabajo')
+                    .insert({
+                        usuario: usuarioActivo,
+                        turno: turnoActual,
+                        fecha: hoy,
+                        total_importa: 0,
+                        total_limpio: 0,
+                        estado: 'activa'
+                    })
+                    .select()
+                    .single();
+
+                if (createError) {
+                    console.error('Error al crear lista:', createError);
+                    return;
+                }
+
+                listaActivaId = nuevaLista.id;
+
+                // Registrar en logs
+                await supabase
+                    .from('logs_actividad')
+                    .insert({
+                        usuario: usuarioActivo,
+                        accion: 'crear_lista',
+                        detalle: { turno: turnoActual, lista_id: listaActivaId }
+                    });
+
+            } catch (error) {
+                console.error('Error en obtenerOCrearListaActiva:', error);
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES DE APUESTAS
+        // ==========================================
+        function formatearNumeros(input) {
+            const textoLimpio = input.value.replace(/\D/g, '');
+            const resultado = textoLimpio.match(/.{1,2}/g);
+            if (resultado) {
+                input.value = resultado.join(' ');
+            } else {
+                input.value = '';
+            }
+        }
+
+        function evaluarEnter(event) {
+            if (event.key === 'Enter') {
+                procesarJugada();
+            }
+        }
+
+        async function procesarJugada() {
+            if (bancoBloqueadoPorHorario || fraudeHoraDetectado) {
+                alert("Operación rechazada. Banco Cerrado.");
+                return;
+            }
+
+            if (!listaActivaId) {
+                alert('No hay una lista activa. Reinicia la sesión.');
+                return;
+            }
+
+            const campoNum = document.getElementById('campoNumero');
+            const campoPrecio = document.getElementById('campoPrecio');
+            const stringNumeros = campoNum.value.trim();
+            const stringPrecio = campoPrecio.value.trim();
+
+            if (!stringNumeros || !stringPrecio) {
+                alert('Completa todos los campos.');
+                return;
+            }
+
+            const bloques = stringNumeros.split(' ');
+            const unionDigitos = bloques.join('');
+            let nuevaJugadaObj = null;
+
+            try {
+                // CENTENAS
+                if (unionDigitos.length === 3) {
+                    const numPrecio = parseFloat(stringPrecio);
+                    if (isNaN(numPrecio) || numPrecio < 1 || numPrecio > 10000) {
+                        alert("El precio debe ser entre 1 y 10000");
+                        return;
+                    }
+                    const comision = (numPrecio * COMISION_CENTENAS) / 100;
+                    const limpio = numPrecio - comision;
+                    nuevaJugadaObj = {
+                        tipo: 'centenas',
+                        numero: unionDigitos,
+                        texto: unionDigitos + " ($" + numPrecio + ")",
+                        bruto: numPrecio,
+                        limpio: limpio,
+                        precio_base: numPrecio
+                    };
+
+                // FIJOS Y CORRIDOS
+                } else if (bloques.length === 1) {
+                    const numeroFijo = bloques[0];
+                    if (numeroFijo.length !== 2) {
+                        alert("El número debe tener 2 dígitos obligatoriamente.");
+                        return;
+                    }
+
+                    let precioFijo = 0;
+                    let precioCorrido = 0;
+
+                    if (stringPrecio.includes(',')) {
+                        const partesPrecio = stringPrecio.split(',');
+                        precioFijo = parseFloat(partesPrecio[0]) || 0;
+                        precioCorrido = parseFloat(partesPrecio[1]) || 0;
+                    } else {
+                        precioFijo = parseFloat(stringPrecio) || 0;
+                    }
+
+                    if ((precioFijo > 0 && (precioFijo < 1 || precioFijo > 10000)) || 
+                        (precioCorrido > 0 && (precioCorrido < 1 || precioCorrido > 10000))) {
+                        alert("Los precios deben estar entre 1 y 10000");
+                        return;
+                    }
+
+                    const importeBrutoFC = precioFijo + precioCorrido;
+                    const comisionFC = (importeBrutoFC * COMISION_FC) / 100;
+                    const limpioFC = importeBrutoFC - comisionFC;
+
+                    nuevaJugadaObj = {
+                        tipo: 'fc',
+                        numero: numeroFijo,
+                        texto: numeroFijo + " (F:$" + precioFijo + " C:$" + precioCorrido + ")",
+                        bruto: importeBrutoFC,
+                        limpio: limpioFC,
+                        precio_base: precioFijo || precioCorrido
+                    };
+
+                // PARLES
+                } else if (bloques.length >= 2) {
+                    for (let i = 0; i < bloques.length; i++) {
+                        if (bloques[i].length !== 2) {
+                            alert("Todos los números del parle deben tener 2 dígitos.");
+                            return;
+                        }
+                    }
+
+                    const basePrecioParle = parseFloat(stringPrecio);
+                    if (isNaN(basePrecioParle) || basePrecioParle < 1 || basePrecioParle > 10000) {
+                        alert("El precio del parle debe ser entre 1 y 10000");
+                        return;
+                    }
+
+                    const N = bloques.length;
+                    const combinaciones = (N * (N - 1)) / 2;
+                    const importeBrutoParle = combinaciones * basePrecioParle;
+                    const comisionParle = (importeBrutoParle * COMISION_PARLES) / 100;
+                    const limpioParle = importeBrutoParle - comisionParle;
+
+                    nuevaJugadaObj = {
+                        tipo: 'parles',
+                        numero: bloques.join(' '),
+                        texto: bloques.join(' ') + " ($" + basePrecioParle + ")",
+                        bruto: importeBrutoParle,
+                        limpio: limpioParle,
+                        precio_base: basePrecioParle
+                    };
+                }
+
+                if (nuevaJugadaObj) {
+                    // Guardar en Supabase
+                    const { data: apuestaGuardada, error: insertError } = await supabase
+                        .from('apuestas')
+                        .insert({
+                            lista_id: listaActivaId,
+                            usuario: usuarioActivo,
+                            tipo: nuevaJugadaObj.tipo,
+                            numero: nuevaJugadaObj.numero,
+                            precio: nuevaJugadaObj.precio_base || nuevaJugadaObj.bruto,
+                            importe_bruto: nuevaJugadaObj.bruto,
+                            importe_limpio: nuevaJugadaObj.limpio,
+                            hora_apuesta: new Date().toISOString(),
+                            metadata: { texto: nuevaJugadaObj.texto }
+                        })
+                        .select()
+                        .single();
+
+                    if (insertError) {
+                        console.error('Error al guardar apuesta:', insertError);
+                        alert('Error al guardar la apuesta. Intenta de nuevo.');
+                        return;
+                    }
+
+                    // Actualizar UI
+                    inyectarRenglonEnPantalla(nuevaJugadaObj.tipo, nuevaJugadaObj.texto);
+                    actualizarValoresYTotales(nuevaJugadaObj.tipo, nuevaJugadaObj.bruto, nuevaJugadaObj.limpio);
+                    
+                    // Actualizar totales en la lista
+                    await actualizarTotalesLista(nuevaJugadaObj.bruto, nuevaJugadaObj.limpio);
+                }
+
+                campoNum.value = "";
+                campoPrecio.value = "";
+                campoNum.focus();
+
+            } catch (error) {
+                console.error('Error en procesarJugada:', error);
+                alert('Error al procesar la jugada: ' + error.message);
+            }
+        }
+
+        async function actualizarTotalesLista(importeBruto, importeLimpio) {
+            try {
+                const { data: listaActual, error: getError } = await supabase
+                    .from('listas_de_trabajo')
+                    .select('total_importa, total_limpio')
+                    .eq('id', listaActivaId)
+                    .single();
+
+                if (getError) {
+                    console.error('Error al obtener totales:', getError);
+                    return;
+                }
+
+                const nuevoTotalImporta = (listaActual.total_importa || 0) + importeBruto;
+                const nuevoTotalLimpio = (listaActual.total_limpio || 0) + importeLimpio;
+
+                const { error: updateError } = await supabase
+                    .from('listas_de_trabajo')
+                    .update({
+                        total_importa: nuevoTotalImporta,
+                        total_limpio: nuevoTotalLimpio
+                    })
+                    .eq('id', listaActivaId);
+
+                if (updateError) {
+                    console.error('Error al actualizar totales:', updateError);
+                }
+
+            } catch (error) {
+                console.error('Error en actualizarTotalesLista:', error);
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES DE UI
+        // ==========================================
+        function inyectarRenglonEnPantalla(tipo, texto) {
+            let destinoId = "";
+            if (tipo === 'fc') destinoId = 'pantallaFijosCorridos';
+            else if (tipo === 'parles') destinoId = 'pantallaParles';
+            else if (tipo === 'centenas') destinoId = 'pantallaCentenas';
+            document.getElementById(destinoId).innerHTML += '<div class="renglon-jugada">' + texto + '</div>';
+        }
+
+        function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma) {
+            let elImporte, elLimpio;
+            if (tipo === 'fc') {
+                elImporte = document.getElementById('importaFC');
+                elLimpio = document.getElementById('limpioFC');
+            } else if (tipo === 'parles') {
+                elImporte = document.getElementById('importaParles');
+                elLimpio = document.getElementById('limpioParles');
+            } else if (tipo === 'centenas') {
+                elImporte = document.getElementById('importaCentenas');
+                elLimpio = document.getElementById('limpioCentenas');
+            }
+
+            const brutoActual = parseFloat(elImporte.innerText.replace('$', '')) || 0;
+            const limpioActual = parseFloat(elLimpio.innerText.replace('$', '')) || 0;
+            
+            elImporte.innerText = "$" + formatNumber(brutoActual + brutoSuma);
+            elLimpio.innerText = "$" + formatNumber(limpioActual + limpioSuma);
+
+            const impFC = parseFloat(document.getElementById('importaFC').innerText.replace('$', '')) || 0;
+            const impPar = parseFloat(document.getElementById('importaParles').innerText.replace('$', '')) || 0;
+            const impCen = parseFloat(document.getElementById('importaCentenas').innerText.replace('$', '')) || 0;
+            
+            const limFC = parseFloat(document.getElementById('limpioFC').innerText.replace('$', '')) || 0;
+            const limPar = parseFloat(document.getElementById('limpioParles').innerText.replace('$', '')) || 0;
+            const limCen = parseFloat(document.getElementById('limpioCentenas').innerText.replace('$', '')) || 0;
+
+            document.getElementById('totalImporta').innerText = "$" + formatNumber(impFC + impPar + impCen);
+            document.getElementById('totalLimpios').innerText = "$" + formatNumber(limFC + limPar + limCen);
+        }
+
+        async function cargarApuestasDeLista() {
+            if (!listaActivaId) return;
+            
+            limpiarPantallasVisuales();
+
+            try {
+                const { data: apuestas, error } = await supabase
+                    .from('apuestas')
+                    .select('*')
+                    .eq('lista_id', listaActivaId)
+                    .order('hora_apuesta', { ascending: true });
+
+                if (error) {
+                    console.error('Error al cargar apuestas:', error);
+                    return;
+                }
+
+                for (const apuesta of apuestas) {
+                    const texto = apuesta.metadata?.texto || apuesta.numero + ` ($${apuesta.precio})`;
+                    inyectarRenglonEnPantalla(apuesta.tipo, texto);
+                    actualizarValoresYTotales(apuesta.tipo, apuesta.importe_bruto, apuesta.importe_limpio);
+                }
+
+            } catch (error) {
+                console.error('Error en cargarApuestasDeLista:', error);
+            }
+        }
+
+        function limpiarPantallasVisuales() {
+            document.getElementById('pantallaCentenas').innerHTML = "";
+            document.getElementById('pantallaFijosCorridos').innerHTML = "";
+            document.getElementById('pantallaParles').innerHTML = "";
+            
+            document.getElementById('importaFC').innerText = "$0.00";
+            document.getElementById('limpioFC').innerText = "$0.00";
+            document.getElementById('importaParles').innerText = "$0.00";
+            document.getElementById('limpioParles').innerText = "$0.00";
+            document.getElementById('importaCentenas').innerText = "$0.00";
+            document.getElementById('limpioCentenas').innerText = "$0.00";
+            document.getElementById('totalImporta').innerText = "$0.00";
+            document.getElementById('totalLimpios').innerText = "$0.00";
+        }
+
+        // ==========================================
+        // FUNCIONES DE CIERRE Y LIMPIEZA
+        // ==========================================
+        async function limpiarDatosUsuario() {
+            if (!usuarioActivo || !listaActivaId) return;
+            
+            const confirmar = confirm(`¿Estás seguro de que deseas borrar TODAS las jugadas de la lista de ${usuarioActivo.toUpperCase()}? Esto no se puede deshacer.`);
+            
+            if (confirmar) {
+                mostrarLoading(true);
+                try {
+                    const { error: deleteError } = await supabase
+                        .from('apuestas')
+                        .delete()
+                        .eq('lista_id', listaActivaId);
+
+                    if (deleteError) {
+                        console.error('Error al borrar apuestas:', deleteError);
+                        alert('Error al borrar. Intenta de nuevo.');
+                        mostrarLoading(false);
+                        return;
+                    }
+
+                    await supabase
+                        .from('listas_de_trabajo')
+                        .update({ total_importa: 0, total_limpio: 0 })
+                        .eq('id', listaActivaId);
+
+                    limpiarPantallasVisuales();
+                    alert("Lista borrada con éxito.");
+
+                } catch (error) {
+                    console.error('Error en limpiarDatosUsuario:', error);
+                    alert('Error al borrar la lista.');
+                }
+                mostrarLoading(false);
+            }
+        }
+
+        // ==========================================
+        // FUNCIONES DE CIERRE DE SESIÓN
+        // ==========================================
+        async function cerrarSesion() {
+            if (!usuarioActivo) return;
+            
+            const confirmar = confirm('¿Estás seguro de que quieres cerrar sesión?');
+            if (!confirmar) return;
+
+            mostrarLoading(true);
+
+            try {
+                if (usuarioData) {
+                    await supabase
+                        .from('usuarios_listeros')
+                        .update({ ultimo_acceso: new Date().toISOString() })
+                        .eq('id', usuarioData.id);
+                }
+
+                usuarioActivo = null;
+                usuarioData = null;
+                listaActivaId = null;
+                
+                document.getElementById('loginForm').reset();
+                document.getElementById('seccionLogin').style.display = 'block';
+                document.getElementById('seccionListero').style.display = 'none';
+                limpiarPantallasVisuales();
+                
+                location.reload();
+
+            } catch (error) {
+                console.error('Error en cerrarSesion:', error);
+            }
+
+            mostrarLoading(false);
+        }
+
+        // ==========================================
+        // FUNCIONES DEL MENÚ
+        // ==========================================
+        function toggleMenu() {
+            const menu = document.getElementById('menuDesglegable');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.btn-puntos')) {
+                const menu = document.getElementById('menuDesglegable');
+                if (menu && menu.style.display === 'block') {
+                    menu.style.display = 'none';
+                }
+            }
+        }
+
+        function abrirReglamento() {
+            document.getElementById('modalReglamento').style.display = 'flex';
+        }
+
+        function cerrarReglamento() {
+            document.getElementById('modalReglamento').style.display = 'none';
+        }
+
+        function verNumerosLimitados() {
+            alert('🚫 Números Limitados (Fijos):\n\n11, 55, 90');
+        }
+
+        // ==========================================
+        // FUNCIONES DE LISTAS GUARDADAS
+        // ==========================================
+        async function verListasGuardadas() {
+            if (!usuarioActivo) return;
+            
+            mostrarLoading(true);
+
+            try {
+                const { data: listas, error } = await supabase
+                    .from('listas_de_trabajo')
+                    .select('*')
+                    .eq('usuario', usuarioActivo)
+                    .neq('estado', 'activa')
+                    .order('fecha_creacion', { ascending: false })
+                    .limit(20);
+
+                if (error) {
+                    console.error('Error al obtener listas:', error);
+                    mostrarLoading(false);
+                    return;
+                }
+
+                if (!listas || listas.length === 0) {
+                    alert("No tienes listas archivadas.");
+                    mostrarLoading(false);
+                    return;
+                }
+
+                let textoListas = "📚 LISTAS ARCHIVADAS\n\n";
+                for (let i = 0; i < listas.length; i++) {
+                    const l = listas[i];
+                    textoListas += `${i+1}. ${l.fecha} (${l.turno})\n`;
+                    textoListas += `   Total: $${formatNumber(l.total_importa || 0)}\n`;
+                    textoListas += `   Estado: ${l.estado}\n\n`;
+                }
+                alert(textoListas);
+
+            } catch (error) {
+                console.error('Error en verListasGuardadas:', error);
+                alert('Error al cargar las listas.');
+            }
+
+            mostrarLoading(false);
+        }
+
+        // ==========================================
+        // FUNCIÓN DE CAMBIO DE CONTRASEÑA
+        // ==========================================
+        async function cambiarContrasena() {
+            if (!usuarioActivo) return;
+            
+            const nuevaPassword = prompt('Ingresa tu nueva contraseña (mínimo 6 caracteres):');
+            if (!nuevaPassword) return;
+            
+            if (nuevaPassword.length < 6) {
+                alert('La contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+
+            const confirmar = confirm('¿Estás seguro de que quieres cambiar tu contraseña?');
+            if (!confirmar) return;
+
+            mostrarLoading(true);
+
+            try {
+                const passwordHash = await hashPassword(nuevaPassword);
+
+                const { error } = await supabase
+                    .from('usuarios_listeros')
+                    .update({ password_hash: passwordHash })
+                    .eq('usuario', usuarioActivo);
+
+                if (error) {
+                    console.error('Error al cambiar contraseña:', error);
+                    alert('Error al cambiar contraseña.');
+                } else {
+                    alert('✅ Contraseña cambiada exitosamente.');
+                }
+
+            } catch (error) {
+                console.error('Error en cambiarContrasena:', error);
+                alert('Error al cambiar la contraseña.');
+            }
+
+            mostrarLoading(false);
+        }
+
+        // ==========================================
+        // RELOJ Y CONTROL DE HORARIO
+        // ==========================================
+        function actualizarReloj() {
+            const ahora = new Date();
+            
+            const tiempoRealEjecucion = Date.now();
+            const diferenciaMonitoreo = tiempoRealEjecucion - ultimaHoraVerificada;
+            
+            if (diferenciaMonitoreo < -toleranciaFraude || diferenciaMonitoreo > (1000 + toleranciaFraude)) {
+                fraudeHoraDetectado = true;
+            }
+            ultimaHoraVerificada = Date.now();
+
+            if (fraudeHoraDetectado) {
+                document.getElementById('relojDigital').innerText = "BLOQUEADO";
+                document.getElementById('relojDigital').style.color = "#ef4444";
+                bloquearBancoPorFraude();
+                return;
+            }
+
+            const horas = ahora.getHours();
+            const minutos = ahora.getMinutes();
+            const segundos = ahora.getSeconds();
+            const ampm = horas >= 12 ? 'PM' : 'AM';
+            
+            evaluarTrancaHorarios(horas, minutos);
+
+            const horasDoce = horas % 12 || 12;
+            const tiempoTexto = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
+            document.getElementById('relojDigital').innerText = tiempoTexto;
+        }
+
+        function machined(valor) {
+            return valor < 10 ? '0' + valor : valor;
+        }
+
+        function evaluarTrancaHorarios(hora, minuto) {
+            if (fraudeHoraDetectado) return;
+
+            const tiempoEnMinutos = (hora * 60) + minuto;
+            
+            const dentroTurnoManana = (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805);
+            const dentroTurnoNoche = (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290);
+
+            if (tiempoEnMinutos === 805) {
+                ejecutarCierreAutomatico("Mañana");
+            }
+            if (tiempoEnMinutos === 1290) {
+                ejecutarCierreAutomatico("Noche");
+            }
+
+            if (dentroTurnoManana || dentroTurnoNoche) {
+                bancoBloqueadoPorHorario = false;
+                document.getElementById('avisoBancoCerrado').style.display = "none";
+                document.getElementById('campoNumero').disabled = false;
+                document.getElementById('campoPrecio').disabled = false;
+                document.getElementById('btnAnotarJugada').disabled = false;
+            } else {
+                bancoBloqueadoPorHorario = true;
+                document.getElementById('avisoBancoCerrado').style.display = "flex";
+                document.getElementById('campoNumero').disabled = true;
+                document.getElementById('campoPrecio').disabled = true;
+                document.getElementById('btnAnotarJugada').disabled = true;
+            }
+        }
+
+        function bloquearBancoPorFraude() {
+            document.getElementById('avisoBancoCerrado').innerText = "HORA CORRUPTA";
+            document.getElementById('avisoBancoCerrado').style.display = "flex";
+            document.getElementById('campoNumero').disabled = true;
+            document.getElementById('campoPrecio').disabled = true;
+            document.getElementById('btnAnotarJugada').disabled = true;
+            alert("No puedes cambiar la hora. Activa la hora automática en los ajustes del teléfono.");
+        }
+
+        async function ejecutarCierreAutomatico(nombreTurno) {
+            if (!usuarioActivo || !listaActivaId) return;
+
+            try {
+                const { data: listaActual, error: getError } = await supabase
+                    .from('listas_de_trabajo')
+                    .select('*')
+                    .eq('id', listaActivaId)
+                    .single();
+
+                if (getError) {
+                    console.error('Error al obtener lista para cierre:', getError);
+                    return;
+                }
+
+                // Registrar cierre
+                await supabase
+                    .from('cierre_turno')
+                    .insert({
+                        lista_id: listaActivaId,
+                        usuario: usuarioActivo,
+                        turno: nombreTurno,
+                        total_importa: listaActual.total_importa || 0,
+                        total_limpio: listaActual.total_limpio || 0,
+                        total_apuestas: await contarApuestasDeLista(listaActivaId),
+                        observaciones: `Cierre automático turno ${nombreTurno}`
+                    });
+
+                // Cerrar lista
+                await supabase
+                    .from('listas_de_trabajo')
+                    .update({ estado: 'cerrada' })
+                    .eq('id', listaActivaId);
+
+                limpiarPantallasVisuales();
+                await obtenerOCrearListaActiva();
+                await cargarApuestasDeLista();
+
+                alert(`✅ Turno de ${nombreTurno} cerrado correctamente.`);
+
+            } catch (error) {
+                console.error('Error en ejecutarCierreAutomatico:', error);
+            }
+        }
+
+        async function contarApuestasDeLista(listaId) {
+            try {
+                const { count, error } = await supabase
+                    .from('apuestas')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('lista_id', listaId);
+                
+                return count || 0;
+            } catch (error) {
+                console.error('Error en contarApuestasDeLista:', error);
+                return 0;
+            }
+        }
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj();
+
+        console.log('🚀 Sistema Kingball iniciado correctamente');
+        console.log('📦 Conectado a Supabase:', SUPABASE_URL);
+    </script>
+</body>
+</html>
