@@ -916,8 +916,11 @@
             mostrarLoading(false);
         }
 
-        function mostrarFormularioRegistro() {
-            const loginContainer = document.getElementById('seccionLogin');
+                function mostrarFormularioRegistro() {
+            // CORRECCIÓN: Apuntar a 'loginContent' para mantener el contenedor blanco y los estilos intactos
+            const loginContainer = document.getElementById('loginContent');
+            if (!loginContainer) return;
+
             loginContainer.innerHTML = `
                 <h2>🏆 Registro de Listero</h2>
                 <p>Completa tus datos para crear una cuenta</p>
@@ -956,6 +959,7 @@
                 </form>
             `;
         }
+
 
         function volverLogin() {
             location.reload();
