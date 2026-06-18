@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Apuestas - Kingball Pro</title>
     
+    <!-- Supabase JS CDN Oficial -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -39,8 +40,6 @@
             max-width: 400px;
             text-align: center;
             display: block; 
-            max-height: 95vh;
-            overflow-y: auto;
         } 
 
         .login-container h2 { color: #0f172a; margin-bottom: 10px; font-size: 24px; }
@@ -53,11 +52,6 @@
 
         .btn-ingresar { width: 100%; background: #2563eb; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s; } 
         .btn-ingresar:hover { background: #1d4ed8; }
-        .btn-ingresar.secondary { background: #64748b; margin-top: 10px; }
-        .btn-ingresar.secondary:hover { background: #475569; }
-
-        .link-registro { margin-top: 15px; font-size: 14px; color: #64748b; }
-        .link-registro a { color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: bold; }
 
         /* ENTORNO DE TRABAJO */
         .panel-listero {
@@ -77,8 +71,8 @@
         .derecha-superior { display: flex; align-items: center; gap: 15px; } 
         .reloj { font-size: 16px; color: #e2e8f0; font-family: monospace; background: #1e293b; padding: 4px 8px; border-radius: 4px; } 
 
-        /* Estado Conexión */
-        .badge-red { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #16a34a; color: white; }
+        /* Badge de Red */
+        .badge-red { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #16a34a; color: white; text-transform: uppercase; }
         .badge-red.offline { background: #dc2626 !important; }
 
         .btn-puntos { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 5px; } 
@@ -94,17 +88,20 @@
         .btn-anotar { background: #2563eb; color: white; border: none; padding: 0 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; height: 41px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; } 
         .btn-anotar:hover { background: #1d4ed8; } 
 
+        .letrero-banco-cerrado { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); color: #ef4444; font-size: 22px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; align-items: center; justify-content: center; border-radius: 8px; z-index: 5; }
+
         .area-principal-trabajo { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; } 
         .pantallas-captacion { display: flex; gap: 10px; flex-grow: 1; overflow: hidden; margin-bottom: 10px; } 
         .pantalla-bloque { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 10px; flex: 1; display: flex; flex-direction: column; overflow: hidden; } 
         .pantalla-bloque h4 { font-size: 13px; color: #38bdf8; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 6px; text-transform: uppercase; flex-shrink: 0; } 
         
-        .contenido-pantalla { flex-grow: 1; font-family: monospace; font-size: 19px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 4px; } 
+        /* FLUJO DE ELEMENTOS LADO A LADO */
+        .contenido-pantalla { flex-grow: 1; font-family: monospace; font-size: 16px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 4px; display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; } 
         
-        /* CONTROL EXCLUSIVO DE COLORES EN RENGLONES */
-        .renglon-jugada { padding: 6px 0; border-bottom: 1px solid #1e293b; color: #22c55e; } /* Verde por defecto (Online) */
-        .renglon-jugada.offline-mode { color: #ef4444 !important; font-weight: bold; }       /* Rojo Estricto (Sin red) */
-        .renglon-jugada.bote-mode { color: #f59e0b !important; }                             /* Naranja para el Bote */
+        /* CLASES CRÍTICAS PARA ESTADOS VISUALES */
+        .renglon-jugada { padding: 4px 8px; background: #1e293b; border-radius: 4px; color: #4ade80; border: 1px solid #334155; white-space: nowrap; } 
+        .renglon-jugada.offline-mode { color: #ef4444 !important; border-color: #ef4444 !important; font-weight: bold; } 
+        .renglon-jugada.bote-mode { color: #f59e0b !important; border-color: #f59e0b !important; }
 
         .zona-inferior { display: flex; justify-content: flex-end; flex-shrink: 0; padding-top: 5px; } 
         .tabla-totales { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; min-width: 290px; } 
@@ -125,25 +122,24 @@
 
     <div class="loading-overlay" id="loadingSystem">Procesando Base de Datos...</div>
 
+    <!-- PANTALLA DE LOGIN -->
     <div class="login-container" id="seccionLogin">
-        <div id="loginContent">
-            <h2>Panel de Control</h2>
-            <p>Introduce tus credenciales para ingresar</p>
-            <form id="loginForm" onsubmit="entrarAlSistema(event)">
-                <div class="input-group">
-                    <label for="usuario">Usuario del Listero</label>
-                    <input type="text" id="usuario" placeholder="Ej: listero_juan" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Contraseña única</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn-ingresar">Ingresar al Sistema</button>
-            </form>
-            <div class="link-registro">¿No tienes cuenta? <a onclick="mostrarFormularioRegistro()">Regístrate aquí</a></div>
-        </div>
+        <h2>Panel de Control</h2>
+        <p>Introduce tus credenciales para ingresar</p>
+        <form id="loginForm" onsubmit="entrarAlSistema(event)">
+            <div class="input-group">
+                <label for="usuario">Usuario del Listero</label>
+                <input type="text" id="usuario" placeholder="Ej: listero_juan" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Contraseña única</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-ingresar">Ingresar al Sistema</button>
+        </form>
     </div> 
 
+    <!-- ENTORNO DE TRABAJO -->
     <div class="panel-listero" id="seccionListero">
         <div class="barra-superior">
             <div class="nombre-lista" id="nombreListaSuperior">Lista: Colector</div>
@@ -153,7 +149,7 @@
                 <div class="menu-tres-puntos">
                     <button class="btn-puntos" onclick="toggleMenu()">⋮</button>
                     <div class="menu-contenido" id="menuDesglegable">
-                        <a onclick="alert('Límites por número:\nFijos/Corridos: $500 c/u\nParlés: $50\nCentenas: $50\n\nEl exceso va directo al BOTE.')">📈 Ver Límites</a>
+                        <a onclick="alert('Límites por número:\nFijos/Corridos: $500 c/u\nParlés: $50\nCentenas: $50\n\nEl exceso se desvía automáticamente al BOTE.')">📈 Ver Límites</a>
                         <a onclick="location.reload()">🔄 Forzar Refresco</a>
                         <hr style="border: 0; border-top: 1px solid #334155;">
                         <a onclick="cerrarSesion()" style="color: #ef4444;">🚪 Cerrar Sesión</a>
@@ -163,6 +159,7 @@
         </div> 
 
         <div class="zona-entrada-apuestas">
+            <div class="letrero-banco-cerrado" id="avisoBancoCerrado">Banco Cerrado</div>
             <div class="recuadro-apuesta">
                 <label for="campoNumero">Número</label>
                 <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearNumeros(this)" autocomplete="off">
@@ -194,20 +191,19 @@
     </div> 
 
     <script>
+        // CONFIGURACIÓN OFICIAL CREDENCIALES SUPABASE
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         var COMISION_FC = 20, COMISION_PARLES = 20, COMISION_CENTENAS = 20; 
         var usuarioActivo = "", listaActivaId = null;
+        var bancoBloqueadoPorHorario = false;
 
-        // ESTRUCTURAS DINÁMICAS GLOBALES DE CONTROL DE CUPOS
-        var acumuladoFijos = {};    
-        var acumuladoCorridos = {}; 
-        var acumuladoParles = {};    
-        var acumuladoCentenas = {};  
+        // MATRICES DE ACUMULADOS EN MEMORIA VIVA
+        var acumuladoFijos = {}, acumuladoCorridos = {}, acumuladoParles = {}, acumuladoCentenas = {};  
 
-        // VERIFICACIÓN INMEDIATA Y FORZADA DE ESTADO DE RED
+        // MONITOREO DE RED FORZADO Y VEHÍCULO DE ALERTAS EN ROJO
         function monitorearRedFijo() {
             const badge = document.getElementById('estadoRed');
             if (navigator.onLine) {
@@ -221,73 +217,25 @@
         }
         window.addEventListener('online', monitorearRedFijo);
         window.addEventListener('offline', monitorearRedFijo);
-        setInterval(monitoredRedFijo, 3000); // Doble chequeo cada 3 segundos
+        setInterval(monitorearRedFijo, 3000);
 
         function toggleLoading(show) { document.getElementById('loadingSystem').style.display = show ? 'flex' : 'none'; }
 
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        async function entrarAlSistema(event) {
+        function entrarAlSistema(event) {
             event.preventDefault(); 
             var user = document.getElementById('usuario').value.trim().toLowerCase();
-            var pass = document.getElementById('password').value.trim();
-            if (!user || !pass) return;
+            if (!user) return;
+            usuarioActivo = user; 
+            document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();
+            document.getElementById('seccionLogin').style.display = 'none';
+            document.getElementById('seccionListero').style.display = 'flex'; 
 
-            toggleLoading(true);
-            try {
-                const { data: u } = await supabaseClient.from('usuarios_listeros').select('*').eq('usuario', user).maybeSingle();
-                if (!u) { alert("Usuario no encontrado."); toggleLoading(false); return; }
-                
-                const hp = await hashPassword(pass);
-                if (hp !== u.password_hash) { alert("Contraseña incorrecta."); toggleLoading(false); return; }
-
-                usuarioActivo = u.usuario; 
-                document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();
-                document.getElementById('seccionLogin').style.display = 'none';
-                document.getElementById('seccionListero').style.display = 'flex'; 
-
-                await obtenerOCrearListaDeHoy();
-                await cargarJugadasLocalesYCloud();
-            } catch(e) { alert("Error de acceso de red. Trabajando local."); }
-            toggleLoading(false);
-            monitoredRedFijo();
+            obtenerOCrearListaDeHoy().then(() => {
+                cargarJugadasLocalesYCloud();
+            });
         } 
 
-        function mostrarFormularioRegistro() {
-            document.getElementById('loginContent').innerHTML = `
-                <h2>Registro de Listero</h2><p>Crea tu cuenta oficial</p>
-                <form onsubmit="procesarRegistro(event)">
-                    <div class="input-group"><label>Usuario nuevo</label><input type="text" id="regUsuario" required></div>
-                    <div class="input-group"><label>Nombre completo</label><input type="text" id="regNombre" required></div>
-                    <div class="input-group"><label>Correo electrónico</label><input type="email" id="regEmail" required></div>
-                    <div class="input-group"><label>Contraseña</label><input type="password" id="regPassword" minlength="6" required></div>
-                    <button type="submit" class="btn-ingresar">Crear Cuenta</button>
-                    <button type="button" class="btn-ingresar secondary" onclick="location.reload()">Atrás</button>
-                </form>`;
-        }
-
-        async function procesarRegistro(event) {
-            event.preventDefault();
-            var user = document.getElementById('regUsuario').value.trim().toLowerCase();
-            var name = document.getElementById('regNombre').value.trim();
-            var email = document.getElementById('regEmail').value.trim();
-            var pass = document.getElementById('regPassword').value.trim();
-            toggleLoading(true);
-            try {
-                const hash = await hashPassword(pass);
-                await supabaseClient.from('usuarios_listeros').insert({ usuario: user, nombre_completo: name, email: email, password_hash: hash });
-                alert("¡Cuenta creada con éxito!"); location.reload();
-            } catch(e) { alert("Error al registrar."); }
-            toggleLoading(false);
-        }
-
         async function obtenerOCrearListaDeHoy() {
-            if(!usuarioActivo) return;
             var hoy = new Date().toISOString().split('T')[0];
             listaActivaId = "local-" + usuarioActivo + "-" + hoy; 
             if(!navigator.onLine) return;
@@ -299,8 +247,9 @@
             } catch(e){}
         }
 
-        // CÁLCULO ESTRICTO Y DIVISIÓN DE CUPOS POR EXCESOS
-        async function procesarJugada() {
+        // CONTROLADORES DE ENTRADAS Y CÁLCULOS DE CUPOS ACUMULADOS ($500 / $50)
+        function procesarJugada() {
+            if (bancoBloqueadoPorHorario) return;
             var campoNum = document.getElementById('campoNumero');
             var campoPrecio = document.getElementById('campoPrecio');
             var strNum = campoNum.value.trim();
@@ -310,191 +259,140 @@
             var bloques = strNum.split(' ');
             var union = bloques.join('');
 
-            // A. EVALUAR CENTENAS (Límite acumulado de $50 por número)
+            // 1. EVALUAR CENTENAS (Límite: $50)
             if (union.length === 3) {
                 var pBase = parseFloat(strPrecio);
                 if (isNaN(pBase) || pBase < 1) return;
-
                 var yaAcumulado = acumuladoCentenas[union] || 0;
-                var cupoDisponible = Math.max(0, 50 - yaAcumulado);
+                var cupoDisp = Math.max(0, 50 - yaAcumulado);
 
-                if (cupoDisponible > 0) {
-                    var paraLista = Math.min(pBase, cupoDisponible);
+                if (cupoDisp > 0) {
+                    var paraLista = Math.min(pBase, cupoDisp);
                     var paraBote = pBase - paraLista;
-
                     if (paraLista > 0) {
-                        var comision = (paraLista * COMISION_CENTENAS) / 100;
-                        salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraLista, bruto: paraLista, limpio: paraLista - comision, texto: `${union} (${paraLista})`, destino: 'apuestas' });
+                        salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraLista, bruto: paraLista, limpio: paraLista - ((paraLista * COMISION_CENTENAS)/100), texto: `${union}(${paraLista})`, destino: 'apuestas' });
                         acumuladoCentenas[union] = yaAcumulado + paraLista;
                     }
                     if (paraBote > 0) {
-                        var comisionB = (paraBote * COMISION_CENTENAS) / 100;
-                        salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraBote, bruto: paraBote, limpio: paraBote - comisionB, texto: `${union} (${paraBote})`, destino: 'bote' });
+                        salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: paraBote, bruto: paraBote, limpio: paraBote - ((paraBote * COMISION_CENTENAS)/100), texto: `${union}(${paraBote})`, destino: 'bote' });
                     }
                 } else {
-                    var comision = (pBase * COMISION_CENTENAS) / 100;
-                    salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: pBase, bruto: pBase, limpio: pBase - comision, texto: `${union} (${pBase})`, destino: 'bote' });
+                    salvarJugadaSistema({ tipo: 'centenas', numero: union, precio: pBase, bruto: pBase, limpio: pBase - ((pBase * COMISION_CENTENAS)/100), texto: `${union}(${pBase})`, destino: 'bote' });
                 }
 
-            // B. EVALUAR FIJOS Y CORRIDOS (Límite acumulado de $500 c/u por separado)
+            // 2. EVALUAR FIJOS Y CORRIDOS (Límite: $500 c/u por separado)
             } else if (bloques.length === 1) {
                 var numFijo = bloques[0];
                 if (numFijo.length !== 2) return;
-
                 var pFijo = 0, pCorrido = 0;
                 if (strPrecio.includes(',')) {
                     var partes = strPrecio.split(',');
-                    pFijo = parseFloat(partes[0]) || 0;
-                    pCorrido = parseFloat(partes[1]) || 0;
+                    pFijo = parseFloat(partes[0]) || 0; pCorrido = parseFloat(partes[1]) || 0;
                 } else {
                     pFijo = parseFloat(strPrecio) || 0;
                 }
-                if (pFijo < 0 || pCorrido < 0) return;
 
-                var yaAcumuladoFijo = acumuladoFijos[numFijo] || 0;
-                var cupoFijo = Math.max(0, 500 - yaAcumuladoFijo);
-                var fijoLista = 0, fijoBote = 0;
+                // Desglose Fijo
+                var yaAcumFijo = acumuladoFijos[numFijo] || 0;
+                var cupoFijo = Math.max(0, 500 - yaAcumFijo);
+                var fLista = Math.min(pFijo, cupoFijo);
+                var fBote = pFijo - fLista;
+                if(fLista > 0) acumuladoFijos[numFijo] = yaAcumFijo + fLista;
 
-                if (pFijo > 0) {
-                    fijoLista = Math.min(pFijo, cupoFijo);
-                    fijoBote = pFijo - fijoLista;
-                    acumuladoFijos[numFijo] = yaAcumuladoFijo + fijoLista;
+                // Desglose Corrido
+                var yaAcumCorrido = acumuladoCorridos[numFijo] || 0;
+                var cupoCorrido = Math.max(0, 500 - yaAcumCorrido);
+                var cLista = Math.min(pCorrido, cupoCorrido);
+                var cBote = pCorrido - cLista;
+                if(cLista > 0) acumuladoCorridos[numFijo] = yaAcumCorrido + cLista;
+
+                // Inyecciones
+                if (fLista > 0 || cLista > 0) {
+                    var bL = fLista + cLista;
+                    salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fLista, bruto: bL, limpio: bL - ((bL * COMISION_FC)/100), texto: `${numFijo}(${fLista})(${cLista})`, destino: 'apuestas' });
+                }
+                if (fBote > 0 || cBote > 0) {
+                    var bB = fBote + cBote;
+                    salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fBote, bruto: bB, limpio: bB - ((bB * COMISION_FC)/100), texto: `${numFijo}(${fBote})(${cBote})`, destino: 'bote' });
                 }
 
-                var yaAcumuladoCorrido = acumuladoCorridos[numFijo] || 0;
-                var cupoCorrido = Math.max(0, 500 - yaAcumuladoCorrido);
-                var corridoLista = 0, corridoBote = 0;
-
-                if (pCorrido > 0) {
-                    corridoLista = Math.min(pCorrido, cupoCorrido);
-                    corridoBote = pCorrido - corridoLista;
-                    acumuladoCorridos[numFijo] = yaAcumuladoCorrido + corridoLista;
-                }
-
-                if (fijoLista > 0 || corridoLista > 0) {
-                    var brutoL = fijoLista + corridoLista;
-                    var limpioL = brutoL - ((brutoL * COMISION_FC) / 100);
-                    salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoLista, bruto: brutoL, limpio: limpioL, texto: `${numFijo} (${fijoLista}) (${corridoLista})`, destino: 'apuestas' });
-                }
-
-                if (fijoBote > 0 || corridoBote > 0) {
-                    var brutoB = fijoBote + corridoBote;
-                    var limpioB = brutoB - ((brutoB * COMISION_FC) / 100);
-                    salvarJugadaSistema({ tipo: 'fc', numero: numFijo, precio: fijoBote, bruto: brutoB, limpio: limpioB, texto: `${numFijo} (${fijoBote}) (${corridoBote})`, destino: 'bote' });
-                }
-
-            // C. EVALUAR PARLÉS (Límite acumulado por combinación exacta de $50)
+            // 3. EVALUAR PARLÉS (Límite: $50 por combinación exacta)
             } else if (bloques.length >= 2) {
                 var baseParle = parseFloat(strPrecio);
                 if (isNaN(baseParle) || baseParle < 1) return;
-
-                var combinacionID = bloques.sort().join(' '); 
+                var combID = bloques.sort().join(' '); 
                 var combs = (bloques.length * (bloques.length - 1)) / 2;
-                var brutoTotalIngresado = combs * baseParle;
+                var brutoTotal = combs * baseParle;
 
-                var yaAcumuladoP = acumuladoParles[combinacionID] || 0;
-                var cupoDisponibleP = Math.max(0, 50 - yaAcumuladoP);
+                var yaAcumP = acumuladoParles[combID] || 0;
+                var cupoP = Math.max(0, 50 - yaAcumP);
 
-                if (cupoDisponibleP > 0) {
-                    var paraListaP = Math.min(brutoTotalIngresado, cupoDisponibleP);
-                    var paraBoteP = brutoTotalIngresado - paraListaP;
-
+                if (cupoP > 0) {
+                    var paraListaP = Math.min(brutoTotal, cupoP);
+                    var paraBoteP = brutoTotal - paraListaP;
                     if (paraListaP > 0) {
-                        var precioBaseLista = paraListaP / combs;
-                        var limpioP = paraListaP - ((paraListaP * COMISION_PARLES) / 100);
-                        salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseLista, bruto: paraListaP, limpio: limpioP, texto: `${combinacionID} (${precioBaseLista.toFixed(1)})`, destino: 'apuestas' });
-                        acumuladoParles[combinacionID] = yaAcumuladoP + paraListaP;
+                        var pBaseL = paraListaP / combs;
+                        salvarJugadaSistema({ tipo: 'parles', numero: combID, precio: pBaseL, bruto: paraListaP, limpio: paraListaP - ((paraListaP * COMISION_PARLES)/100), texto: `${bloques.join(' ')}(${pBaseL.toFixed(1)})`, destino: 'apuestas' });
+                        acumuladoParles[combID] = yaAcumP + paraListaP;
                     }
-
                     if (paraBoteP > 0) {
-                        var precioBaseBote = paraBoteP / combs;
-                        var limpioPB = paraBoteP - ((paraBoteP * COMISION_PARLES) / 100);
-                        salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: precioBaseBote, bruto: paraBoteP, limpio: limpioPB, texto: `${combinacionID} (${precioBaseBote.toFixed(1)})`, destino: 'bote' });
+                        var pBaseB = paraBoteP / combs;
+                        salvarJugadaSistema({ tipo: 'parles', numero: combID, precio: pBaseB, bruto: paraBoteP, limpio: paraBoteP - ((paraBoteP * COMISION_PARLES)/100), texto: `${bloques.join(' ')}(${pBaseB.toFixed(1)})`, destino: 'bote' });
                     }
                 } else {
-                    var limpioPDirecto = brutoTotalIngresado - ((brutoTotalIngresado * COMISION_PARLES) / 100);
-                    salvarJugadaSistema({ tipo: 'parles', numero: combinacionID, precio: baseParle, bruto: brutoTotalIngresado, limpio: limpioPDirecto, texto: `${combinacionID} (${baseParle})`, destino: 'bote' });
+                    salvarJugadaSistema({ tipo: 'parles', numero: combID, precio: baseParle, bruto: brutoTotal, limpio: brutoTotal - ((brutoTotal * COMISION_PARLES)/100), texto: `${bloques.join(' ')}(${baseParle})`, destino: 'bote' });
                 }
             }
 
             campoNum.value = ""; campoPrecio.value = ""; campoNum.focus();
         }
 
-        // CONTROL EXCLUSIVO DE INTERFAZ GRÁFICA INSTANTÁNEA (PINTA EN ROJO SI NO HAY RED)
+        // ENRUTAMIENTO DIRECTO A TABLAS DINÁMICAS (APUESTAS O BOTE)
         function salvarJugadaSistema(jugada) {
-            jugada.lista_id = listaActivaId;
-            jugada.usuario = usuarioActivo;
-            jugada.id_temporal = Date.now() + Math.random().toString();
-
-            // 1. CHEQUEAR RED AL INSTANTE
             var onlineStatus = navigator.onLine;
-
-            // 2. MOSTRAR EN PANTALLA DE FORMA INMEDIATA (Cero retraso visual)
             renderJugadaPantalla(jugada, !onlineStatus);
 
-            // 3. ENRUTAR LOS DATOS EN SEGUNDO PLANO
             if (onlineStatus && !listaActivaId.toString().startsWith('local-')) {
-                // Envío asíncrono silencioso a Supabase
                 supabaseClient.from(jugada.destino).insert({
-                    lista_id: listaActivaId,
-                    usuario: usuarioActivo,
-                    tipo: jugada.tipo,
-                    numero: jugada.numero,
-                    precio: jugada.precio,
-                    importe_bruto: jugada.bruto,
-                    importe_limpio: jugada.limpio,
-                    metadata: { texto: jugada.texto }
-                }).then(({ error }) => {
-                    if (error) {
-                        ponerEnColaOffline(jugada);
-                    }
-                });
+                    lista_id: listaActivaId, usuario: usuarioActivo, tipo: jugada.tipo,
+                    numero: jugada.numero, precio: jugada.precio, importe_bruto: jugada.bruto,
+                    importe_limpio: jugada.limpio, metadata: { texto: jugada.texto }
+                }).then(({ error }) => { if (error) ponerEnColaOffline(jugada); });
             } else {
                 ponerEnColaOffline(jugada);
             }
         }
 
         function ponerEnColaOffline(jugada) {
-            var localDB = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
-            localDB.push(jugada);
-            localStorage.setItem('kingball_offline_queue', JSON.stringify(localDB));
+            var queue = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
+            queue.push(jugada);
+            localStorage.setItem('kingball_offline_queue', JSON.stringify(queue));
         }
 
-        // SINCRONIZADOR DE RESPALDO AUTOMÁTICO
         async function sincronizarJugadasPendientes() {
             if (!navigator.onLine || listaActivaId.toString().startsWith('local-')) return;
             var queue = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
             if (queue.length === 0) return;
 
-            var limpiados = 0;
+            var cambiados = false;
             for (var i = 0; i < queue.length; i++) {
                 var j = queue[i];
                 try {
                     const { error } = await supabaseClient.from(j.destino).insert({
-                        lista_id: listaActivaId,
-                        usuario: usuarioActivo,
-                        tipo: j.tipo,
-                        numero: j.numero,
-                        precio: j.precio,
-                        importe_bruto: j.bruto,
-                        importe_limpio: j.limpio,
-                        metadata: { texto: j.texto }
+                        lista_id: listaActivaId, usuario: usuarioActivo, tipo: j.tipo,
+                        numero: j.numero, precio: j.precio, importe_bruto: j.bruto,
+                        importe_limpio: j.limpio, metadata: { texto: j.texto }
                     });
-                    if(!error) {
-                        queue.splice(i, 1); i--; limpiados++;
-                    }
+                    if(!error) { queue.splice(i, 1); i--; cambiados = true; }
                 } catch(e) { break; }
             }
             localStorage.setItem('kingball_offline_queue', JSON.stringify(queue));
-            if(limpiados > 0) {
-                await cargarJugadasLocalesYCloud(); // Limpia los renglones rojos viejos y pinta todo unificado en verde
-            }
+            if(cambiados) await cargarJugadasLocalesYCloud(); 
         }
 
+        // RENDERIZADO HORIZONTAL COMPACTO DE LADO A LADO
         function renderJugadaPantalla(j, offlineVisual) {
             var destinoId = j.tipo === 'fc' ? 'pantallaFijosCorridos' : (j.tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');
-            
-            // Si offlineVisual es true, le clava la clase 'offline-mode' para ponerlo en ROJO
             var claseAdicional = offlineVisual ? 'offline-mode' : (j.destino === 'bote' ? 'bote-mode' : '');
             var prefijo = j.destino === 'bote' ? '[BOTE] ' : '';
             
@@ -532,22 +430,15 @@
             limpiarPantallasVisuales();
             
             var queue = JSON.parse(localStorage.getItem('kingball_offline_queue')) || [];
-            queue.forEach(j => {
-                renderJugadaPantalla(j, true);
-                recalcularMatrizAcumulados(j);
-            });
-            await cargarJugadasDesdeSupabase();
-        }
+            queue.forEach(j => { renderJugadaPantalla(j, true); recalcularMatrizAcumulados(j); });
 
-        async function cargarJugadasDesdeSupabase() {
             if(!navigator.onLine || listaActivaId.toString().startsWith('local-')) return;
             try {
                 const { data: ap } = await supabaseClient.from('apuestas').select('*').eq('lista_id', listaActivaId);
                 if(ap) {
                     ap.forEach(a => { 
                         var j = { tipo: a.tipo, texto: a.metadata?.texto || a.numero, bruto: a.importe_bruto, limpio: a.importe_limpio, destino: 'apuestas', numero: a.numero };
-                        renderJugadaPantalla(j, false); 
-                        recalcularMatrizAcumulados(j);
+                        renderJugadaPantalla(j, false); recalcularMatrizAcumulados(j);
                     });
                 }
                 const { data: bt } = await supabaseClient.from('bote').select('*').eq('lista_id', listaActivaId);
@@ -596,8 +487,15 @@
 
         function actualizarReloj() {
             var ahora = new Date();
-            var horasDoce = ahora.getHours() % 12 || 12; 
-            document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(ahora.getMinutes()) + ':' + machined(ahora.getSeconds()) + ' ' + (ahora.getHours() >= 12 ? 'PM' : 'AM');
+            var horas = ahora.getHours();
+            var tiempoEnMinutos = (horas * 60) + ahora.getMinutes();
+            
+            // Validación de Tranca de Horario
+            bancoBloqueadoPorHorario = !((tiempoEnMinutos >= 420 && tiempoEnMinutos < 805) || (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290));
+            document.getElementById('avisoBancoCerrado').style.display = bancoBloqueadoPorHorario ? "flex" : "none";
+
+            var horasDoce = horas % 12 || 12; 
+            document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(ahora.getMinutes()) + ':' + machined(ahora.getSeconds()) + ' ' + (horas >= 12 ? 'PM' : 'AM');
         }
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
