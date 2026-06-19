@@ -275,12 +275,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: background 0.2s, background-color 0.2s;
         } 
 
         .btn-anotar:hover {
             background: #1d4ed8;
         } 
+
+        /* NUEVA ESTILIZACIÓN: Estado de espera para el botón de envío */
+        .btn-anotar.esperando-servidor {
+            background-color: #dc2626 !important;
+            color: #ffffff !important;
+            cursor: not-allowed;
+        }
 
         .letrero-banco-cerrado {
             display: none; 
@@ -404,6 +411,13 @@
             font-size: 11px; 
             color: #cbd5e1;
         } 
+
+        /* ESTILO NUEVO: Color identificador para la fila agregada del bote */
+        .fila-total.fila-bote-total {
+            color: #f59e0b;
+        }
+        .fila-total.fila-bote-total .col-importa { color: #f59e0b; }
+        .fila-total.fila-bote-total .col-limpio { color: #fbbf24; }
 
         .fila-total.principal {
             border-top: 1px solid #475569;
@@ -648,6 +662,11 @@
                         <span class="col-concepto">Centenas:</span>
                         <span class="col-importa" id="importaCentenas">$0.00</span>
                         <span class="col-limpio" id="limpioCentenas">$0.00</span>
+                    </div>
+                    <div class="fila-total fila-bote-total">
+                        <span class="col-concepto">Botes:</span>
+                        <span class="col-importa" id="importaBotes">$0.00</span>
+                        <span class="col-limpio" id="limpioBotes">$0.00</span>
                     </div>
                     <div class="fila-total principal">
                         <span class="col-concepto">TOTALES:</span>
@@ -944,9 +963,9 @@
             } catch(e) { console.error(e); }
         }
 
-        // =========================================================
-        // PROCESADOR CON SEPARACIÓN MATEMÁTICA EXACTA Y RENDIMIENTO 0.8
-        // =========================================================
+        // =========================================================================
+        // PROCESADOR CON SEPARACIÓN MATEMÁTICA EXACTA, RENDIMIENTO 0.8 Y ESPERA ROJA
+        // =========================================================================
         async function procesarJugada() {
             if (bancoBloqueadoPorHorario || fraudeHoraDetectado || !listaActivaId) {
                 alert("Operación rechazada. Banco Cerrado.");
@@ -955,6 +974,7 @@
 
             var campoNum = document.getElementById('campoNumero');
             var campoPrecio = document.getElementById('campoPrecio');
+            var btnAnotar = document.getElementById('btnAnotarJugada');
             var stringNumeros = campoNum.value.trim();
             var stringPrecio = campoPrecio.value.trim(); 
 
@@ -989,7 +1009,7 @@
                     transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteLista, es_bote: false, texto: numero + " (" + parteLista + ")" });
                 }
                 if (parteBote > 0) {
-                    transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteBote, es_bote: true, texto: "[B] " + numero + " (" + parteBote + ")" });
+                    transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteBote, es_bote: true, texto: numero + " (" + parteBote + ")" });
                 }
 
             // 2. EVALUAR FIJOS Y CORRIDOS (LÍMITE $500 FIJO / $500 CORRIDO INDEPENDIENTES)
@@ -1014,7 +1034,6 @@
                 tipo = 'fc';
                 numero = numeroFijo;
 
-                // Consulta de Fijo
                 var pListaFijo = 0, pBoteFijo = 0;
                 if (precioFijo > 0) {
                     const { data: acumF } = await supabaseClient.rpc('obtener_acumulado_individual', {
@@ -1025,7 +1044,6 @@
                     pBoteFijo = precioFijo - pListaFijo;
                 }
 
-                // Consulta de Corrido
                 var pListaCorrido = 0, pBoteCorrido = 0;
                 if (precioCorrido > 0) {
                     const { data: acumC } = await supabaseClient.rpc('obtener_acumulado_individual', {
@@ -1036,7 +1054,6 @@
                     pBoteCorrido = precioCorrido - pListaCorrido;
                 }
 
-                // Preparación de inyección dividida
                 if (pListaFijo > 0 || pListaCorrido > 0) {
                     var totBrutoL = pListaFijo + pListaCorrido;
                     transaccionesALanzar.push({
@@ -1050,7 +1067,7 @@
                     transaccionesALanzar.push({
                         tipo: 'fc', numero: numero, bruto: totBrutoB,
                         importe_bruto_fijo: pBoteFijo, importe_bruto_corrido: pBoteCorrido,
-                        es_bote: true, texto: "[B] " + numero + " (" + pBoteFijo + ") (" + pBoteCorrido + ")"
+                        es_bote: true, texto: numero + " (" + pBoteFijo + ") (" + pBoteCorrido + ")"
                     });
                 }
 
@@ -1086,15 +1103,18 @@
                 }
                 if (precioExcedenteBote > 0) {
                     var brutoB = combinaciones * precioExcedenteBote;
-                    transaccionesALanzar.push({ tipo: 'parles', numero: numero, bruto: brutoB, es_bote: true, texto: "[B] " + bloques.join(' ') + " (" + precioExcedenteBote + ")" });
+                    transaccionesALanzar.push({ tipo: 'parles', numero: numero, bruto: brutoB, es_bote: true, texto: bloques.join(' ') + " (" + precioExcedenteBote + ")" });
                 }
             } 
 
-            // Ejecución secuencial en la DB aplicando factor 0.8 a todo
+            // CAMBIO: Patrón de espera en rojo en lugar de congelación total
             if (transaccionesALanzar.length > 0) {
-                toggleLoading(true);
+                btnAnotar.classList.add('esperando-servidor');
+                btnAnotar.innerText = "Enviando...";
+                btnAnotar.disabled = true;
+
                 for (var t of transaccionesALanzar) {
-                    var limpioCalculado = t.bruto * RENDIMIENTO; // Matemática limpia x 0.8
+                    var limpioCalculado = t.bruto * RENDIMIENTO; // Multiplicación limpia por factor 0.8
                     var tablaDestino = t.es_bote ? 'bote' : 'apuestas';
 
                     await supabaseClient.from(tablaDestino).insert({
@@ -1112,13 +1132,16 @@
                         }
                     });
 
-                    // Los totales del listero solo reflejan lo admitido en su lista ordinaria
                     if (!t.es_bote) {
                         await recalcularTotalesEnListaPadre(t.bruto, limpioCalculado);
                     }
                 }
                 await cargarJugadasDesdeSupabase();
-                toggleLoading(false);
+                
+                // Restaurar estado del botón
+                btnAnotar.classList.remove('esperando-servidor');
+                btnAnotar.innerText = "Anotar";
+                btnAnotar.disabled = false;
             }
 
             campoNum.value = ""; campoPrecio.value = ""; campoNum.classList.remove('numero-limitado'); campoNum.focus();
@@ -1139,7 +1162,7 @@
             limpiarPantallasVisuales();
 
             try {
-                // 1. Cargar apuestas normales de la lista
+                // 1. Cargar apuestas ordinarias
                 const { data: apuestas } = await supabaseClient
                     .from('apuestas')
                     .select('*')
@@ -1149,11 +1172,11 @@
                 if(apuestas) {
                     apuestas.forEach(a => {
                         inyectarRenglonEnPantalla(a.tipo, a.metadata?.texto || a.numero, false, a.id, 'apuestas');
-                        actualizarValoresYTotales(a.tipo, a.importe_bruto, a.importe_limpio);
+                        actualizarValoresYTotales(a.tipo, a.importe_bruto, a.importe_limpio, false);
                     });
                 }
 
-                // 2. Cargar apuestas desviadas al Bote
+                // 2. Cargar apuestas del Bote
                 const { data: botes } = await supabaseClient
                     .from('bote')
                     .select('*')
@@ -1161,8 +1184,8 @@
 
                 if(botes) {
                     botes.forEach(b => {
-                        // Se inyectan con flag esBote = true para que vayan abajo en naranja
-                        inyectarRenglonEnPantalla(b.tipo, b.metadata?.texto || ("[B] " + b.numero), true, b.id, 'bote');
+                        inyectarRenglonEnPantalla(b.tipo, b.metadata?.texto || b.numero, true, b.id, 'bote');
+                        actualizarValoresYTotales(b.tipo, b.importe_bruto, b.importe_limpio, true);
                     });
                 }
             } catch(e){}
@@ -1176,7 +1199,6 @@
             fila.className = 'renglon-jugada' + (esBote ? ' es-bote' : '');
             fila.innerText = texto;
 
-            // --- ELIMINACIÓN POR PULSACIÓN LARGA (DENTRO DE HORARIOS) ---
             let temporizadorPresionado;
 
             const iniciarPresion = () => {
@@ -1213,25 +1235,41 @@
             contenedor.appendChild(fila);
         }
 
-        function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma) {
-            var elImporte = document.getElementById(tipo === 'fc' ? 'importaFC' : (tipo === 'parles' ? 'importaParles' : 'importaCentenas'));
-            var elLimpio = document.getElementById(tipo === 'fc' ? 'limpioFC' : (tipo === 'parles' ? 'limpioParles' : 'limpioCentenas'));
+        function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma, esBote) {
+            if (esBote) {
+                // Sumar directo a los contenedores visuales de los botes
+                var elImporteBote = document.getElementById('importaBotes');
+                var elLimpioBote = document.getElementById('limpioBotes');
+                
+                var brutoBoteAct = parseFloat(elImporteBote.innerText.replace('$', '')) || 0;
+                var limpioBoteAct = parseFloat(elLimpioBote.innerText.replace('$', '')) || 0;
+                
+                elImporteBote.innerText = "$" + (brutoBoteAct + brutoSuma).toFixed(2);
+                elLimpioBote.innerText = "$" + (limpioBoteAct + limpioSuma).toFixed(2);
+            } else {
+                var elImporte = document.getElementById(tipo === 'fc' ? 'importaFC' : (tipo === 'parles' ? 'importaParles' : 'importaCentenas'));
+                var elLimpio = document.getElementById(tipo === 'fc' ? 'limpioFC' : (tipo === 'parles' ? 'importaParles' : 'importaCentenas'));
 
-            var brutoActual = parseFloat(elImporte.innerText.replace('$', '')) || 0;
-            var limpioActual = parseFloat(elLimpio.innerText.replace('$', '')) || 0;
-            
-            elImporte.innerText = "$" + (brutoActual + brutoSuma).toFixed(2);
-            elLimpio.innerText = "$" + (limpioActual + limpioSuma).toFixed(2); 
+                var brutoActual = parseFloat(elImporte.innerText.replace('$', '')) || 0;
+                var limpioActual = parseFloat(elLimpio.innerText.replace('$', '')) || 0;
+                
+                elImporte.innerText = "$" + (brutoActual + brutoSuma).toFixed(2);
+                elLimpio.innerText = "$" + (limpioActual + limpioSuma).toFixed(2); 
+            }
 
+            // Recalcular la sumatoria final de la tabla de totales
             var impFC = parseFloat(document.getElementById('importaFC').innerText.replace('$', '')) || 0;
             var impPar = parseFloat(document.getElementById('importaParles').innerText.replace('$', '')) || 0;
             var impCen = parseFloat(document.getElementById('importaCentenas').innerText.replace('$', '')) || 0;
+            var impBot = parseFloat(document.getElementById('importaBotes').innerText.replace('$', '')) || 0;
+
             var limFC = parseFloat(document.getElementById('limpioFC').innerText.replace('$', '')) || 0;
             var limPar = parseFloat(document.getElementById('limpioParles').innerText.replace('$', '')) || 0;
             var limCen = parseFloat(document.getElementById('limpioCentenas').innerText.replace('$', '')) || 0;
+            var limBot = parseFloat(document.getElementById('limpioBotes').innerText.replace('$', '')) || 0;
 
-            document.getElementById('totalImporta').innerText = "$" + (impFC + impPar + impCen).toFixed(2);
-            document.getElementById('totalLimpios').innerText = "$" + (limFC + limPar + limCen).toFixed(2);
+            document.getElementById('totalImporta').innerText = "$" + (impFC + impPar + impCen + impBot).toFixed(2);
+            document.getElementById('totalLimpios').innerText = "$" + (limFC + limPar + limCen + limBot).toFixed(2);
         }
 
         async function limpiarDatosUsuario() {
@@ -1272,6 +1310,8 @@
             document.getElementById('limpioParles').innerText = "$0.00";
             document.getElementById('importaCentenas').innerText = "$0.00";
             document.getElementById('limpioCentenas').innerText = "$0.00";
+            document.getElementById('importaBotes').innerText = "$0.00";
+            document.getElementById('limpioBotes').innerText = "$0.00";
             document.getElementById('totalImporta').innerText = "$0.00";
             document.getElementById('totalLimpios').innerText = "$0.00";
         }
