@@ -101,7 +101,7 @@
         .panel-listero {
             display: none; 
             width: 100%;
-            max-width: 1100px; /* Un poco más ancho para asegurar lectura */
+            max-width: 1100px; 
             height: 95vh; 
             background: #0f172a;
             border-radius: 12px;
@@ -276,18 +276,18 @@
             overflow: hidden; 
         } 
 
-        /* AJUSTE: Las 3 columnas con rayas/bordes definidos */
+        /* Las 3 columnas con rayas/bordes definidos */
         .pantallas-captacion {
             display: flex; 
-            gap: 0px; /* Sin separación externa para usar los bordes divisorios */
+            gap: 0px; 
             flex-grow: 1;
             overflow: hidden; 
             margin-bottom: 10px;
-            border: 2px solid #475569; /* Borde exterior de la tabla global */
+            border: 2px solid #475569; 
             border-radius: 8px;
         } 
 
-        /* AJUSTE: Columnas con líneas definidas entre sí */
+        /* Columnas con líneas definidas entre sí */
         .pantalla-bloque {
             background: #1e293b;
             padding: 10px;
@@ -297,7 +297,6 @@
             overflow: hidden;
         }
 
-        /* Definición estricta de rayas/bordes internos */
         .pantalla-bloque:not(:last-child) {
             border-right: 2px solid #475569; 
         } 
@@ -306,7 +305,7 @@
             font-size: 14px;
             color: #38bdf8;
             text-align: center;
-            border-bottom: 2px solid #475569; /* Raya definida debajo del título */
+            border-bottom: 2px solid #475569; 
             padding-bottom: 8px;
             margin-bottom: 8px;
             text-transform: uppercase;
@@ -314,7 +313,7 @@
             font-weight: bold;
         } 
 
-        /* Contenido adaptable para evitar recortes horizontales */
+        /* Contenido adaptable */
         .contenido-pantalla {
             flex-grow: 1;
             font-family: monospace;
@@ -325,23 +324,22 @@
             border-radius: 4px;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px; /* Espacio uniforme */
+            gap: 8px; 
             align-content: flex-start;
         } 
 
-        /* AJUSTE: Los renglones ahora aseguran ver el texto completo */
+        /* Formato de los renglones */
         .renglon-jugada {
             padding: 5px 10px; 
             border: 1px solid #334155;
             color: #4ade80; 
             background: #1e293b;
             border-radius: 4px;
-            white-space: nowrap; /* Impide saltos de línea internos raros */
+            white-space: nowrap; 
             display: inline-block;
             font-weight: bold;
         } 
         
-        /* Formato visual para jugadas enviadas al bote */
         .renglon-jugada.es-bote {
             color: #fbbf24 !important;
             border-color: #fbbf24;
@@ -656,6 +654,9 @@
     </div>
 
     <script>
+        // ========================================================
+        // 1. INICIALIZACIÓN Y DEPENDENCIAS OBLIGATORIAS DE SUPABASE
+        // ========================================================
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -675,7 +676,7 @@
         var acumuladoParles = {};
         var acumuladoCentenas = {};
 
-        // AJUSTE RELOJ: Sistema flexible y no estricto para evitar bloqueos innecesarios
+        // Reloj suave no estricto
         function actualizarReloj() {
             var ahora = new Date();
             var horas = ahora.getHours();
@@ -779,7 +780,6 @@
             document.getElementById('totalLimpios').innerText = "$0.00";
         }
 
-        // AJUSTE: Formateo y validación de limitados corregido para Fijos
         function formatearYVerificarLimitados(input) {
             var textoLimpio = input.value.replace(/\D/g, '');
             var resultado = textoLimpio.match(/.{1,2}/g);
@@ -790,7 +790,6 @@
             }
 
             var valorActual = input.value.trim();
-            // Si es un número único de dos dígitos y está marcado como limitado en la nube
             if (valorActual.length === 2 && numerosLimitadosNube.includes(valorActual)) {
                 input.classList.add('numero-limitado'); 
             } else {
@@ -804,14 +803,16 @@
             }
         } 
 
-        // AJUSTE: Carga dinámica real desde la tabla "limitados" de Supabase
+        // ========================================================
+        // 2. PETICIONES CLOUD DIRECTAS USANDO EL CLIENTE SUPABASE
+        // ========================================================
         function descargarLimitadosDeNube() {
             supabaseClient
                 .from('limitados')
                 .select('numero')
                 .then(({ data, error }) => {
                     if (error) {
-                        console.error("Error cargando limitados:", error);
+                        console.error("Error cargando limitados de Supabase:", error);
                         numerosLimitadosNube = ["11", "55", "90"]; 
                     } else if (data) {
                         numerosLimitadosNube = data.map(item => String(item.numero).trim().padStart(2, '0'));
@@ -961,6 +962,7 @@
 
             guardarJugadaLocal(tipo, textoVisible, bruto, limpio, tablaDestino);
 
+            // Inserción en la tabla correspondiente en la nube de Supabase
             supabaseClient.from(tablaDestino).insert({
                 lista_id: listaActivaId,
                 usuario: usuarioActivo,
@@ -970,7 +972,7 @@
                 importe_bruto: bruto,
                 importe_limpio: limpio,
                 metadata: { texto: textoVisible }
-            }).then(({ error }) => { if (error) console.log("Modo local activado."); });
+            }).then(({ error }) => { if (error) console.log("Guardado local activo; error sincronizando nube."); });
         }
 
         function inyectarRenglonEnPantalla(tipo, texto, tablaDestino) {
