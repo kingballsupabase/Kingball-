@@ -256,11 +256,11 @@
             font-weight: bold;
         } 
 
-        /* Alerta visual intensa para números limitados desde DB */
+        /* CAMBIO SOLICITADO: Alerta visual blanca e intensa cuando pones el número limitado */
         .recuadro-apuesta input.numero-limitado {
-            background: #fef08a !important;
+            background: #ffffff !important;
             color: #000000 !important;
-            border-color: #eab308 !important;
+            border-color: #38bdf8 !important;
         }
 
         .btn-anotar {
@@ -743,7 +743,7 @@
         }
 
         function abrirReglamento() { document.getElementById('modalReglamento').style.display = 'flex'; }
-        function cerrarReglamento() { document.getElementById('modalReglamento').style.display = 'none'; }
+        function cerrarReglamento() { document.getElementById('modalReglamento').style.none = 'none'; }
 
         async function hashPassword(password) {
             const encoder = new TextEncoder();
@@ -1233,9 +1233,21 @@
             var resultado = textoLimpio.match(/.{1,2}/g);
             input.value = resultado ? resultado.join(' ') : '';
 
-            var valorActual = input.value.trim();
-            // Comprobación exacta contra la matriz cargada en vivo desde Supabase
-            if (valorActual.length === 2 && dbNumerosLimitados.includes(valorActual)) {
+            // Se extraen los números individuales digitados separados por espacio
+            var bloques = input.value.trim().split(' ');
+            var encontradoLimitado = false;
+
+            // CAMBIO SOLICITADO: Si cualquiera de los números introducidos existe en la BD, se activa el estilo blanco
+            if (bloques.length > 0 && input.value.trim() !== "") {
+                for (var i = 0; i < bloques.length; i++) {
+                    if (bloques[i].length === 2 && dbNumerosLimitados.includes(bloques[i])) {
+                        encontradoLimitado = true;
+                        break;
+                    }
+                }
+            }
+
+            if (encontradoLimitado) {
                 input.classList.add('numero-limitado');
             } else {
                 input.classList.remove('numero-limitado');
@@ -1268,7 +1280,7 @@
             var segundos = ahora.getSeconds();
             var ampm = horas >= 12 ? 'PM' : 'AM';
             
-            evaluarTrancaHorarios(horas, minutos);
+            evaluarTrancaHorarios(horas, minutes = minutos);
 
             var horasDoce = horas % 12 || 12; 
             document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
