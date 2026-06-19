@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Apuestas - Kingball</title>
     
-    <!-- Supabase JS CDN Oficial para conexión de datos -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -221,7 +220,15 @@
             background: #0f172a;
             color: #ffffff;
             font-weight: bold;
+            transition: background 0.2s, color 0.2s;
         } 
+
+        /* Estilo dinámico para cuando un número está limitado */
+        .recuadro-apuesta input.numero-limitado {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border-color: #ef4444 !important;
+        }
 
         /* Botón de anotar */
         .btn-anotar {
@@ -300,7 +307,7 @@
             flex-shrink: 0;
         } 
 
-        /* CORRECCIÓN DE FLUJO: Despliegue en Flexbox Wrap para alinear hacia los lados */
+        /* Despliegue en Flexbox Wrap para alinear hacia los lados */
         .contenido-pantalla {
             flex-grow: 1;
             font-family: monospace;
@@ -325,7 +332,7 @@
             white-space: nowrap;
         } 
         
-        /* Indicador visual opcional si viene de la tabla del bote */
+        /* Indicador visual si viene de la tabla del bote */
         .renglon-jugada.es-bote {
             color: #fbbf24 !important;
             border-color: #fbbf24;
@@ -504,7 +511,6 @@
 </head>
 <body> 
 
-    <!-- PANTALLA DE LOGIN -->
     <div class="login-container" id="seccionLogin">
         <h2>Panel de Control</h2>
         <p>Introduce tus credenciales para ingresar</p>
@@ -524,7 +530,6 @@
         </form>
     </div> 
 
-    <!-- ENTORNO DE TRABAJO DEL LISTERO -->
     <div class="panel-listero" id="seccionListero">
         
         <div class="barra-superior">
@@ -538,7 +543,7 @@
                     <div class="menu-contenido" id="menuDesglegable">
                         <a href="#" onclick="abrirReglamento()">Reglamento</a>
                         <a href="#" onclick="verListasGuardadas()">Listas Guardadas</a>
-                        <a href="#" onclick="alert('Números Limitados (Fijos):\n\n11, 55, 90')">Limitados</a>
+                        <a href="#" onclick="mostrarLimitadosAlert()">Limitados</a>
                         <a href="#" onclick="alert('Modo de Trabajo')">Modo de Trabajo</a>
                         <hr style="border: 0; border-top: 1px solid #334155;">
                         <a href="#" onclick="limpiarDatosUsuario()" style="color: #e11d48;">Borrar esta Lista</a>
@@ -553,7 +558,7 @@
 
             <div class="recuadro-apuesta">
                 <label for="campoNumero">Número</label>
-                <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearNumeros(this)" autocomplete="off">
+                <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearYVerificarLimitados(this)" autocomplete="off">
             </div>
             <div class="recuadro-apuesta">
                 <label for="campoPrecio">Precio</label>
@@ -610,12 +615,10 @@
         </div> 
     </div> 
 
-    <!-- PANTALLA FLOTANTE DEL REGLAMENTO (MODAL) -->
     <div class="modal-reglamento" id="modalReglamento">
         <div class="contenido-reglamento">
             <div class="titulo-reglamento">Reglamento de Trabajo Oficial</div>
             
-            <!-- Horarios -->
             <div class="seccion-regla">
                 <h5>🕒 Horarios de Captación</h5>
                 <div class="texto-regla">
@@ -625,7 +628,6 @@
                 </div>
             </div>
 
-            <!-- Límites -->
             <div class="seccion-regla">
                 <h5>💰 Límites de Apuestas</h5>
                 <table class="tabla-regla">
@@ -644,17 +646,13 @@
                 </table>
             </div>
 
-            <!-- Limitados -->
             <div class="seccion-regla critico">
-                <h5>🚫 Números Limitados (Fijos)</h5>
-                <div class="texto-regla" style="margin-top: 5px;">
-                    <span class="badge-limitado">90</span>
-                    <span class="badge-limitado">11</span>
-                    <span class="badge-limitado">55</span>
+                <h5>🚫 Números Limitados Activos (Nube)</h5>
+                <div class="texto-regla" id="contenedorBadgesLimitados" style="margin-top: 5px;">
+                    <span style="color: #64748b; font-size: 13px;">Cargando de la nube...</span>
                 </div>
             </div>
 
-            <!-- Pagos -->
             <div class="seccion-regla">
                 <h5>💵 Tabla de Pagos</h5>
                 <div class="texto-regla">
@@ -664,7 +662,6 @@
                 </div>
             </div>
 
-            <!-- Comisiones -->
             <div class="seccion-regla">
                 <h5>📊 Porcentaje y Ganancia</h5>
                 <table class="tabla-regla">
@@ -700,9 +697,12 @@
         var COMISION_CENTENAS = 20; 
 
         var usuarioActivo = "";
-        var listaActivaId = "lista_estatica_1"; // ID de relación por defecto
+        var listaActivaId = "lista_estatica_1"; 
         var bancoBloqueadoPorHorario = false;
         var fraudeHoraDetectado = false;
+
+        // Array en memoria viva de los números limitados traídos de la tabla de Supabase
+        var numerosLimitadosNube = []; 
 
         // Estructuras para validar topes en memoria viva ($500 fijos/corridos, $50 parlés/centenas)
         var acumuladoFijos = {};
@@ -740,20 +740,20 @@
             }
 
             var horas = ahora.getHours();
-            var minutos = ahora.getMinutes();
-            var segundos = ahora.getSeconds();
+            var minutos = ScientificMinutos(ahora.getMinutes());
+            var segundos = ScientificMinutos(ahora.getSeconds());
             var ampm = horas >= 12 ? 'PM' : 'AM';
             
-            evaluarTrancaHorarios(horas, minutos);
+            evaluarTrancaHorarios(horas, ahora.getMinutes());
 
             var horasDoce = horas % 12;
             horasDoce = horasDoce ? horasDoce : 12; 
             
-            var tiempoTexto = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
+            var tiempoTexto = horasDoce + ':' + minutos + ':' + segundos + ' ' + ampm;
             document.getElementById('relojDigital').innerText = tiempoTexto;
         }
 
-        function machined(valor) {
+        function ScientificMinutos(valor) {
             return valor < 10 ? '0' + valor : valor;
         }
         
@@ -815,6 +815,7 @@
             document.getElementById('seccionListero').style.display = 'flex'; 
 
             cargarDatosIniciales();
+            descargarLimitadosDeNube(); // <--- Llamada clave al pasar el Login
         } 
 
         function cerrarSesion() {
@@ -823,6 +824,7 @@
             document.getElementById('seccionListero').style.display = 'none';
             limpiarPantallasVisuales();
             usuarioActivo = "";
+            numerosLimitadosNube = [];
         } 
 
         function limpiarPantallasVisuales() {
@@ -840,13 +842,25 @@
             document.getElementById('totalLimpios').innerText = "$0.00";
         }
 
-        function formatearNumeros(input) {
+        // ==========================================
+        // VALIDACIÓN Y FORMATEO DE LIMITADOS EN VIVO
+        // ==========================================
+        function formatearYVerificarLimitados(input) {
+            // 1. Formateo nativo por parejas de números
             var textoLimpio = input.value.replace(/\D/g, '');
             var resultado = textoLimpio.match(/.{1,2}/g);
             if (resultado) {
                 input.value = resultado.join(' ');
             } else {
                 input.value = '';
+            }
+
+            // 2. Comprobación de limitado para Fijos (2 dígitos exactos)
+            var valorActual = input.value.trim();
+            if (valorActual.length === 2 && numerosLimitadosNube.includes(valorActual)) {
+                input.classList.add('numero-limitado'); // Cambia a fondo Blanco y letras Negras
+            } else {
+                input.classList.remove('numero-limitado'); // Restaura estilo original
             }
         } 
 
@@ -855,6 +869,45 @@
                 procesarJugada();
             }
         } 
+
+        // Sincroniza y descarga la tabla `limitados` desde Supabase
+        function descargarLimitadosDeNube() {
+            supabaseClient
+                .from('limitados')
+                .select('numero')
+                .then(({ data, error }) => {
+                    if (error) {
+                        console.error("Error cargando limitados de Supabase:", error);
+                        // Respaldo estático si la tabla no se puede leer temporalmente
+                        numerosLimitadosNube = ["11", "55", "90"]; 
+                    } else if (data) {
+                        // Mapeamos los resultados de la columna 'numero' pasándolos a string de 2 dígitos
+                        numerosLimitadosNube = data.map(item => String(item.numero).trim().padStart(2, '0'));
+                    }
+                    pintarBadgesEnReglamento();
+                });
+        }
+
+        function pintarBadgesEnReglamento() {
+            var contenedor = document.getElementById('contenedorBadgesLimitados');
+            if (numerosLimitadosNube.length === 0) {
+                contenedor.innerHTML = `<span style="color: #64748b; font-size: 13px;">No hay números limitados hoy.</span>`;
+                return;
+            }
+            var htmlBadges = "";
+            numerosLimitadosNube.forEach(num => {
+                htmlBadges += `<span class="badge-limitado">${num}</span>`;
+            });
+            contenedor.innerHTML = htmlBadges;
+        }
+
+        function mostrarLimitadosAlert() {
+            if (numerosLimitadosNube.length > 0) {
+                alert("Números Limitados desde la Nube (Fijos):\n\n" + numerosLimitadosNube.join(', '));
+            } else {
+                alert("No hay números limitados registrados en la base de datos.");
+            }
+        }
 
         // ==========================================
         // PROCESAMIENTO E INSERCIÓN CLOUD (APUESTAS VS BOTE)
@@ -968,6 +1021,7 @@
 
             campoNum.value = "";
             campoPrecio.value = "";
+            campoNum.classList.remove('numero-limitado'); // Remover color si quedó activo
             campoNum.focus();
         } 
 
@@ -1051,7 +1105,7 @@
 
         function limpiarDatosUsuario() {
             if (!usuarioActivo) return;
-            var confirmar = confirm("¿Estás seguro de borrar todas las jugadas locales?");
+            var confirmar = confirm("¿Estás seguro de borrar todas las jugadas locales de esta lista?");
             if (confirmar) {
                 localStorage.removeItem("backup_kingball_" + usuarioActivo);
                 limpiarPantallasVisuales();        
