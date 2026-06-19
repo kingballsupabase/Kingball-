@@ -177,7 +177,6 @@
             border-radius: 4px;
         } 
 
-        /* MENU TRES PUNTOS COMPLETO */
         .menu-tres-puntos {
             position: relative;
             display: inline-block;
@@ -257,7 +256,7 @@
             font-weight: bold;
         } 
 
-        /* Marcado amarillo para números limitados */
+        /* Alerta visual intensa para números limitados desde DB */
         .recuadro-apuesta input.numero-limitado {
             background: #fef08a !important;
             color: #000000 !important;
@@ -353,9 +352,9 @@
             color: #4ade80; 
         } 
 
-        /* Estilo visual para jugadas enviadas al Bote */
+        /* Color ámbar distintivo para jugadas desviadas al bote */
         .renglon-jugada.es-bote {
-            color: #fbbf24 !important;
+            color: #f59e0b !important;
         }
 
         .zona-inferior {
@@ -580,7 +579,7 @@
                     <div class="menu-contenido" id="menuDesglegable">
                         <a onclick="abrirReglamento()">📋 Reglamento</a>
                         <a onclick="verListasGuardadas()">📚 Listas Guardadas</a>
-                        <a onclick="alert('Números Limitados (Fijos):\n\n11, 55, 90')">🚫 Limitados</a>
+                        <a onclick="mostrarAlertLimitados()">🚫 Limitados</a>
                         <hr style="border: 0; border-top: 1px solid #334155;">
                         <a onclick="limpiarDatosUsuario()" style="color: #e11d48;">🗑️ Borrar esta Lista</a>
                         <a onclick="cerrarSesion()" style="color: #ef4444;">🚪 Cerrar Sesión</a>
@@ -683,11 +682,9 @@
             </div>
 
             <div class="seccion-regla critico">
-                <h5>🚫 Números Limitados (Fijos)</h5>
-                <div class="texto-regla" style="margin-top: 5px;">
-                    <span class="badge-limitado">90</span>
-                    <span class="badge-limitado">11</span>
-                    <span class="badge-limitado">55</span>
+                <h5>🚫 Números Limitados Activos</h5>
+                <div class="texto-regla" id="reglamentoListaLimitados" style="margin-top: 5px;">
+                    Cargando del servidor...
                 </div>
             </div>
 
@@ -725,10 +722,10 @@
         var ultimaHoraVerificada = Date.now();
         var toleranciaFraude = 4000; 
 
-        // Listado estático de números limitados
-        const NUMEROS_LIMITADOS = ["11", "55", "90"];
+        // Matriz de números limitados descargados en vivo desde Supabase
+        var dbNumerosLimitados = [];
 
-        // Acumuladores estáticos locales de topes para la lista ($1,000 por tipo)
+        // Acumuladores estáticos de control local para la lista ($1,000 por modalidad)
         var acumuladoListaFC = 0;
         var acumuladoListaParles = 0;
         var acumuladoListaCentenas = 0;
@@ -748,7 +745,6 @@
         function abrirReglamento() { document.getElementById('modalReglamento').style.display = 'flex'; }
         function cerrarReglamento() { document.getElementById('modalReglamento').style.display = 'none'; }
 
-        // Criptografía rápida para contraseñas seguras en tu tabla SQL
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -794,12 +790,44 @@
 
                 definirTurnoPorHora();
                 await obtenerOCrearListaDeHoy();
+                await descargarLimitadosDesdeSupabase();
                 await cargarJugadasDesdeSupabase();
             } catch(e) {
                 mostrarAlerta("Error de conexión a internet.");
             }
             toggleLoading(false);
         } 
+
+        // DESCARGA DINÁMICA DE NÚMEROS LIMITADOS DESDE TU BASE DE DATOS
+        async function descargarLimitadosDesdeSupabase() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('numeros_limitados')
+                    .select('numero');
+                
+                if(!error && data) {
+                    dbNumerosLimitados = data.map(item => String(item.numero).trim());
+                    
+                    // Renderizar badges dinámicos en el modal reglamento
+                    if(dbNumerosLimitados.length > 0) {
+                        document.getElementById('reglamentoListaLimitados').innerHTML = dbNumerosLimitados
+                            .map(n => `<span class="badge-limitado">${n}</span>`).join('');
+                    } else {
+                        document.getElementById('reglamentoListaLimitados').innerText = "No hay números limitados hoy.";
+                    }
+                }
+            } catch(err) {
+                console.log("Error al sincronizar limitados: " + err.message);
+            }
+        }
+
+        function mostrarAlertLimitados() {
+            if(dbNumerosLimitados.length === 0) {
+                alert("No hay números limitados registrados en Supabase.");
+            } else {
+                alert("Números Limitados desde la Base de Datos:\n\n" + dbNumerosLimitados.join(', '));
+            }
+        }
 
         // FORMULARIO DINÁMICO DE REGISTRO
         function mostrarFormularioRegistro() {
@@ -873,6 +901,7 @@
                     document.getElementById('seccionListero').style.display = 'flex'; 
                     definirTurnoPorHora();
                     await obtenerOCrearListaDeHoy();
+                    await descargarLimitadosDesdeSupabase();
                     toggleLoading(false);
                 }, 1000);
 
@@ -886,7 +915,6 @@
             location.reload();
         } 
 
-        // SINCRONIZACIÓN DE TURNO Y LISTAS (SUPABASE)
         function definirTurnoPorHora() {
             var ahora = new Date();
             var tiempoEnMinutos = (ahora.getHours() * 60) + ahora.getMinutes();
@@ -933,7 +961,7 @@
             } catch(e) { console.error(e); }
         }
 
-        // PROCESADOR DE JUGADAS CON FILTRO DE BOTES INTEGRADO
+        // PROCESADOR DE JUGADAS CON FILTRADO DINÁMICO Y DESVÍO DE SOBRANTE AL BOTE
         async function procesarJugada() {
             if (bancoBloqueadoPorHorario || fraudeHoraDetectado || !listaActivaId) {
                 alert("Operación rechazada. Banco Cerrado.");
@@ -990,7 +1018,7 @@
 
                 tipo = 'fc';
                 numero = numeroFijo;
-                precioBase = precioFijo; // Guardamos el fijo de referencia en la columna precio
+                precioBase = precioFijo;
                 bruto = precioFijo + precioCorrido;
                 textoPantalla = numeroFijo + " (" + precioFijo + ") (" + precioCorrido + ")";
                 comisionPorcentual = COMISION_FC;
@@ -1017,14 +1045,14 @@
             } 
 
             if (tipo !== "") {
-                // Cálculo de acumulación y división de Botes (Límite estático de Lista: $1,000)
+                // Cálculo de acumulación y división de excedente (Tope: $1,000 por modalidad)
                 var acumActual = (tipo === 'fc') ? acumuladoListaFC : ((tipo === 'parles') ? acumuladoListaParles : acumuladoListaCentenas);
                 var cupoLista = Math.max(0, 1000 - acumActual);
 
                 var parteLista = Math.min(bruto, cupoLista);
                 var parteBote = bruto - parteLista;
 
-                // Transacción para la parte que entra en la LISTA normal
+                // A. Guardar parte permitida en la LISTA normal de Supabase
                 if (parteLista > 0) {
                     var comisionL = (parteLista * comisionPorcentual) / 100;
                     var limpioL = parteLista - comisionL;
@@ -1041,7 +1069,6 @@
                     });
 
                     if(!error) {
-                        // Sumamos al acumulador estático local correspondiente
                         if (tipo === 'fc') acumuladoListaFC += parteLista;
                         else if (tipo === 'parles') acumuladoListaParles += parteLista;
                         else if (tipo === 'centenas') acumuladoListaCentenas += parteLista;
@@ -1052,7 +1079,7 @@
                     }
                 }
 
-                // Transacción para la parte excedente que se desvía al BOTE
+                // B. DESVIAR SOBRANTE DIRECTAMENTE AL BOTE EN SUPABASE
                 if (parteBote > 0) {
                     var comisionB = (parteBote * comisionPorcentual) / 100;
                     var limpioB = parteBote - comisionB;
@@ -1091,13 +1118,12 @@
             if(!listaActivaId) return;
             limpiarPantallasVisuales();
             
-            // Reiniciar acumuladores locales al cargar
             acumuladoListaFC = 0;
             acumuladoListaParles = 0;
             acumuladoListaCentenas = 0;
 
             try {
-                // 1. Cargar apuestas regulares de la Lista
+                // 1. Cargar apuestas normales
                 const { data: apuestas } = await supabaseClient
                     .from('apuestas')
                     .select('*')
@@ -1115,7 +1141,7 @@
                     });
                 }
 
-                // 2. Cargar apuestas derivadas al Bote para visualización
+                // 2. Cargar lo que se desvió hacia la tabla bote
                 const { data: botes } = await supabaseClient
                     .from('bote')
                     .select('*')
@@ -1201,9 +1227,71 @@
             document.getElementById('totalLimpios').innerText = "$0.00";
         }
 
+        // EVALUACIÓN CON COMPARACIÓN DINÁMICA DE NÚMEROS LIMITADOS (DE LA BASE DE DATOS)
         function formatearNumeros(input) {
             var textoLimpio = input.value.replace(/\D/g, '');
             var resultado = textoLimpio.match(/.{1,2}/g);
             input.value = resultado ? resultado.join(' ') : '';
 
-            // ALERTA DE LIMITADOS AL ESCRIBIR
+            var valorActual = input.value.trim();
+            // Comprobación exacta contra la matriz cargada en vivo desde Supabase
+            if (valorActual.length === 2 && dbNumerosLimitados.includes(valorActual)) {
+                input.classList.add('numero-limitado');
+            } else {
+                input.classList.remove('numero-limitado');
+            }
+        } 
+
+        function evaluarEnter(event) { if (event.key === 'Enter') procesarJugada(); }
+        function toggleMenu() { var m = document.getElementById('menuDesglegable'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; } 
+        function machined(v) { return v < 10 ? '0' + v : v; }
+
+        // RELOJ Y SEGURIDAD ANTIFRAUDE EN VIVO
+        function actualizarReloj() {
+            var ahora = new Date();
+            var tiempoRealEjecucion = Date.now();
+            if (tiempoRealEjecucion - ultimaHoraVerificada < -toleranciaFraude || tiempoRealEjecucion - ultimaHoraVerificada > (1000 + toleranciaFraude)) {
+                fraudeHoraDetectado = true;
+            }
+            ultimaHoraVerificada = Date.now();
+
+            if (fraudeHoraDetectado) {
+                document.getElementById('relojDigital').innerText = "BLOQUEADO";
+                document.getElementById('relojDigital').style.color = "#ef4444";
+                document.getElementById('avisoBancoCerrado').innerText = "HORA CORRUPTA";
+                document.getElementById('avisoBancoCerrado').style.display = "flex";
+                return;
+            }
+
+            var horas = ahora.getHours();
+            var minutos = ahora.getMinutes();
+            var segundos = ahora.getSeconds();
+            var ampm = horas >= 12 ? 'PM' : 'AM';
+            
+            evaluarTrancaHorarios(horas, minutos);
+
+            var horasDoce = horas % 12 || 12; 
+            document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
+        }
+
+        function evaluarTrancaHorarios(hora, minuto) {
+            if (fraudeHoraDetectado) return;
+            var tiempoEnMinutos = (hora * 60) + minuto;
+            var dentroM = (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805);
+            var dentroN = (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290);
+
+            var aviso = document.getElementById('avisoBancoCerrado');
+            if (dentroM || dentroN) {
+                bancoBloqueadoPorHorario = false;
+                aviso.style.display = "none";
+            } else {
+                bancoBloqueadoPorHorario = true;
+                aviso.style.display = "flex";
+            }
+        }
+        
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj(); 
+    </script> 
+</body>
+</html>
