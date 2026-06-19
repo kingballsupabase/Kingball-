@@ -343,6 +343,8 @@
             background: #0f172a;
             padding: 10px;
             border-radius: 4px;
+            display: flex;
+            flex-direction: column;
         } 
 
         .renglon-jugada {
@@ -354,13 +356,14 @@
             border-radius: 4px;
         } 
 
-        /* CAMBIO SOLICITADO: Color naranja estricto para las jugadas desviadas al bote */
+        /* CAMBIO SOLICITADO: Color naranja intenso y abajo del todo para jugadas en el bote */
         .renglon-jugada.es-bote {
-            background-color: #ff9800 !important;
+            background-color: #f59e0b !important;
             color: #000000 !important;
             font-weight: bold;
-            margin-top: 3px;
-            margin-bottom: 3px;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            order: 9999; /* Esto garantiza que siempre se rendericen abajo del todo */
         }
 
         .zona-inferior {
@@ -694,15 +697,6 @@
                 </div>
             </div>
 
-            <div class="seccion-regla">
-                <h5>💵 Tabla de Pagos</h5>
-                <div class="texto-regla">
-                    • <strong>Fijos:</strong> Paga 75 veces <br>
-                    • <strong>Corridos:</strong> Paga 25 veces <br>
-                    • <strong>Parles:</strong> Paga 1100 veces
-                </div>
-            </div>
-
             <button class="btn-cerrar-modal" onclick="cerrarReglamento()">Cerrar Reglamento</button>
         </div>
     </div>
@@ -715,9 +709,7 @@
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        var COMISION_FC = 20;       
-        var COMISION_PARLES = 20;   
-        var COMISION_CENTENAS = 20; 
+        var RENDIMIENTO = 0.8; // Representa el cobro por factor 0.8 (20% de comisión para el listero)
 
         var usuarioActivo = "";
         var listaActivaId = null;
@@ -728,7 +720,6 @@
         var ultimaHoraVerificada = Date.now();
         var toleranciaFraude = 4000; 
 
-        // Matriz de números limitados descargados en vivo desde Supabase
         var dbNumerosLimitados = [];
 
         function toggleLoading(show) {
@@ -754,7 +745,6 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // CONTROL DE LOGIN EN SUPABASE
         async function entrarAlSistema(event) {
             event.preventDefault(); 
             var usuarioIngresado = document.getElementById('usuario').value.trim().toLowerCase();
@@ -799,7 +789,6 @@
             toggleLoading(false);
         } 
 
-        // DESCARGA DINÁMICA DE NÚMEROS LIMITADOS
         async function descargarLimitadosDesdeSupabase() {
             try {
                 const { data, error } = await supabaseClient
@@ -808,7 +797,6 @@
                 
                 if(!error && data) {
                     dbNumerosLimitados = data.map(item => String(item.numero).trim());
-                    
                     if(dbNumerosLimitados.length > 0) {
                         document.getElementById('reglamentoListaLimitados').innerHTML = dbNumerosLimitados
                             .map(n => `<span class="badge-limitado">${n}</span>`).join('');
@@ -816,9 +804,7 @@
                         document.getElementById('reglamentoListaLimitados').innerText = "No hay números limitados hoy.";
                     }
                 }
-            } catch(err) {
-                console.log("Error al sincronizar limitados: " + err.message);
-            }
+            } catch(err) { console.log(err); }
         }
 
         function mostrarAlertLimitados() {
@@ -829,7 +815,6 @@
             }
         }
 
-        // FORMULARIO DINÁMICO DE REGISTRO
         function mostrarFormularioRegistro() {
             document.getElementById('loginContent').innerHTML = `
                 <h2>Registro de Listero</h2>
@@ -911,9 +896,7 @@
             }
         }
 
-        function cerrarSesion() {
-            location.reload();
-        } 
+        function cerrarSesion() { location.reload(); } 
 
         function definirTurnoPorHora() {
             var ahora = new Date();
@@ -932,7 +915,7 @@
             var hoy = new Date().toISOString().split('T')[0];
 
             try {
-                const { data: lista, error } = await supabaseClient
+                const { data: lista } = await supabaseClient
                     .from('listas_de_trabajo')
                     .select('*')
                     .eq('usuario', usuarioActivo)
@@ -961,9 +944,9 @@
             } catch(e) { console.error(e); }
         }
 
-        // ========================================================
-        // PROCESADOR DE JUGADAS CON LÍMITES INDEPENDIENTES Y BOTE
-        // ========================================================
+        // =========================================================
+        // PROCESADOR CON SEPARACIÓN MATEMÁTICA EXACTA Y RENDIMIENTO 0.8
+        // =========================================================
         async function procesarJugada() {
             if (bancoBloqueadoPorHorario || fraudeHoraDetectado || !listaActivaId) {
                 alert("Operación rechazada. Banco Cerrado.");
@@ -982,41 +965,34 @@
             
             var tipo = "";
             var numero = "";
-            var precioBase = 0;
-            var textoPantalla = "";
-            var comisionPorcentual = 0;
-
-            // Arrays temporales para guardar lo que se enviará a Supabase
             var transaccionesALanzar = [];
 
-            // 1. EVALUAR CENTENAS
+            // 1. EVALUAR CENTENAS (LÍMITE $50)
             if (unionDigitos.length === 3) {
-                precioBase = parseFloat(stringPrecio);
-                if (isNaN(precioBase) || precioBase < 1 || precioBase > 10000) {
+                var precioCentena = parseFloat(stringPrecio);
+                if (isNaN(precioCentena) || precioCentena < 1 || precioCentena > 10000) {
                     alert("El precio debe ser entre 1 y 10000"); return;
                 }
                 tipo = 'centenas';
                 numero = unionDigitos;
-                comisionPorcentual = COMISION_CENTENAS;
 
-                // Consultar acumulado de ESTA centena específica en la lista limpia
                 const { data } = await supabaseClient.rpc('obtener_acumulado_individual', {
                     p_lista_id: listaActivaId, p_numero: numero, p_tipo: 'centenas', p_subtipo: 'fijo'
                 });
                 var acumCentena = data || 0;
                 var cupoCentena = Math.max(0, 50 - acumCentena);
 
-                var parteLista = Math.min(precioBase, cupoCentena);
-                var parteBote = precioBase - parteLista;
+                var parteLista = Math.min(precioCentena, cupoCentena);
+                var parteBote = precioCentena - parteLista;
 
                 if (parteLista > 0) {
-                    transaccionesALanzar.push({ tipo: 'centenas', numero: numero, precio: parteLista, bruto: parteLista, es_bote: false, texto: numero + " (" + parteLista + ")" });
+                    transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteLista, es_bote: false, texto: numero + " (" + parteLista + ")" });
                 }
                 if (parteBote > 0) {
-                    transaccionesALanzar.push({ tipo: 'centenas', numero: numero, precio: parteBote, bruto: parteBote, es_bote: true, texto: "[B] " + numero + " (" + parteBote + ")" });
+                    transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteBote, es_bote: true, texto: "[B] " + numero + " (" + parteBote + ")" });
                 }
 
-            // 2. EVALUAR FIJOS Y CORRIDOS
+            // 2. EVALUAR FIJOS Y CORRIDOS (LÍMITE $500 FIJO / $500 CORRIDO INDEPENDIENTES)
             } else if (bloques.length === 1) {
                 var numeroFijo = bloques[0];
                 if (numeroFijo.length !== 2) {
@@ -1037,9 +1013,8 @@
 
                 tipo = 'fc';
                 numero = numeroFijo;
-                comisionPorcentual = COMISION_FC;
 
-                // --- EVALUAR FIJO INDEPENDIENTE (MÁX $500) ---
+                // Consulta de Fijo
                 var pListaFijo = 0, pBoteFijo = 0;
                 if (precioFijo > 0) {
                     const { data: acumF } = await supabaseClient.rpc('obtener_acumulado_individual', {
@@ -1050,7 +1025,7 @@
                     pBoteFijo = precioFijo - pListaFijo;
                 }
 
-                // --- EVALUAR CORRIDO INDEPENDIENTE (MÁX $500) ---
+                // Consulta de Corrido
                 var pListaCorrido = 0, pBoteCorrido = 0;
                 if (precioCorrido > 0) {
                     const { data: acumC } = await supabaseClient.rpc('obtener_acumulado_individual', {
@@ -1061,25 +1036,25 @@
                     pBoteCorrido = precioCorrido - pListaCorrido;
                 }
 
-                // Inyecciones combinadas respetando lo que va a la lista y lo que va al bote
+                // Preparación de inyección dividida
                 if (pListaFijo > 0 || pListaCorrido > 0) {
                     var totBrutoL = pListaFijo + pListaCorrido;
                     transaccionesALanzar.push({
-                        tipo: 'fc', numero: numero, precio: pListaFijo, // Guardamos el precio del fijo como base
+                        tipo: 'fc', numero: numero, bruto: totBrutoL,
                         importe_bruto_fijo: pListaFijo, importe_bruto_corrido: pListaCorrido,
-                        bruto: totBrutoL, es_bote: false, texto: numero + " (" + pListaFijo + ") (" + pListaCorrido + ")"
+                        es_bote: false, texto: numero + " (" + pListaFijo + ") (" + pListaCorrido + ")"
                     });
                 }
                 if (pBoteFijo > 0 || pBoteCorrido > 0) {
                     var totBrutoB = pBoteFijo + pBoteCorrido;
                     transaccionesALanzar.push({
-                        tipo: 'fc', numero: numero, precio: pBoteFijo, 
+                        tipo: 'fc', numero: numero, bruto: totBrutoB,
                         importe_bruto_fijo: pBoteFijo, importe_bruto_corrido: pBoteCorrido,
-                        bruto: totBrutoB, es_bote: true, texto: "[B] " + numero + " (" + pBoteFijo + ") (" + pBoteCorrido + ")"
+                        es_bote: true, texto: "[B] " + numero + " (" + pBoteFijo + ") (" + pBoteCorrido + ")"
                     });
                 }
 
-            // 3. EVALUAR PARLES
+            // 3. EVALUAR PARLES (LÍMITE $50)
             } else if (bloques.length >= 2) {
                 for (var i = 0; i < bloques.length; i++) {
                     if (bloques[i].length !== 2) {
@@ -1093,9 +1068,7 @@
                 
                 tipo = 'parles';
                 numero = bloques.sort().join(' ');
-                comisionPorcentual = COMISION_PARLES;
 
-                // Consultar acumulado de este Parle específico en la lista ordinaria
                 const { data } = await supabaseClient.rpc('obtener_acumulado_individual', {
                     p_lista_id: listaActivaId, p_numero: numero, p_tipo: 'parles', p_subtipo: 'fijo'
                 });
@@ -1103,30 +1076,25 @@
                 var cupoParle = Math.max(0, 50 - acumParle);
 
                 var combinaciones = (bloques.length * (bloques.length - 1)) / 2;
-                var importeTotalEntrada = combinaciones * basePrecioParle;
 
-                // El cupo es basado en el precio unitario del par
                 var precioPermitidoLista = Math.min(basePrecioParle, cupoParle);
                 var precioExcedenteBote = basePrecioParle - precioPermitidoLista;
 
                 if (precioPermitidoLista > 0) {
                     var brutoL = combinaciones * precioPermitidoLista;
-                    transaccionesALanzar.push({ tipo: 'parles', numero: numero, precio: precioPermitidoLista, bruto: brutoL, es_bote: false, texto: bloques.join(' ') + " (" + precioPermitidoLista + ")" });
+                    transaccionesALanzar.push({ tipo: 'parles', numero: numero, bruto: brutoL, es_bote: false, texto: bloques.join(' ') + " (" + precioPermitidoLista + ")" });
                 }
                 if (precioExcedenteBote > 0) {
                     var brutoB = combinaciones * precioExcedenteBote;
-                    transaccionesALanzar.push({ tipo: 'parles', numero: numero, precio: precioExcedenteBote, bruto: brutoB, es_bote: true, texto: "[B] " + bloques.join(' ') + " (" + precioExcedenteBote + ")" });
+                    transaccionesALanzar.push({ tipo: 'parles', numero: numero, bruto: brutoB, es_bote: true, texto: "[B] " + bloques.join(' ') + " (" + precioExcedenteBote + ")" });
                 }
             } 
 
-            // Ejecutar transacciones secuenciales calculadas en Supabase
+            // Ejecución secuencial en la DB aplicando factor 0.8 a todo
             if (transaccionesALanzar.length > 0) {
                 toggleLoading(true);
                 for (var t of transaccionesALanzar) {
-                    var comision = (t.bruto * comisionPorcentual) / 100;
-                    var limpio = t.bruto - comision;
-
-                    // Destino de tabla condicional según flag calculada
+                    var limpioCalculado = t.bruto * RENDIMIENTO; // Matemática limpia x 0.8
                     var tablaDestino = t.es_bote ? 'bote' : 'apuestas';
 
                     await supabaseClient.from(tablaDestino).insert({
@@ -1134,9 +1102,9 @@
                         usuario: usuarioActivo,
                         tipo: t.tipo,
                         numero: t.numero,
-                        precio: t.precio,
+                        precio: t.bruto,
                         importe_bruto: t.bruto,
-                        importe_limpio: limpio,
+                        importe_limpio: limpioCalculado,
                         metadata: { 
                             texto: t.texto,
                             fijo_bruto: t.importe_bruto_fijo || 0,
@@ -1144,8 +1112,9 @@
                         }
                     });
 
+                    // Los totales del listero solo reflejan lo admitido en su lista ordinaria
                     if (!t.es_bote) {
-                        await recalcularTotalesEnListaPadre(t.bruto, limpio);
+                        await recalcularTotalesEnListaPadre(t.bruto, limpioCalculado);
                     }
                 }
                 await cargarJugadasDesdeSupabase();
@@ -1165,7 +1134,6 @@
             } catch(e){}
         }
 
-        // CARGA Y RENDERIZADO GENERAL CON EVENTO DE ELIMINACIÓN TÁCTIL PROLONGADA
         async function cargarJugadasDesdeSupabase() {
             if(!listaActivaId) return;
             limpiarPantallasVisuales();
@@ -1193,6 +1161,7 @@
 
                 if(botes) {
                     botes.forEach(b => {
+                        // Se inyectan con flag esBote = true para que vayan abajo en naranja
                         inyectarRenglonEnPantalla(b.tipo, b.metadata?.texto || ("[B] " + b.numero), true, b.id, 'bote');
                     });
                 }
@@ -1207,39 +1176,31 @@
             fila.className = 'renglon-jugada' + (esBote ? ' es-bote' : '');
             fila.innerText = texto;
 
-            // --- LÓGICA DE JUGADA APRETADA (PULSACIÓN LARGA PARA ELIMINAR) ---
+            // --- ELIMINACIÓN POR PULSACIÓN LARGA (DENTRO DE HORARIOS) ---
             let temporizadorPresionado;
 
             const iniciarPresion = () => {
                 temporizadorPresionado = setTimeout(async () => {
-                    // Restricción de horario mandatoria antes de ejecutar borrados
                     if (bancoBloqueadoPorHorario || fraudeHoraDetectado) {
                         alert("Acción denegada: No se pueden eliminar jugadas fuera de los horarios establecidos.");
                         return;
                     }
 
-                    if (confirm(`¿Deseas eliminar permanentemente esta jugada?\n"${texto}"`)) {
+                    if (confirm(`¿Deseas eliminar esta jugada?\n"${texto}"`)) {
                         toggleLoading(true);
                         try {
-                            // Si borramos de la lista ordinaria, primero restamos sus valores al padre
                             if (nombreTabla === 'apuestas') {
                                 const { data: registro } = await supabaseClient.from('apuestas').select('importe_bruto, importe_limpio').eq('id', idRegistro).single();
                                 if (registro) {
                                     await recalcularTotalesEnListaPadre(-registro.importe_bruto, -registro.importe_limpio);
                                 }
                             }
-
-                            // Eliminar de Supabase de la tabla correspondiente
                             await supabaseClient.from(nombreTabla).delete().eq('id', idRegistro);
-                            
-                            // Recargar interfaz de forma limpia
                             await cargarJugadasDesdeSupabase();
-                        } catch(err) {
-                            alert("Error al eliminar: " + err.message);
-                        }
+                        } catch(err) { alert(err.message); }
                         toggleLoading(false);
                     }
-                }, 1000); // 1 segundo apretado para confirmar la acción en el móvil
+                }, 1000); 
             };
 
             const cancelarPresion = () => clearTimeout(temporizadorPresionado);
@@ -1343,7 +1304,6 @@
         function toggleMenu() { var m = document.getElementById('menuDesglegable'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; } 
         function machined(v) { return v < 10 ? '0' + v : v; }
 
-        // RELOJ Y SEGURIDAD ANTIFRAUDE EN VIVO
         function actualizarReloj() {
             var ahora = new Date();
             var tiempoRealEjecucion = Date.now();
