@@ -15,7 +15,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         } 
 
-        /* Control global del fondo */
         html, body {
             height: 100%;
             background: #1e293b;
@@ -30,9 +29,24 @@
             padding: 10px;
         } 
 
-        /* ==========================================
-           1. ESTILOS DE LA PANTALLA DE LOGIN
-           ========================================== */
+        /* INDICADOR DE CONEXIÓN */
+        .estado-conexion {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444; /* Rojo por defecto si no hay conexión */
+            z-index: 1000;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+            transition: background 0.3s ease;
+        }
+        .estado-conexion.conectado {
+            background: #22c55e; /* Verde cuando está Ok */
+        }
+
+        /* 1. INTERFAZ DE LOGIN ORIGINAL */
         .login-container {
             background: #ffffff;
             padding: 40px;
@@ -95,9 +109,7 @@
             cursor: pointer;
         } 
 
-        /* ==========================================
-           2. ESTILOS DEL ENTORNO DE TRABAJO FIJO
-           ========================================== */
+        /* 2. ENTORNO DE TRABAJO PRINCIPAL */
         .panel-listero {
             display: none; 
             width: 100%;
@@ -110,7 +122,6 @@
             flex-direction: column; 
         } 
 
-        /* Barra Superior */
         .barra-superior {
             display: flex;
             justify-content: space-between;
@@ -142,7 +153,6 @@
             border-radius: 4px;
         } 
 
-        /* Menú de 3 puntos */
         .menu-tres-puntos {
             position: relative;
             display: inline-block;
@@ -181,7 +191,6 @@
             background-color: #334155;
         } 
 
-        /* Recuadros Centrados de Apuestas */
         .zona-entrada-apuestas {
             display: flex;
             justify-content: center;
@@ -220,17 +229,15 @@
             background: #0f172a;
             color: #ffffff;
             font-weight: bold;
-            transition: background 0.2s, color 0.2s;
         } 
 
-        /* Estilo dinámico para cuando un número está limitado en fijos */
+        /* Alerta visual en celda para números limitados */
         .recuadro-apuesta input.numero-limitado {
-            background: #ffffff !important;
+            background: #fef08a !important;
             color: #000000 !important;
-            border-color: #ef4444 !important;
+            border-color: #eab308 !important;
         }
 
-        /* Botón de anotar */
         .btn-anotar {
             background: #2563eb;
             color: white;
@@ -244,14 +251,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
         } 
 
-        .btn-anotar:hover {
-            background: #1d4ed8;
-        } 
-
-        /* Letrero de Banco Cerrado */
         .letrero-banco-cerrado {
             display: none; 
             position: absolute;
@@ -261,14 +262,12 @@
             font-size: 22px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 2px;
             align-items: center;
             justify-content: center;
             border-radius: 8px;
             z-index: 5;
         }
 
-        /* Área de contenido flexible (Pantallas + Totales) */
         .area-principal-trabajo {
             display: flex;
             flex-direction: column;
@@ -276,18 +275,17 @@
             overflow: hidden; 
         } 
 
-        /* Las 3 columnas con rayas/bordes definidos */
+        /* MEJORA: TABLA GLOBAL CON RAYAS DIVISORIAS DEFINIDAS */
         .pantallas-captacion {
             display: flex; 
             gap: 0px; 
             flex-grow: 1;
             overflow: hidden; 
             margin-bottom: 10px;
-            border: 2px solid #475569; 
+            border: 3px solid #475569; /* Contorno general más fuerte */
             border-radius: 8px;
         } 
 
-        /* Columnas con líneas definidas entre sí */
         .pantalla-bloque {
             background: #1e293b;
             padding: 10px;
@@ -297,8 +295,9 @@
             overflow: hidden;
         }
 
+        /* Rayas verticales muy marcadas entre las columnas */
         .pantalla-bloque:not(:last-child) {
-            border-right: 2px solid #475569; 
+            border-right: 3px solid #475569; 
         } 
 
         .pantalla-bloque h4 {
@@ -313,7 +312,7 @@
             font-weight: bold;
         } 
 
-        /* Contenido adaptable */
+        /* MEJORA: Contenedor flexible que evita cortes de números */
         .contenido-pantalla {
             flex-grow: 1;
             font-family: monospace;
@@ -323,19 +322,19 @@
             padding: 10px;
             border-radius: 4px;
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Permite que los renglones se organicen sin pisarse */
             gap: 8px; 
             align-content: flex-start;
         } 
 
-        /* Formato de los renglones */
+        /* MEJORA: Renglones compactos que garantizan lectura completa */
         .renglon-jugada {
-            padding: 5px 10px; 
+            padding: 4px 10px; 
             border: 1px solid #334155;
             color: #4ade80; 
             background: #1e293b;
             border-radius: 4px;
-            white-space: nowrap; 
+            white-space: nowrap; /* Impide cortes extraños */
             display: inline-block;
             font-weight: bold;
         } 
@@ -392,13 +391,8 @@
             font-weight: bold;
             font-size: 13px; 
         }
-        
-        .fila-total.principal .col-importa { color: #38bdf8; font-size: 13px; }
-        .fila-total.principal .col-limpio { color: #4ade80; font-size: 13px; }
 
-        /* ==========================================
-           3. ESTILOS DE LA VENTANA REGLAMENTO (MODAL)
-           ========================================== */
+        /* MODAL REGLAMENTO / LIMITADOS */
         .modal-reglamento {
             display: none; 
             position: fixed;
@@ -418,7 +412,6 @@
             max-width: 550px;
             max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             padding: 20px;
         }
 
@@ -443,45 +436,6 @@
 
         .seccion-regla.critico {
             border-left-color: #ef4444;
-        }
-
-        .seccion-regla h5 {
-            color: #94a3b8;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .texto-regla {
-            font-size: 14px;
-            color: #e2e8f0;
-            line-height: 1.5;
-        }
-
-        .tabla-regla {
-            width: 100%;
-            margin-top: 5px;
-            border-collapse: collapse;
-        }
-
-        .tabla-regla th, .tabla-regla td {
-            text-align: left;
-            padding: 6px 8px;
-            font-size: 13px;
-        }
-
-        .tabla-regla th {
-            color: #64748b;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-        }
-
-        .tabla-regla td {
-            color: #f1f5f9;
-            border-top: 1px solid #1e293b;
         }
 
         .badge-limitado {
@@ -512,6 +466,8 @@
 </head>
 <body> 
 
+    <div class="estado-conexion" id="bolaConexion"></div>
+
     <div class="login-container" id="seccionLogin">
         <h2>Panel de Control</h2>
         <p>Introduce tus credenciales para ingresar</p>
@@ -532,20 +488,17 @@
     </div> 
 
     <div class="panel-listero" id="seccionListero">
-        
         <div class="barra-superior">
-            <div class="nombre-lista" id="nombreListaSuperior">Lista: Colector</div>
+            <div class="nombre-lista" id="nombreListaSuperior">Lista: Cargando...</div>
             
             <div class="derecha-superior">
                 <div class="reloj" id="relojDigital">00:00:00 PM</div>
-                
                 <div class="menu-tres-puntos">
                     <button class="btn-puntos" onclick="toggleMenu()">⋮</button>
                     <div class="menu-contenido" id="menuDesglegable">
                         <a href="#" onclick="abrirReglamento()">Reglamento</a>
                         <a href="#" onclick="verListasGuardadas()">Listas Guardadas</a>
                         <a href="#" onclick="mostrarLimitadosAlert()">Limitados</a>
-                        <a href="#" onclick="alert('Modo de Trabajo')">Modo de Trabajo</a>
                         <hr style="border: 0; border-top: 1px solid #334155;">
                         <a href="#" onclick="limpiarDatosUsuario()" style="color: #e11d48;">Borrar esta Lista</a>
                         <a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a>
@@ -618,45 +571,19 @@
 
     <div class="modal-reglamento" id="modalReglamento">
         <div class="contenido-reglamento">
-            <div class="titulo-reglamento">Reglamento de Trabajo Oficial</div>
-            
-            <div class="seccion-regla">
-                <h5>🕒 Horarios de Captación</h5>
-                <div class="texto-regla">
-                    <strong>Tiro Mañana:</strong> 7:00 AM a 1:25 PM <br>
-                    <strong>Tiro Noche:</strong> 2:00 PM a 9:30 PM <br>
-                </div>
-            </div>
-
-            <div class="seccion-regla">
-                <h5>💰 Límites de Apuestas</h5>
-                <table class="tabla-regla">
-                    <thead>
-                        <tr><th>Modalidad</th><th>Límite Lista</th><th>Límite Bote</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Fijos y Corridos</td><td>$500</td><td>$10,000</td></tr>
-                        <tr><td>Parles</td><td>$50</td><td>$10,000</td></tr>
-                        <tr><td>Centenas</td><td>$50</td><td>$10,000</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
+            <div class="titulo-reglamento">Reglamento y Limitados</div>
             <div class="seccion-regla critico">
                 <h5>🚫 Números Limitados Activos (Nube)</h5>
-                <div class="texto-regla" id="contenedorBadgesLimitados" style="margin-top: 5px;">
+                <div class="texto-regla" id="contenedorBadgesLimitados">
                     <span style="color: #64748b; font-size: 13px;">Cargando de la nube...</span>
                 </div>
             </div>
-
-            <button class="btn-cerrar-modal" onclick="cerrarReglamento()">Cerrar Reglamento</button>
+            <button class="btn-cerrar-modal" onclick="cerrarReglamento()">Cerrar</button>
         </div>
     </div>
 
     <script>
-        // ========================================================
-        // 1. INICIALIZACIÓN Y DEPENDENCIAS OBLIGATORIAS DE SUPABASE
-        // ========================================================
+        // CONFIGURACIÓN OFICIAL DE TU PROYECTO SUPABASE
         const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -666,17 +593,35 @@
         var COMISION_CENTENAS = 20; 
 
         var usuarioActivo = "";
-        var listaActivaId = "lista_estatica_1"; 
+        var listaActivaId = ""; 
         var bancoBloqueadoPorHorario = false;
-
         var numerosLimitadosNube = []; 
 
+        // Acumuladores estáticos de control local de topes
         var acumuladoFijos = {};
         var acumuladoCorridos = {};
         var acumuladoParles = {};
         var acumuladoCentenas = {};
 
-        // Reloj suave no estricto
+        // COMPROBACIÓN REAL DE CONEXIÓN (Pone la bola Verde/Roja)
+        function verificarConexion() {
+            var bola = document.getElementById('bolaConexion');
+            // Hacer una petición ligera a la tabla perfiles para validar conexión activa
+            supabaseClient.from('perfiles').select('count', { count: 'exact', head: true })
+                .then(({error}) => {
+                    if (error && error.message === 'Failed to fetch') {
+                        bola.classList.remove('conectado');
+                    } else {
+                        bola.classList.add('conectado');
+                    }
+                }).catch(() => {
+                    bola.classList.remove('conectado');
+                });
+        }
+        setInterval(verificarConexion, 5000);
+        verificarConexion();
+
+        // CONTROL DEL RELOJ (Suave, evita bloqueos estrictos por segundos erróneos)
         function actualizarReloj() {
             var ahora = new Date();
             var horas = ahora.getHours();
@@ -689,133 +634,69 @@
             var horasDoce = horas % 12;
             horasDoce = horasDoce ? horasDoce : 12; 
             
-            var tiempoTexto = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
-            document.getElementById('relojDigital').innerText = tiempoTexto;
+            document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;
         }
 
-        function machined(valor) {
-            return valor < 10 ? '0' + valor : valor;
-        }
-        
+        function machined(v) { return v < 10 ? '0' + v : v; }
         setInterval(actualizarReloj, 1000);
-        actualizarReloj(); 
 
         function evaluarTrancaHorarios(hora, minuto) {
-            var tiempoEnMinutos = (hora * 60) + minuto;
-            var dentroTurnoManana = (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805);
-            var dentroTurnoNoche = (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290);
+            var m = (hora * 60) + minuto;
+            var turnoM = (m >= 420 && m < 805); // 7:00 AM a 1:25 PM
+            var turnoN = (m >= 840 && m < 1290); // 2:00 PM a 9:30 PM
 
-            if (dentroTurnoManana || dentroTurnoNoche) {
+            if (turnoM || turnoN) {
                 bancoBloqueadoPorHorario = false;
                 document.getElementById('avisoBancoCerrado').style.display = "none";
-                document.getElementById('campoNumero').disabled = false;
-                document.getElementById('campoPrecio').disabled = false;
-                document.getElementById('btnAnotarJugada').disabled = false;
             } else {
                 bancoBloqueadoPorHorario = true;
                 document.getElementById('avisoBancoCerrado').style.display = "flex";
-                document.getElementById('campoNumero').disabled = true;
-                document.getElementById('campoPrecio').disabled = true;
-                document.getElementById('btnAnotarJugada').disabled = true;
             }
         }
 
-        function abrirReglamento() {
-            document.getElementById('modalReglamento').style.display = 'flex';
-        }
-
-        function cerrarReglamento() {
-            document.getElementById('modalReglamento').style.display = 'none';
-        }
-
-        function toggleMenu() {
-            var menu = document.getElementById('menuDesglegable');
-            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-        } 
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.btn-puntos')) {
-                var menu = document.getElementById('menuDesglegable');
-                if (menu && menu.style.display === 'block') {
-                    menu.style.display = 'none';
-                }
-            }
-        } 
-
+        // LOGIN ORIGINAL INTEGRADO A SUPABASE
         function entrarAlSistema(event) {
-            event.preventDefault(); 
-            var usuarioIngresado = document.getElementById('usuario').value.trim().toLowerCase();
-            if (!usuarioIngresado) return;
+            event.preventDefault();
+            var user = document.getElementById('usuario').value.trim().toLowerCase();
+            var pass = document.getElementById('password').value.trim();
 
-            usuarioActivo = usuarioIngresado; 
-            document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();
-            document.getElementById('seccionLogin').style.display = 'none';
-            document.getElementById('seccionListero').style.display = 'flex'; 
+            if (!user || !pass) return;
 
-            cargarDatosIniciales();
-            descargarLimitadosDeNube(); 
-        } 
+            // Consulta exacta a tu tabla original de perfiles para verificar credenciales fijos
+            supabaseClient
+                .from('perfiles')
+                .select('*')
+                .eq('usuario', user)
+                .eq('password', pass)
+                .single()
+                .then(({ data, error }) => {
+                    if (error || !data) {
+                        alert("Credenciales inválidas o sin conexión a la base de datos.");
+                    } else {
+                        usuarioActivo = data.usuario;
+                        listaActivaId = data.lista_id || "lista_general";
+                        
+                        document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();
+                        document.getElementById('seccionLogin').style.display = 'none';
+                        document.getElementById('seccionListero').style.display = 'flex';
 
-        function cerrarSesion() {
-            document.getElementById('loginForm').reset();
-            document.getElementById('seccionLogin').style.display = 'block';
-            document.getElementById('seccionListero').style.display = 'none';
-            limpiarPantallasVisuales();
-            usuarioActivo = "";
-            numerosLimitadosNube = [];
-        } 
-
-        function limpiarPantallasVisuales() {
-            document.getElementById('pantallaCentenas').innerHTML = "";
-            document.getElementById('pantallaFijosCorridos').innerHTML = "";
-            document.getElementById('pantallaParles').innerHTML = "";
-            
-            document.getElementById('importaFC').innerText = "$0.00";
-            document.getElementById('limpioFC').innerText = "$0.00";
-            document.getElementById('importaParles').innerText = "$0.00";
-            document.getElementById('limpioParles').innerText = "$0.00";
-            document.getElementById('importaCentenas').innerText = "$0.00";
-            document.getElementById('limpioCentenas').innerText = "$0.00";
-            document.getElementById('totalImporta').innerText = "$0.00";
-            document.getElementById('totalLimpios').innerText = "$0.00";
+                        cargarDatosIniciales();
+                        descargarLimitadosDeNube();
+                    }
+                });
         }
 
-        function formatearYVerificarLimitados(input) {
-            var textoLimpio = input.value.replace(/\D/g, '');
-            var resultado = textoLimpio.match(/.{1,2}/g);
-            if (resultado) {
-                input.value = resultado.join(' ');
-            } else {
-                input.value = '';
-            }
-
-            var valorActual = input.value.trim();
-            if (valorActual.length === 2 && numerosLimitadosNube.includes(valorActual)) {
-                input.classList.add('numero-limitado'); 
-            } else {
-                input.classList.remove('numero-limitado'); 
-            }
-        } 
-
-        function evaluarEnter(event) {
-            if (event.key === 'Enter') {
-                procesarJugada();
-            }
-        } 
-
-        // ========================================================
-        // 2. PETICIONES CLOUD DIRECTAS USANDO EL CLIENTE SUPABASE
-        // ========================================================
+        // DESCARGA DE LIMITADOS DESDE LA NUEVA TABLA EN LA NUBE
         function descargarLimitadosDeNube() {
             supabaseClient
                 .from('limitados')
                 .select('numero')
                 .then(({ data, error }) => {
-                    if (error) {
-                        console.error("Error cargando limitados de Supabase:", error);
-                        numerosLimitadosNube = ["11", "55", "90"]; 
-                    } else if (data) {
+                    if (!error && data) {
                         numerosLimitadosNube = data.map(item => String(item.numero).trim().padStart(2, '0'));
+                    } else {
+                        // En caso de fallo de red, se mantiene un respaldo local preventivo sin trancar
+                        numerosLimitadosNube = ["11", "55", "90"]; 
                     }
                     pintarBadgesEnReglamento();
                 });
@@ -824,24 +705,31 @@
         function pintarBadgesEnReglamento() {
             var contenedor = document.getElementById('contenedorBadgesLimitados');
             if (numerosLimitadosNube.length === 0) {
-                contenedor.innerHTML = `<span style="color: #64748b; font-size: 13px;">No hay limitados registrados hoy.</span>`;
+                contenedor.innerHTML = `<span>No hay limitados registrados hoy.</span>`;
                 return;
             }
-            var htmlBadges = "";
-            numerosLimitadosNube.forEach(num => {
-                htmlBadges += `<span class="badge-limitado">${num}</span>`;
-            });
-            contenedor.innerHTML = htmlBadges;
+            var html = "";
+            numerosLimitadosNube.forEach(num => { html += `<span class="badge-limitado">${num}</span>`; });
+            contenedor.innerHTML = html;
         }
 
-        function mostrarLimitadosAlert() {
-            if (numerosLimitadosNube.length > 0) {
-                alert("Números Limitados (Nube):\n\n" + numerosLimitadosNube.join(', '));
+        function formatearYVerificarLimitados(input) {
+            var limpio = input.value.replace(/\D/g, '');
+            var res = limpio.match(/.{1,2}/g);
+            input.value = res ? res.join(' ') : '';
+
+            var valor = input.value.trim();
+            // Pone el campo en amarillo si coincide con un limitado para advertir al listero
+            if (valor.length === 2 && numerosLimitadosNube.includes(valor)) {
+                input.classList.add('numero-limitado');
             } else {
-                alert("No hay números limitados hoy.");
+                input.classList.remove('numero-limitado');
             }
         }
 
+        function evaluarEnter(e) { if (e.key === 'Enter') procesarJugada(); }
+
+        // PROCESAMIENTO E INSERCIÓN EXACTA DE JUGADAS (ESTRUCTURA ORIGINAL)
         function procesarJugada() {
             if (bancoBloqueadoPorHorario) {
                 alert("Operación rechazada. Banco Cerrado.");
@@ -850,105 +738,102 @@
 
             var campoNum = document.getElementById('campoNumero');
             var campoPrecio = document.getElementById('campoPrecio');
-            var stringNumeros = campoNum.value.trim();
-            var stringPrecio = campoPrecio.value.trim(); 
+            var strNum = campoNum.value.trim();
+            var strPrecio = campoPrecio.value.trim();
 
-            if (!stringNumeros || !stringPrecio) return; 
+            if (!strNum || !strPrecio) return;
 
-            var bloques = stringNumeros.split(' ');
-            var unionDigitos = bloques.join('');
+            var bloques = strNum.split(' ');
+            var union = bloques.join('');
 
-            // A. CENTENAS
-            if (unionDigitos.length === 3) {
-                var numPrecio = parseFloat(stringPrecio);
-                if (isNaN(numPrecio) || numPrecio < 1) return;
+            // 1. CENTENAS
+            if (union.length === 3) {
+                var p = parseFloat(strPrecio);
+                if (isNaN(p) || p < 1) return;
 
-                var yaAcumulado = acumuladoCentenas[unionDigitos] || 0;
-                var cupoDisponible = Math.max(0, 50 - yaAcumulado);
+                var acum = acumuladoCentenas[union] || 0;
+                var cupo = Math.max(0, 50 - acum);
 
-                if (cupoDisponible > 0) {
-                    var admitidoLista = Math.min(numPrecio, cupoDisponible);
-                    var excesoBote = numPrecio - admitidoLista;
-
-                    if (admitidoLista > 0) {
-                        ejecutarRegistroSuma('centenas', unionDigitos, admitidoLista, `${unionDigitos} (${admitidoLista})`, 'apuestas');
-                        acumuladoCentenas[unionDigitos] = yaAcumulado + admitidoLista;
+                if (cupo > 0) {
+                    var l = Math.min(p, cupo);
+                    var b = p - l;
+                    if (l > 0) {
+                        ejecutarRegistroSuma('centenas', union, l, `${union} (${l})`, 'apuestas');
+                        acumuladoCentenas[union] = acum + l;
                     }
-                    if (excesoBote > 0) {
-                        ejecutarRegistroSuma('centenas', unionDigitos, excesoBote, `${unionDigitos} (${excesoBote})`, 'bote');
-                    }
+                    if (b > 0) ejecutarRegistroSuma('centenas', union, b, `${union} (${b})`, 'bote');
                 } else {
-                    ejecutarRegistroSuma('centenas', unionDigitos, numPrecio, `${unionDigitos} (${numPrecio})`, 'bote');
+                    ejecutarRegistroSuma('centenas', union, p, `${union} (${p})`, 'bote');
                 }
 
-            // B. FIJOS Y CORRIDOS
+            // 2. FIJOS Y CORRIDOS
             } else if (bloques.length === 1) {
-                var numeroFijo = bloques[0];
-                if (numeroFijo.length !== 2) return;
+                var numFijo = bloques[0];
+                if (numFijo.length !== 2) return;
 
-                var precioFijo = 0, precioCorrido = 0; 
-                if (stringPrecio.includes(',')) {
-                    var partesPrecio = stringPrecio.split(',');
-                    precioFijo = parseFloat(partesPrecio[0]) || 0;
-                    precioCorrido = parseFloat(partesPrecio[1]) || 0;
+                var pFijo = 0, pCorrido = 0;
+                if (strPrecio.includes(',')) {
+                    var partes = strPrecio.split(',');
+                    pFijo = parseFloat(partes[0]) || 0;
+                    pCorrido = parseFloat(partes[1]) || 0;
                 } else {
-                    precioFijo = parseFloat(stringPrecio) || 0;
-                } 
-
-                var yaAcumFijo = acumuladoFijos[numeroFijo] || 0;
-                var cupoFijo = Math.max(0, 500 - yaAcumFijo);
-                var fijoLista = Math.min(precioFijo, cupoFijo);
-                var fijoBote = precioFijo - fijoLista;
-                if (fijoLista > 0) acumuladoFijos[numeroFijo] = yaAcumFijo + fijoLista;
-
-                var yaAcumCorrido = acumuladoCorridos[numeroFijo] || 0;
-                var cupoCorrido = Math.max(0, 500 - yaAcumCorrido);
-                var corridoLista = Math.min(precioCorrido, cupoCorrido);
-                var corridoBote = precioCorrido - corridoLista;
-                if (corridoLista > 0) acumuladoCorridos[numeroFijo] = yaAcumCorrido + corridoLista;
-
-                if (fijoLista > 0 || corridoLista > 0) {
-                    ejecutarRegistroSuma('fc', numeroFijo, fijoLista + corridoLista, `${numeroFijo} (${fijoLista}) (${corridoLista})`, 'apuestas');
-                }
-                if (fijoBote > 0 || corridoBote > 0) {
-                    ejecutarRegistroSuma('fc', numeroFijo, fijoBote + corridoBote, `${numeroFijo} (${fijoBote}) (${corridoBote})`, 'bote');
+                    pFijo = parseFloat(strPrecio) || 0;
                 }
 
-            // C. PARLES
+                var acumF = acumuladoFijos[numFijo] || 0;
+                var cupoF = Math.max(0, 500 - acumF);
+                var fLista = Math.min(pFijo, cupoF);
+                var fBote = pFijo - fLista;
+                if (fLista > 0) acumuladoFijos[numFijo] = acumF + fLista;
+
+                var acumC = acumuladoCorridos[numFijo] || 0;
+                var cupoC = Math.max(0, 500 - acumC);
+                var cLista = Math.min(pCorrido, cupoC);
+                var cBote = pCorrido - cLista;
+                if (cLista > 0) acumuladoCorridos[numFijo] = acumC + cLista;
+
+                if (fLista > 0 || cLista > 0) {
+                    ejecutarRegistroSuma('fc', numFijo, fLista + cLista, `${numFijo} (${fLista}) (${cLista})`, 'apuestas');
+                }
+                if (fBote > 0 || cBote > 0) {
+                    ejecutarRegistroSuma('fc', numFijo, fBote + cBote, `${numFijo} (${fBote}) (${cBote})`, 'bote');
+                }
+
+            // 3. PARLES
             } else if (bloques.length >= 2) {
-                var basePrecioParle = parseFloat(stringPrecio);
-                if (isNaN(basePrecioParle) || basePrecioParle < 1) return;
+                var baseP = parseFloat(strPrecio);
+                if (isNaN(baseP) || baseP < 1) return;
 
-                var comboID = bloques.sort().join(' ');
-                var combinaciones = (bloques.length * (bloques.length - 1)) / 2;
-                var importeBrutoParle = combinaciones * basePrecioParle;
+                var combo = bloques.sort().join(' ');
+                var comb = (bloques.length * (bloques.length - 1)) / 2;
+                var brutoP = comb * baseP;
 
-                var yaAcumParle = acumuladoParles[comboID] || 0;
-                var cupoParle = Math.max(0, 50 - yaAcumParle);
+                var acumP = acumuladoParles[combo] || 0;
+                var cupoP = Math.max(0, 50 - acumP);
 
-                if (cupoParle > 0) {
-                    var parleLista = Math.min(importeBrutoParle, cupoParle);
-                    var parleBote = importeBrutoParle - parleLista;
+                if (cupoP > 0) {
+                    var pLista = Math.min(brutoP, cupoP);
+                    var pBote = brutoP - pLista;
 
-                    if (parleLista > 0) {
-                        var subPrecioL = parleLista / combinaciones;
-                        ejecutarRegistroSuma('parles', comboID, parleLista, `${bloques.join(' ')} (${subPrecioL.toFixed(0)})`, 'apuestas');
-                        acumuladoParles[comboID] = yaAcumParle + parleLista;
+                    if (pLista > 0) {
+                        var subL = pLista / comb;
+                        ejecutarRegistroSuma('parles', combo, pLista, `${bloques.join(' ')} (${subL.toFixed(0)})`, 'apuestas');
+                        acumuladoParles[combo] = acumP + pLista;
                     }
-                    if (parleBote > 0) {
-                        var subPrecioB = parleBote / combinaciones;
-                        ejecutarRegistroSuma('parles', comboID, parleBote, `${bloques.join(' ')} (${subPrecioB.toFixed(0)})`, 'bote');
+                    if (pBote > 0) {
+                        var subB = pBote / comb;
+                        ejecutarRegistroSuma('parles', combo, pBote, `${bloques.join(' ')} (${subB.toFixed(0)})`, 'bote');
                     }
                 } else {
-                    ejecutarRegistroSuma('parles', comboID, importeBrutoParle, `${bloques.join(' ')} (${basePrecioParle})`, 'bote');
+                    ejecutarRegistroSuma('parles', combo, brutoP, `${bloques.join(' ')} (${baseP})`, 'bote');
                 }
-            } 
+            }
 
             campoNum.value = "";
             campoPrecio.value = "";
-            campoNum.classList.remove('numero-limitado'); 
+            campoNum.classList.remove('numero-limitado');
             campoNum.focus();
-        } 
+        }
 
         function ejecutarRegistroSuma(tipo, numero, bruto, textoVisible, tablaDestino) {
             var comision = tipo === 'fc' ? COMISION_FC : (tipo === 'parles' ? COMISION_PARLES : COMISION_CENTENAS);
@@ -962,7 +847,7 @@
 
             guardarJugadaLocal(tipo, textoVisible, bruto, limpio, tablaDestino);
 
-            // Inserción en la tabla correspondiente en la nube de Supabase
+            // ENVÍO DE DATOS ESTRUCTURADOS IDÉNTICO A TU PRIMER CÓDIGO
             supabaseClient.from(tablaDestino).insert({
                 lista_id: listaActivaId,
                 usuario: usuarioActivo,
@@ -972,15 +857,17 @@
                 importe_bruto: bruto,
                 importe_limpio: limpio,
                 metadata: { texto: textoVisible }
-            }).then(({ error }) => { if (error) console.log("Guardado local activo; error sincronizando nube."); });
+            }).then(({ error }) => { 
+                if (error) console.log("Guardado local completado. Sincronización pendiente."); 
+            });
         }
 
         function inyectarRenglonEnPantalla(tipo, texto, tablaDestino) {
             var destinoId = tipo === 'fc' ? 'pantallaFijosCorridos' : (tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');
-            var badgeBote = tablaDestino === 'bote' ? ' es-bote' : '';
-            var prefijo = tablaDestino === 'bote' ? '[BOTE] ' : '';
+            var clsBote = tablaDestino === 'bote' ? ' es-bote' : '';
+            var prefijo = tablaDestino === 'bote' ? '[B] ' : '';
 
-            document.getElementById(destinoId).innerHTML += `<div class="renglon-jugada${badgeBote}">${prefijo}${texto}</div>`;
+            document.getElementById(destinoId).innerHTML += `<div class="renglon-jugada${clsBote}">${prefijo}${texto}</div>`;
         }
 
         function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma) {
@@ -1006,38 +893,60 @@
         }
 
         function guardarJugadaLocal(tipo, texto, bruto, limpio, destino) {
-            var claveDB = "backup_kingball_" + usuarioActivo;
-            var historial = JSON.parse(localStorage.getItem(claveDB)) || [];
+            var clave = "backup_kingball_" + usuarioActivo;
+            var historial = JSON.parse(localStorage.getItem(clave)) || [];
             historial.push({ tipo: tipo, texto: texto, bruto: bruto, limpio: limpio, destino: destino });
-            localStorage.setItem(claveDB, JSON.stringify(historial));
+            localStorage.setItem(clave, JSON.stringify(historial));
         }
 
         function cargarDatosIniciales() {
             limpiarPantallasVisuales();
-            var claveDB = "backup_kingball_" + usuarioActivo;
-            var historial = JSON.parse(localStorage.getItem(claveDB)) || [];
-            
+            var clave = "backup_kingball_" + usuarioActivo;
+            var historial = JSON.parse(localStorage.getItem(clave)) || [];
             historial.forEach(j => {
                 inyectarRenglonEnPantalla(j.tipo, j.texto, j.destino);
-                if (j.destino === 'apuestas') {
-                    actualizarValoresYTotales(j.tipo, j.bruto, j.limpio);
-                }
+                if (j.destino === 'apuestas') actualizarValoresYTotales(j.tipo, j.bruto, j.limpio);
             });
+        }
+
+        function limpiarPantallasVisuales() {
+            document.getElementById('pantallaCentenas').innerHTML = "";
+            document.getElementById('pantallaFijosCorridos').innerHTML = "";
+            document.getElementById('pantallaParles').innerHTML = "";
+            document.getElementById('importaFC').innerText = "$0.00";
+            document.getElementById('limpioFC').innerText = "$0.00";
+            document.getElementById('importaParles').innerText = "$0.00";
+            document.getElementById('limpioParles').innerText = "$0.00";
+            document.getElementById('importaCentenas').innerText = "$0.00";
+            document.getElementById('limpioCentenas').innerText = "$0.00";
+            document.getElementById('totalImporta').innerText = "$0.00";
+            document.getElementById('totalLimpios').innerText = "$0.00";
         }
 
         function limpiarDatosUsuario() {
             if (!usuarioActivo) return;
-            var confirmar = confirm("¿Estás seguro de borrar todas las jugadas locales de esta lista?");
-            if (confirmar) {
+            if (confirm("¿Estás seguro de borrar todas las jugadas locales de esta lista?")) {
                 localStorage.removeItem("backup_kingball_" + usuarioActivo);
                 limpiarPantallasVisuales();        
-                alert("Limpieza completada.");
             }
         }
 
-        function verListasGuardadas() {
-            alert("Sincronización en la nube activa. Todas las jugadas ya se procesan en Supabase.");
+        function cerrarSesion() {
+            document.getElementById('loginForm').reset();
+            document.getElementById('seccionLogin').style.display = 'block';
+            document.getElementById('seccionListero').style.display = 'none';
+            limpiarPantallasVisuales();
+            usuarioActivo = "";
         }
+
+        function toggleMenu() {
+            var menu = document.getElementById('menuDesglegable');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        } 
+        function abrirReglamento() { document.getElementById('modalReglamento').style.display = 'flex'; }
+        function cerrarReglamento() { document.getElementById('modalReglamento').style.display = 'none'; }
+        function mostrarLimitadosAlert() { alert("Limitados cargados:\n" + (numerosLimitadosNube.join(', ') || "Ninguno")); }
+        function verListasGuardadas() { alert("Sincronización activa con Supabase."); }
     </script> 
 </body>
 </html>
