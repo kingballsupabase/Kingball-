@@ -1,1420 +1,1115 @@
 <!DOCTYPE html>
-<html lang="es">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>Sistema de Apuestas - Kingball</title>  
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
-  
-<style>  
-    * {  
-        box-sizing: border-box;  
-        margin: 0;  
-        padding: 0;  
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
-    }   
-
-    html, body {  
-        height: 100%;  
-        background: #1e293b;  
-        color: #ffffff;  
-        overflow: hidden;   
-    }   
-
-    body {  
-        display: flex;  
-        justify-content: center;  
-        align-items: center;  
-        padding: 10px;  
-    }   
-
-    /* PANTALLA DE LOGIN Y REGISTRO */  
-    .login-container {  
-        background: #ffffff;  
-        padding: 40px;  
-        border-radius: 12px;  
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);  
-        width: 100%;  
-        max-width: 400px;  
-        text-align: center;  
-        display: block;   
-        max-height: 95vh;  
-        overflow-y: auto;  
-    }   
-
-    .login-container h2 {  
-        color: #0f172a;  
-        margin-bottom: 10px;  
-        font-size: 24px;  
-    }   
-
-    .login-container p {  
-        color: #64748b;  
-        font-size: 14px;  
-        margin-bottom: 30px;  
-    }   
-
-    .input-group {  
-        text-align: left;  
-        margin-bottom: 20px;  
-    }   
-
-    .input-group label {  
-        display: block;  
-        font-weight: 600;  
-        margin-bottom: 8px;  
-        color: #334155;  
-        font-size: 14px;  
-    }   
-
-    .input-group input {  
-        width: 100%;  
-        padding: 12px 16px;  
-        border: 2px solid #cbd5e1;  
-        border-radius: 8px;  
-        font-size: 16px;  
-        outline: none;  
-        color: #000000;  
-        background: #ffffff;  
-    }   
-
-    .input-group input:focus {  
-        border-color: #2563eb;  
-    }   
-
-    .btn-ingresar {  
-        width: 100%;  
-        background: #2563eb;  
-        color: white;  
-        border: none;  
-        padding: 14px;  
-        border-radius: 8px;  
-        font-size: 16px;  
-        font-weight: bold;  
-        cursor: pointer;  
-        transition: background 0.3s;  
-    }   
-
-    .btn-ingresar:hover {  
-        background: #1d4ed8;  
-    }  
-
-    .btn-ingresar.secondary {  
-        background: #64748b;  
-        margin-top: 10px;  
-    }  
-
-    .btn-ingresar.secondary:hover {  
-        background: #475569;  
-    }  
-
-    .link-registro {  
-        margin-top: 15px;  
-        font-size: 14px;  
-        color: #64748b;  
-    }  
-
-    .link-registro a {  
-        color: #2563eb;  
-        text-decoration: underline;  
-        cursor: pointer;  
-        font-weight: bold;  
-    }  
-
-    .mensaje-alerta {  
-        padding: 10px;  
-        border-radius: 6px;  
-        margin-bottom: 15px;  
-        font-size: 14px;  
-        display: none;  
-        text-align: left;  
-    }  
-    .mensaje-alerta.error { background: #fee2e2; color: #dc2626; }  
-    .mensaje-alerta.exito { background: #dcfce7; color: #16a34a; }  
-
-    /* ENTORNO DE TRABAJO FIJO */  
-    .panel-listero {  
-        display: none;   
-        width: 100%;  
-        max-width: 1000px;  
-        height: 95vh;   
-        background: #0f172a;  
-        border-radius: 12px;  
-        padding: 15px;  
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);  
-        flex-direction: column;   
-    }   
-
-    .barra-superior {  
-        display: flex;  
-        justify-content: space-between;  
-        align-items: center;  
-        border-bottom: 2px solid #334155;  
-        padding-bottom: 10px;  
-        margin-bottom: 10px;  
-        flex-shrink: 0;  
-    }   
-
-    .nombre-lista {  
-        font-size: 18px;  
-        font-weight: bold;  
-        color: #38bdf8;  
-    }   
-
-    .derecha-superior {  
-        display: flex;  
-        align-items: center;  
-        gap: 15px;  
-    }   
-
-    .reloj {  
-        font-size: 16px;  
-        color: #e2e8f0;  
-        font-family: monospace;  
-        background: #1e293b;  
-        padding: 4px 8px;  
-        border-radius: 4px;  
-    }   
-
-    .menu-tres-puntos {  
-        position: relative;  
-        display: inline-block;  
-    }   
-
-    .btn-puntos {  
-        background: none;  
-        border: none;  
-        color: white;  
-        font-size: 24px;  
-        cursor: pointer;  
-        padding: 0 5px;  
-    }   
-
-    .menu-contenido {  
-        display: none;  
-        position: absolute;  
-        right: 0;  
-        background-color: #1e293b;  
-        min-width: 180px;  
-        box-shadow: 0px 8px 16px rgba(0,0,0,0.4);  
-        border: 1px solid #334155;  
-        border-radius: 6px;  
-        z-index: 10;  
-    }   
-
-    .menu-contenido a {  
-        color: white;  
-        padding: 12px 16px;  
-        text-decoration: none;  
-        display: block;  
-        font-size: 14px;  
-        cursor: pointer;  
-    }   
-
-    .menu-contenido a:hover {  
-        background-color: #334155;  
-    }   
-
-    .zona-entrada-apuestas {  
-        display: flex;  
-        justify-content: center;  
-        align-items: flex-end;   
-        gap: 15px;  
-        margin-bottom: 10px;  
-        background: #1e293b;  
-        padding: 10px;  
-        border-radius: 8px;  
-        flex-shrink: 0;  
-        position: relative;  
-    }   
-
-    .recuadro-apuesta {  
-        display: flex;  
-        flex-direction: column;  
-        width: 140px;   
-    }   
-
-    .recuadro-apuesta label {  
-        font-size: 11px;  
-        color: #94a3b8;  
-        margin-bottom: 4px;  
-        text-align: center;  
-        text-transform: uppercase;  
-        font-weight: bold;  
-    }   
-
-    .recuadro-apuesta input {  
-        width: 100%;  
-        padding: 8px;  
-        font-size: 18px;  
-        text-align: center;  
-        border-radius: 6px;  
-        border: 2px solid #475569;  
-        background: #0f172a;  
-        color: #ffffff;  
-        font-weight: bold;  
-    }   
-
-    .recuadro-apuesta input.numero-limitado {  
-        background: #ffffff !important;  
-        color: #000000 !important;  
-        border-color: #38bdf8 !important;  
-    }  
-
-    .btn-anotar {  
-        background: #2563eb;  
-        color: white;  
-        border: none;  
-        padding: 0 20px;  
-        font-size: 16px;  
-        font-weight: bold;  
-        border-radius: 6px;  
-        cursor: pointer;  
-        height: 41px;   
-        display: flex;  
-        align-items: center;  
-        justify-content: center;  
-        transition: background 0.2s;  
-    }   
-
-    .btn-anotar:hover {  
-        background: #1d4ed8;  
-    }   
-
-    .letrero-banco-cerrado {  
-        display: none;   
-        position: absolute;  
-        top: 0; left: 0; width: 100%; height: 100%;  
-        background: rgba(15, 23, 42, 0.95);  
-        color: #ef4444;  
-        font-size: 22px;  
-        font-weight: bold;  
-        text-transform: uppercase;  
-        letter-spacing: 2px;  
-        align-items: center;  
-        justify-content: center;  
-        border-radius: 8px;  
-        z-index: 5;  
-    }  
-
-    .area-principal-trabajo {  
-        display: flex;  
-        flex-direction: column;  
-        flex-grow: 1;  
-        overflow: hidden;   
-    }   
-
-    .pantallas-captacion {  
-        display: flex;   
-        gap: 10px;  
-        flex-grow: 1;  
-        overflow: hidden;   
-        margin-bottom: 10px;  
-    }   
-
-    .pantalla-bloque {  
-        background: #1e293b;  
-        border: 1px solid #334155;  
-        border-radius: 8px;  
-        padding: 10px;  
-        flex: 1;   
-        display: flex;  
-        flex-direction: column;  
-        overflow: hidden;  
-    }   
-
-    .pantalla-bloque h4 {  
-        font-size: 13px;  
-        color: #38bdf8;  
-        text-align: center;  
-        border-bottom: 1px solid #334155;  
-        padding-bottom: 6px;  
-        margin-bottom: 6px;  
-        text-transform: uppercase;  
-        flex-shrink: 0;  
-    }   
-
-    .contenido-pantalla {  
-        flex-grow: 1;  
-        font-family: monospace;  
-        font-size: 19px;   
-        overflow-y: auto;   
-        background: #0f172a;  
-        padding: 10px;  
-        border-radius: 4px;  
-        display: flex;  
-        flex-direction: column;  
-    }   
-
-    .renglon-jugada {  
-        padding: 6px 8px;   
-        border-bottom: 1px solid #1e293b;  
-        color: #4ade80;   
-        user-select: none;  
-        -webkit-user-select: none;  
-        border-radius: 4px;  
-    }   
-
-    /* NUEVO PATRÓN DE ESPERA: Rojo en la lista hasta llegar al servidor */  
-    .renglon-jugada.espera-servidor {  
-        background-color: #ef4444 !important;  
-        color: #ffffff !important;  
-        font-weight: bold;  
-        opacity: 0.8;  
-    }  
-
-    /* CAMBIO SOLICITADO: Color naranja intenso y abajo del todo para jugadas en el bote */  
-    .renglon-jugada.es-bote {  
-        background-color: #f59e0b !important;  
-        color: #000000 !important;  
-        font-weight: bold;  
-        margin-top: 4px;  
-        margin-bottom: 2px;  
-        order: 9999; /* Esto garantiza que siempre se rendericen abajo del todo */  
-    }  
-
-    .zona-inferior {  
-        display: flex;  
-        justify-content: flex-end;  
-        flex-shrink: 0;  
-        padding-top: 5px;  
-    }   
-
-    .tabla-totales {  
-        background: #1e293b;  
-        border: 1px solid #334155;  
-        border-radius: 8px;  
-        padding: 8px 12px;   
-        min-width: 290px;    
-    }   
-
-    .encabezado-tabla {  
-        display: flex;  
-        justify-content: space-between;  
-        font-size: 10px;   
-        color: #94a3b8;  
-        text-transform: uppercase;  
-        font-weight: bold;  
-        border-bottom: 1px solid #475569;  
-        padding-bottom: 3px;  
-        margin-bottom: 4px;  
-    }  
-
-    .col-concepto { width: 45%; text-align: left; }  
-    .col-importa { width: 27%; text-align: right; color: #f8fafc; }  
-    .col-limpio { width: 28%; text-align: right; color: #4ade80; }  
-
-    .fila-total {  
-        display: flex;  
-        justify-content: space-between;  
-        padding: 2px 0;   
-        font-size: 11px;   
-        color: #cbd5e1;  
-    }   
-
-    /* FILA EXCLUSIVA DE BOTES EN NARANJA MARCADA EN TOTALES */  
-    .fila-total.fila-bote-concepto {  
-        color: #f59e0b;  
-        font-weight: bold;  
-    }  
-    .fila-total.fila-bote-concepto .col-importa { color: #f59e0b; }  
-    .fila-total.fila-bote-concepto .col-limpio { color: #f59e0b; }  
-
-    .fila-total.principal {  
-        border-top: 1px solid #475569;  
-        margin-top: 4px;  
-        padding-top: 4px;  
-        font-weight: bold;  
-        font-size: 13px;   
-    }  
-      
-    .fila-total.principal .col-importa { color: #38bdf8; font-size: 13px; }  
-    .fila-total.principal .col-limpio { color: #4ade80; font-size: 13px; }  
-
-    .modal-reglamento {  
-        display: none;   
-        position: fixed;  
-        top: 0; left: 0; width: 100%; height: 100%;  
-        background: rgba(15, 23, 42, 0.85);   
-        z-index: 100;  
-        justify-content: center;  
-        align-items: center;  
-        padding: 20px;  
-    }  
-
-    .contenido-reglamento {  
-        background: #1e293b;  
-        border: 2px solid #334155;  
-        border-radius: 12px;  
-        width: 100%;  
-        max-width: 550px;  
-        max-height: 85vh;  
-        overflow-y: auto;  
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);  
-        padding: 20px;  
-    }  
-
-    .titulo-reglamento {  
-        color: #38bdf8;  
-        font-size: 20px;  
-        font-weight: bold;  
-        text-align: center;  
-        text-transform: uppercase;  
-        border-bottom: 2px solid #334155;  
-        padding-bottom: 10px;  
-        margin-bottom: 15px;  
-    }  
-
-    .seccion-regla {  
-        margin-bottom: 15px;  
-        background: #0f172a;  
-        padding: 12px;  
-        border-radius: 8px;  
-        border-left: 4px solid #3b82f6;  
-    }  
-
-    .seccion-regla.critico {  
-        border-left-color: #ef4444;  
-    }  
-
-    .seccion-regla h5 {  
-        color: #94a3b8;  
-        font-size: 12px;  
-        text-transform: uppercase;  
-        margin-bottom: 6px;  
-        font-weight: bold;  
-        letter-spacing: 1px;  
-    }  
-
-    .texto-regla {  
-        font-size: 14px;  
-        color: #e2e8f0;  
-        line-height: 1.5;  
-    }  
-
-    .tabla-regla {  
-        width: 100%;  
-        margin-top: 5px;  
-        border-collapse: collapse;  
-    }  
-
-    .tabla-regla th, .tabla-regla td {  
-        text-align: left;  
-        padding: 6px 8px;  
-        font-size: 13px;  
-    }  
-
-    .tabla-regla th {  
-        color: #64748b;  
-        font-weight: bold;  
-        text-transform: uppercase;  
-        font-size: 11px;  
-    }  
-
-    .tabla-regla td {  
-        color: #f1f5f9;  
-        border-top: 1px solid #1e293b;  
-    }  
-
-    .badge-limitado {  
-        background: #ef4444;  
-        color: white;  
-        padding: 3px 8px;  
-        border-radius: 4px;  
-        font-family: monospace;  
-        font-size: 14px;  
-        font-weight: bold;  
-        margin-right: 6px;  
-        display: inline-block;  
-    }  
-
-    .btn-cerrar-modal {  
-        width: 100%;  
-        background: #334155;  
-        color: white;  
-        border: none;  
-        padding: 12px;  
-        border-radius: 6px;  
-        font-size: 14px;  
-        font-weight: bold;  
-        cursor: pointer;  
-        margin-top: 10px;  
-        transition: background 0.2s;  
-    }  
-
-    .btn-cerrar-modal:hover {  
-        background: #475569;  
-    }  
-      
-    .loading-overlay {  
-        display: none;  
-        position: fixed;  
-        top: 0; left: 0; width: 100%; height: 100%;  
-        background: rgba(15, 23, 42, 0.7);  
-        z-index: 500;  
-        justify-content: center;  
-        align-items: center;  
-        color: white;  
-        font-size: 18px;  
-        font-weight: bold;  
-    }  
-</style>
-
-</head>  
-<body>   <div class="loading-overlay" id="loadingSystem">Procesando Base de Datos...</div>  
-
-<div class="login-container" id="seccionLogin">  
-    <div id="loginContent">  
-        <h2>Panel de Control</h2>  
-        <p>Introduce tus credenciales para ingresar</p>  
-          
-        <div id="alertaForm" class="mensaje-alerta error"></div>  
-          
-        <form id="loginForm" onsubmit="entrarAlSistema(event)">  
-            <div class="input-group">  
-                <label for="usuario">Usuario del Listero</label>  
-                <input type="text" id="usuario" placeholder="Ej: listero_juan" required>  
-            </div>  
-              
-            <div class="input-group">  
-                <label for="password">Contraseña única</label>  
-                <input type="password" id="password" placeholder="••••••••" required>  
-            </div>  
-              
-            <button type="submit" class="btn-ingresar">Ingresar al Sistema</button>  
-        </form>  
-        <div class="link-registro">  
-            ¿No tienes cuenta? <a onclick="mostrarFormularioRegistro()">Regístrate aquí</a>  
-        </div>  
-    </div>  
-</div>   
-
-<div class="panel-listero" id="seccionListero">  
-      
-    <div class="barra-superior">  
-        <div class="nombre-lista" id="nombreListaSuperior">Lista: Colector</div>  
-          
-        <div class="derecha-superior">  
-            <div class="reloj" id="relojDigital">00:00:00 PM</div>  
-              
-            <div class="menu-tres-puntos">  
-                <button class="btn-puntos" onclick="toggleMenu()">⋮</button>  
-                <div class="menu-contenido" id="menuDesglegable">  
-                    <a onclick="abrirReglamento()">📋 Reglamento</a>  
-                    <a onclick="verListasGuardadas()">📚 Listas Guardadas</a>  
-                    <a onclick="mostrarAlertLimitados()">🚫 Limitados</a>  
-                    <hr style="border: 0; border-top: 1px solid #334155;">  
-                    <a onclick="limpiarDatosUsuario()" style="color: #e11d48;">🗑️ Borrar esta Lista</a>  
-                    <a onclick="cerrarSesion()" style="color: #ef4444;">🚪 Cerrar Sesión</a>  
-                </div>  
-            </div>  
-        </div>  
-    </div>   
-
-    <div class="zona-entrada-apuestas">  
-        <div class="letrero-banco-cerrado" id="avisoBancoCerrado">Banco Cerrado</div>  
-
-        <div class="recuadro-apuesta">  
-            <label for="campoNumero">Número</label>  
-            <input type="text" id="campoNumero" inputmode="decimal" placeholder="00 00" oninput="formatearNumeros(this)" autocomplete="off">  
-        </div>  
-        <div class="recuadro-apuesta">  
-            <label for="campoPrecio">Precio</label>  
-            <input type="text" id="campoPrecio" inputmode="decimal" placeholder="$" onkeypress="evaluarEnter(event)">  
-        </div>  
-        <button class="btn-anotar" id="btnAnotarJugada" onclick="procesarJugada()">Anotar</button>  
-    </div>   
-
-    <div class="area-principal-trabajo">  
-        <div class="pantallas-captacion">  
-            <div class="pantalla-bloque">  
-                <h4>Fijos y Corridos</h4>  
-                <div class="contenido-pantalla" id="pantallaFijosCorridos"></div>  
-            </div>  
-            <div class="pantalla-bloque">  
-                <h4>Parles</h4>  
-                <div class="contenido-pantalla" id="pantallaParles"></div>  
-            </div>  
-            <div class="pantalla-bloque">  
-                <h4>Centenas</h4>  
-                <div class="contenido-pantalla" id="pantallaCentenas"></div>  
-            </div>  
-        </div>   
-
-        <div class="zona-inferior">  
-            <div class="tabla-totales">  
-                <div class="encabezado-tabla">  
-                    <span class="col-concepto">Concepto</span>  
-                    <span class="col-importa">Importa</span>  
-                    <span class="col-limpio">Limpio</span>  
-                </div>  
-                <div class="fila-total">  
-                    <span class="col-concepto">Fijos/Corridos:</span>  
-                    <span class="col-importa" id="importaFC">$0.00</span>  
-                    <span class="col-limpio" id="limpioFC">$0.00</span>  
-                </div>  
-                <div class="fila-total">  
-                    <span class="col-concepto">Parles:</span>  
-                    <span class="col-importa" id="importaParles">$0.00</span>  
-                    <span class="col-limpio" id="limpioParles">$0.00</span>  
-                </div>  
-                <div class="fila-total">  
-                    <span class="col-concepto">Centenas:</span>  
-                    <span class="col-importa" id="importaCentenas">$0.00</span>  
-                    <span class="col-limpio" id="limpioCentenas">$0.00</span>  
-                </div>  
-                <div class="fila-total fila-bote-concepto">  
-                    <span class="col-concepto">Botes (20%):</span>  
-                    <span class="col-importa" id="importaBotes">$0.00</span>  
-                    <span class="col-limpio" id="limpioBotes">$0.00</span>  
-                </div>  
-                <div class="fila-total principal">  
-                    <span class="col-concepto">TOTALES:</span>  
-                    <span class="col-importa" id="totalImporta">$0.00</span>  
-                    <span class="col-limpio" id="totalLimpios">$0.00</span>  
-                </div>  
-            </div>  
-        </div>  
-    </div>   
-</div>   
-
-<div class="modal-reglamento" id="modalReglamento">  
-    <div class="contenido-reglamento">  
-        <div class="titulo-reglamento">Reglamento de Trabajo Oficial</div>  
-          
-        <div class="seccion-regla">  
-            <h5>🕒 Horarios de Captación</h5>  
-            <div class="texto-regla">  
-                <strong>Tiro Mañana:</strong> 7:00 AM a 1:25 PM <br>  
-                <strong>Tiro Noche:</strong> 2:00 PM a 9:30 PM <br>  
-                <span style="color: #ef4444; font-size: 12px;">* Fuera de este horario el sistema mostrará "Banco Cerrado".</span>  
-            </div>  
-        </div>  
-
-        <div class="seccion-regla">  
-            <h5>💰 Límites de Apuestas</h5>  
-            <table class="tabla-regla">  
-                <thead>  
-                    <tr>  
-                        <th>Modalidad</th>  
-                        <th>Límite Fijo / Número</th>  
-                        <th>Límite Corrido / Número</th>  
-                    </tr>  
-                </thead>  
-                <tbody>  
-                    <tr><td>Fijos / Corridos</td><td>$500</td><td>$500</td></tr>  
-                    <tr><td>Parles (Máx por Par)</td><td>$50</td><td>--</td></tr>  
-                    <tr><td>Centenas (Máx por No.)</td><td>$50</td><td>--</td></tr>  
-                </tbody>  
-            </table>  
-        </div>  
-
-        <div class="seccion-regla critico">  
-            <h5>🚫 Números Limitados Activos</h5>  
-            <div class="texto-regla" id="reglamentoListaLimitados" style="margin-top: 5px;">  
-                Cargando del servidor...  
-            </div>  
-        </div>  
-
-        <button class="btn-cerrar-modal" onclick="cerrarReglamento()">Cerrar Reglamento</button>  
-    </div>  
-</div>  
-
-<script>  
-    const SUPABASE_URL = 'https://xdqkyxrzniybczmiyxrs.supabase.co';  
-    const SUPABASE_KEY = 'sb_publishable_PtpvXsWZ71hXw7uQJCrhUA_RYvqCS2t';  
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);  
-
-    var RENDIMIENTO = 0.8; // Factor 0.8 fija la comisión del 20% para el listero/bote  
-
-    var usuarioActivo = "";  
-    var listaActivaId = null;  
-    var turnoActual = "Cerrado";  
-    var bancoBloqueadoPorHorario = false;  
-    var fraudeHoraDetectado = false;  
-
-    var ultimaHoraVerificada = Date.now();  
-    var toleranciaFraude = 4000;   
-
-    var dbNumerosLimitados = [];  
-    // Control de sesión activa para no saturar con llamadas RPC repetitivas secundarias  
-    var sesionIniciadaYDescargada = false;  
-
-    function toggleLoading(show) {  
-        document.getElementById('loadingSystem').style.display = show ? 'flex' : 'none';  
-    }  
-
-    function mostrarAlerta(texto, tipo) {  
-        const el = document.getElementById('alertaForm');  
-        if(!el) return;  
-        el.className = "mensaje-alerta " + (tipo === 'exito' ? 'exito' : 'error');  
-        el.innerText = texto;  
-        el.style.display = texto ? 'block' : 'none';  
-    }  
-
-    function abrirReglamento() { document.getElementById('modalReglamento').style.display = 'flex'; }  
-    function cerrarReglamento() { document.getElementById('modalReglamento').style.display = 'none'; }  
-
-    async function hashPassword(password) {  
-        const encoder = new TextEncoder();  
-        const data = encoder.encode(password);  
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);  
-        const hashArray = Array.from(new Uint8Array(hashBuffer));  
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');  
-    }  
-
-    async function entrarAlSistema(event) {  
-        event.preventDefault();   
-        var usuarioIngresado = document.getElementById('usuario').value.trim().toLowerCase();  
-        var passwordIngresado = document.getElementById('password').value.trim();  
-        if (!usuarioIngresado || !passwordIngresado) return;  
-
-        toggleLoading(true);  
-        mostrarAlerta("");  
-
-        try {  
-            const { data: usuario, error } = await supabaseClient  
-                .from('usuarios_listeros')  
-                .select('*')  
-                .eq('usuario', usuarioIngresado)  
-                .maybeSingle();  
-
-            if (error || !usuario) {  
-                mostrarAlerta("El usuario no existe. Regístrate primero.");  
-                toggleLoading(false);  
-                return;  
-            }  
-
-            const hashComprobar = await hashPassword(passwordIngresado);  
-            if (hashComprobar !== usuario.password_hash) {  
-                mostrarAlerta("Contraseña incorrecta.");  
-                toggleLoading(false);  
-                return;  
-            }  
-
-            usuarioActivo = usuario.usuario;   
-            document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();  
-            document.getElementById('seccionLogin').style.display = 'none';  
-            document.getElementById('seccionListero').style.display = 'flex';   
-
-            definirTurnoPorHora();  
-            await obtenerOCrearListaDeHoy();  
-            await descargarLimitadosDesdeSupabase();  
-            await cargarJugadasDesdeSupabase();  
-            sesionIniciadaYDescargada = true; // Flag de bloqueo de peticiones redundantes activo  
-        } catch(e) {  
-            mostrarAlerta("Error de conexión a internet.");  
-        }  
-        toggleLoading(false);  
-    }   
-
-    async function descargarLimitadosDesdeSupabase() {  
-        try {  
-            const { data, error } = await supabaseClient  
-                .from('numeros_limitados')  
-                .select('numero');  
-              
-            if(!error && data) {  
-                dbNumerosLimitados = data.map(item => String(item.numero).trim());  
-                if(dbNumerosLimitados.length > 0) {  
-                    document.getElementById('reglamentoListaLimitados').innerHTML = dbNumerosLimitados  
-                        .map(n => `<span class="badge-limitado">${n}</span>`).join('');  
-                } else {  
-                    document.getElementById('reglamentoListaLimitados').innerText = "No hay números limitados hoy.";  
-                }  
-            }  
-        } catch(err) { console.log(err); }  
-    }  
-
-    function mostrarAlertLimitados() {  
-        if(dbNumerosLimitados.length === 0) {  
-            alert("No hay números limitados registrados en Supabase.");  
-        } else {  
-            alert("Números Limitados desde la Base de Datos:\n\n" + dbNumerosLimitados.join(', '));  
-        }  
-    }  
-
-    function mostrarFormularioRegistro() {  
-        document.getElementById('loginContent').innerHTML = `  
-            <h2>Registro de Listero</h2>  
-            <p>Crea tu cuenta oficial en el sistema</p>  
-            <div id="alertaForm" class="mensaje-alerta"></div>  
-            <form id="registroForm" onsubmit="procesarRegistro(event)">  
-                <div class="input-group">  
-                    <label for="regUsuario">Usuario nuevo</label>  
-                    <input type="text" id="regUsuario" placeholder="Ej: listero_pedro" required>  
-                </div>  
-                <div class="input-group">  
-                    <label for="regNombre">Nombre completo</label>  
-                    <input type="text" id="regNombre" placeholder="Pedro Pérez" required>  
-                </div>  
-                <div class="input-group">  
-                    <label for="regEmail">Correo electrónico</label>  
-                    <input type="email" id="regEmail" placeholder="pedro@gmail.com" required>  
-                </div>  
-                <div class="input-group">  
-                    <label for="regPassword">Contraseña de acceso</label>  
-                    <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres" minlength="6" required>  
-                </div>  
-                <button type="submit" class="btn-ingresar">Crear Cuenta y Entrar</button>  
-                <button type="button" class="btn-ingresar secondary" onclick="location.reload()">Volver Atrás</button>  
-            </form>  
-        `;  
-    }  
-
-    async function procesarRegistro(event) {  
-        event.preventDefault();  
-        var user = document.getElementById('regUsuario').value.trim().toLowerCase();  
-        var name = document.getElementById('regNombre').value.trim();  
-        var email = document.getElementById('regEmail').value.trim();  
-        var pass = document.getElementById('regPassword').value.trim();  
-
-        toggleLoading(true);  
-
-        try {  
-            const { data: existente } = await supabaseClient  
-                .from('usuarios_listeros')  
-                .select('usuario')  
-                .eq('usuario', user)  
-                .maybeSingle();  
-
-            if (existente) {  
-                mostrarAlerta("Este nombre de usuario ya está ocupado.");  
-                toggleLoading(false);  
-                return;  
-            }  
-
-            const hash = await hashPassword(pass);  
-
-            const { error: insertError } = await supabaseClient  
-                .from('usuarios_listeros')  
-                .insert({  
-                    usuario: user,  
-                    nombre_completo: name,  
-                    email: email,  
-                    password_hash: hash  
-                });  
-
-            if(insertError) throw insertError;  
-
-            mostrarAlerta("¡Cuenta creada! Entrando...", "exito");  
-            setTimeout(async () => {  
-                usuarioActivo = user;  
-                document.getElementById('nombreListaSuperior').innerText = "Lista: " + usuarioActivo.toUpperCase();  
-                document.getElementById('seccionLogin').style.display = 'none';  
-                document.getElementById('seccionListero').style.display = 'flex';   
-                definirTurnoPorHora();  
-                await obtenerOCrearListaDeHoy();  
-                await descargarLimitadosDesdeSupabase();  
-                sesionIniciadaYDescargada = true;  
-                toggleLoading(false);  
-            }, 1000);  
-
-        } catch(e) {  
-            mostrarAlerta("Error al registrar datos.");  
-            toggleLoading(false);  
-        }  
-    }  
-
-    function cerrarSesion() { location.reload(); }   
-
-    function definirTurnoPorHora() {  
-        var ahora = new Date();  
-        var tiempoEnMinutos = (ahora.getHours() * 60) + ahora.getMinutes();  
-        if (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805) {  
-            turnoActual = "Mañana";  
-        } else if (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290) {  
-            turnoActual = "Noche";  
-        } else {  
-            turnoActual = "Cerrado";  
-        }  
-    }  
-
-    async function obtenerOCrearListaDeHoy() {  
-        if(!usuarioActivo) return;  
-        var hoy = new Date().toISOString().split('T')[0];  
-
-        try {  
-            const { data: lista } = await supabaseClient  
-                .from('listas_de_trabajo')  
-                .select('*')  
-                .eq('usuario', usuarioActivo)  
-                .eq('fecha', hoy)  
-                .eq('turno', turnoActual)  
-                .maybeSingle();  
-
-            if(lista) {  
-                listaActivaId = lista.id;  
-                return;  
-            }  
-
-            const { data: nuevaLista } = await supabaseClient  
-                .from('listas_de_trabajo')  
-                .insert({  
-                    usuario: usuarioActivo,  
-                    fecha: hoy,  
-                    turno: turnoActual,  
-                    total_importa: 0,  
-                    total_limpio: 0  
-                })  
-                .select()  
-                .single();  
-
-            listaActivaId = nuevaLista.id;  
-        } catch(e) { console.error(e); }  
-    }  
-
-    // =========================================================  
-    // PROCESADOR CON SEPARACIÓN MATEMÁTICA EXACTA Y RENDIMIENTO 0.8  
-    // =========================================================  
-    async function procesarJugada() {  
-        if (bancoBloqueadoPorHorario || fraudeHoraDetectado || !listaActivaId) {  
-            alert("Operación rechazada. Banco Cerrado.");  
-            return;  
-        }  
-
-        var campoNum = document.getElementById('campoNumero');  
-        var campoPrecio = document.getElementById('campoPrecio');  
-        var stringNumeros = campoNum.value.trim();  
-        var stringPrecio = campoPrecio.value.trim();   
-
-        if (!stringNumeros || !stringPrecio) return;   
-
-        var bloques = stringNumeros.split(' ');  
-        var unionDigitos = bloques.join('');  
-          
-        var tipo = "";  
-        var numero = "";  
-        var transaccionesALanzar = [];  
-
-        // 1. EVALUAR CENTENAS (LÍMITE $50)  
-        if (unionDigitos.length === 3) {  
-            var precioCentena = parseFloat(stringPrecio);  
-            if (isNaN(precioCentena) || precioCentena < 1 || precioCentena > 10000) {  
-                alert("El precio debe ser entre 1 y 10000"); return;  
-            }  
-            tipo = 'centenas';  
-            numero = unionDigitos;  
-
-            var acumCentena = 0;  
-            if (!sesionIniciadaYDescargada) {  
-                const { data } = await supabaseClient.rpc('obtener_acumulado_individual', {  
-                    p_lista_id: listaActivaId, p_numero: numero, p_tipo: 'centenas', p_subtipo: 'fijo'  
-                });  
-                acumCentena = data || 0;  
-            }  
-            var cupoCentena = Math.max(0, 50 - acumCentena);  
-
-            var parteLista = Math.min(precioCentena, cupoCentena);  
-            var parteBote = precioCentena - parteLista;  
-
-            if (parteLista > 0) {  
-                transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteLista, es_bote: false, texto: numero + " (" + parteLista + ")" });  
-            }  
-            if (parteBote > 0) {  
-                transaccionesALanzar.push({ tipo: 'centenas', numero: numero, bruto: parteBote, es_bote: true, texto: numero + " (" + parteBote + ")" });  
-            }  
-
-        // 2. EVALUAR FIJOS Y CORRIDOS (LÍMITE $500 FIJO / $500 CORRIDO INDEPENDIENTES)  
-        } else if (bloques.length === 1) {  
-            var numeroFijo = bloques[0];  
-            if (numeroFijo.length !== 2) {  
-                alert("El número debe tener 2 dígitos obligatoriamente."); return;  
-            }   
-            var precioFijo = 0, precioCorrido = 0;   
-            if (stringPrecio.includes(',')) {  
-                var partesPrecio = stringPrecio.split(',');  
-                precioFijo = parseFloat(partesPrecio[0]) || 0;  
-                precioCorrido = parseFloat(partesPrecio[1]) || 0;  
-            } else {  
-                precioFijo = parseFloat(stringPrecio) || 0;  
-            }   
-
-            if ((precioFijo > 0 && (precioFijo < 1 || precioFijo > 10000)) || (precioCorrido > 0 && (precioCorrido < 1 || precioCorrido > 10000))) {  
-                alert("Los precios deben estar entre 1 y 10000"); return;  
-            }   
-
-            tipo = 'fc';  
-            numero = numeroFijo;  
-
-            var pListaFijo = 0, pBoteFijo = 0;  
-            if (precioFijo > 0) {  
-                var acumF = 0;  
-                if (!sesionIniciadaYDescargada) {  
-                    const { data: acumFData } = await supabaseClient.rpc('obtener_acumulado_individual', {  
-                        p_lista_id: listaActivaId, p_numero: numero, p_tipo: 'fc', p_subtipo: 'fijo'  
-                    });  
-                    acumF = acumFData || 0;  
-                }  
-                var cupoFijo = Math.max(0, 500 - acumF);  
-                pListaFijo = Math.min(precioFijo, cupoFijo);  
-                pBoteFijo = precioFijo - pListaFijo;  
-            }  
-
-            var pListaCorrido = 0, pBoteCorrido = 0;  
-            if (precioCorrido > 0) {  
-                var acumC = 0;  
-                if (!sesionIniciadaYDescargada) {  
-                    const { data: acumCData } = await supabaseClient.rpc('obtener_acumulado_individual', {  
-                        p_lista_id: listaActivaId, p_numero: numero, p_tipo: 'fc', p_subtipo: 'corrido'  
-                    });  
-                    acumC = acumCData || 0;  
-                }  
-                var cupoCorrido = Math.max(0, 500 - acumC);  
-                pListaCorrido = Math.min(precioCorrido, cupoCorrido);  
-                pBoteCorrido = precioCorrido - pListaCorrido;  
-            }  
-
-            if (pListaFijo > 0 || pListaCorrido > 0) {  
-                var totBrutoL = pListaFijo + pListaCorrido;  
-                transaccionesALanzar.push({  
-                    tipo: 'fc', numero: numero, bruto: totBrutoL,  
-                    importe_bruto_fijo: pListaFijo, importe_bruto_corrido: pListaCorrido,  
-                    es_bote: false, texto: numero + " (" + pListaFijo + ") (" + pListaCorrido + ")"  
-                });  
-            }  
-            if (pBoteFijo > 0 || pBoteCorrido > 0) {  
-                var totBrutoB = pBoteFijo + pBoteCorrido;  
-                transaccionesALanzar.push({  
-                    tipo: 'fc', numero: numero, bruto: totBrutoB,  
-                    importe_bruto_fijo: pBoteFijo, importe_bruto_corrido: pBoteCorrido,  
-                    es_bote: true, texto: numero + " (" + pBoteFijo + ") (" + pBoteCorrido + ")"  
-                });  
-            }  
-
-        // 3. EVALUAR PARLES (LÍMITE $50)  
-        } else if (bloques.length >= 2) {  
-            for (var i = 0; i < bloques.length; i++) {  
-                if (bloques[i].length !== 2) {  
-                    alert("Todos los números del parle deben tener 2 dígitos."); return;  
-                }  
-            }   
-            var basePrecioParle = parseFloat(stringPrecio);  
-            if (isNaN(basePrecioParle) || basePrecioParle < 1 || basePrecioParle > 10000) {  
-                alert("El precio del parle debe ser entre 1 y 10000"); return;  
-            }   
-              
-            tipo = 'parles';  
-            numero = bloques.sort().join(' ');  
-
-            var acumParle = 0;  
-            if (!sesionIniciadaYDescargada) {  
-                const { data } = await supabaseClient.rpc('obtener_acumulado_individual', {  
-                    p_lista_id: listaActivaId, p_numero: numero, p_tipo: 'parles', p_subtipo: 'fijo'  
-                });  
-                acumParle = data || 0;  
-            }  
-            var cupoParle = Math.max(0, 50 - acumParle);  
-
-            var combinaciones = (bloques.length * (bloques.length - 1)) / 2;  
-
-            var precioPermitidoLista = Math.min(basePrecioParle, cupoParle);  
-            var precioExcedenteBote = basePrecioParle - precioPermitidoLista;  
-
-            if (precioPermitidoLista > 0) {  
-                var brutoL = combinaciones * precioPermitidoLista;  
-                transaccionesALanzar.push({ tipo: 'parles', numero: numero, bruto: brutoL, es_bote: false, texto: bloques.join(' ') + " (" + precioPermitidoLista + ")" });  
-            }  
-            if (precioExcedenteBote > 0) {  
-                var brutoB = combinaciones * precioExcedenteBote;  
-                transaccionesALanzar.push({ tipo: 'parles', numero: numero, bruto: brutoB, es_bote: true, texto: bloques.join(' ') + " (" + precioExcedenteBote + ")" });  
-            }  
-        }   
-
-        // INYECCIÓN VISUAL DEL PATRÓN DE ESPERA DIRECTAMENTE ABAJO EN LA LISTA EN ROJO  
-        var idsRenglonesEspera = [];  
-        transaccionesALanzar.forEach(t => {  
-            var idTmp = 'tmp_' + Date.now() + Math.random();  
-            inyectarRenglonEnPantallaEspera(t.tipo, t.texto, t.es_bote, idTmp);  
-            idsRenglonesEspera.push({ idTemporal: idTmp, transaccion: t });  
-        });  
-
-        // Reset de campos de texto inmediatamente para fluidez de digitación  
-        campoNum.value = ""; campoPrecio.value = ""; campoNum.classList.remove('numero-limitado'); campoNum.focus();  
-
-        // Envío asíncrono secuencial sin congelar pantalla de golpe  
-        if (transaccionesALanzar.length > 0) {  
-            for (var par of idsRenglonesEspera) {  
-                var t = par.transaccion;  
-                var limpioCalculado = t.bruto * RENDIMIENTO; // Multiplicación exacta por 0.8  
-                var tablaDestino = t.es_bote ? 'bote' : 'apuestas';  
-
-                try {  
-                    await supabaseClient.from(tablaDestino).insert({  
-                        lista_id: listaActivaId,  
-                        usuario: usuarioActivo,  
-                        tipo: t.tipo,  
-                        numero: t.numero,  
-                        precio: t.bruto,  
-                        importe_bruto: t.bruto,  
-                        importe_limpio: limpioCalculado,  
-                        metadata: {   
-                            texto: t.texto,  
-                            fijo_bruto: t.importe_bruto_fijo || 0,  
-                            corrido_bruto: t.importe_bruto_corrido || 0  
-                        }  
-                    });  
-
-                    if (!t.es_bote) {  
-                        await recalcularTotalesEnListaPadre(t.bruto, limpioCalculado);  
-                    }  
-                } catch(err) {  
-                    console.error("Error al sincronizar jugada", err);  
-                }  
-            }  
-            // Recargar datos y renderizar el color final real eliminando los patrones en espera  
-            await cargarJugadasDesdeSupabase();  
-        }  
-    }   
-
-    // Inyección inicial visual en rojo para patrón de espera asíncrono  
-    function inyectarRenglonEnPantallaEspera(tipo, texto, esBote, idTemporal) {  
-        var destinoId = tipo === 'fc' ? 'pantallaFijosCorridos' : (tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');  
-        var contenedor = document.getElementById(destinoId);  
-          
-        var fila = document.createElement('div');  
-        fila.id = idTemporal;  
-        fila.className = 'renglon-jugada espera-servidor'; // Rojo translúcido activo  
-        fila.innerText = esBote ? texto : texto;  
-        if(esBote) {  
-            fila.style.order = "9999";  
-        }  
-        contenedor.appendChild(fila);  
-    }  
-
-    async function recalcularTotalesEnListaPadre(brutoSumar, limpioSumar) {  
-        try {  
-            const { data } = await supabaseClient.from('listas_de_trabajo').select('total_importa, total_limpio').eq('id', listaActivaId).single();  
-            await supabaseClient.from('listas_de_trabajo').update({  
-                total_importa: (data.total_importa || 0) + brutoSumar,  
-                total_limpio: (data.total_limpio || 0) + limpioSumar  
-            }).eq('id', listaActivaId);  
-        } catch(e){}  
-    }  
-
-    async function cargarJugadasDesdeSupabase() {  
-        if(!listaActivaId) return;  
-        limpiarPantallasVisuales();  
-
-        try {  
-            // 1. Cargar apuestas normales de la lista  
-            const { data: apuestas } = await supabaseClient  
-                .from('apuestas')  
-                .select('*')  
-                .eq('lista_id', listaActivaId)  
-                .order('hora_apuesta', { ascending: true });  
-
-            if(apuestas) {  
-                apuestas.forEach(a => {  
-                    inyectarRenglonEnPantalla(a.tipo, a.metadata?.texto || a.numero, false, a.id, 'apuestas');  
-                    actualizarValoresYTotales(a.tipo, a.importe_bruto, a.importe_limpio);  
-                });  
-            }  
-
-            // 2. Cargar apuestas desviadas al Bote  
-            const { data: botes } = await supabaseClient  
-                .from('bote')  
-                .select('*')  
-                .eq('lista_id', listaActivaId);  
-
-            if(botes) {  
-                botes.forEach(b => {  
-                    // Visualización en naranja y abajo del todo  
-                    inyectarRenglonEnPantalla(b.tipo, b.metadata?.texto || b.numero, true, b.id, 'bote');  
-                    actualizarValoresYTotales('botes', b.importe_bruto, b.importe_limpio);  
-                });  
-            }  
-        } catch(e){}  
-    }  
-
-    function inyectarRenglonEnPantalla(tipo, texto, esBote, idRegistro, nombreTabla) {  
-        var destinoId = tipo === 'fc' ? 'pantallaFijosCorridos' : (tipo === 'parles' ? 'pantallaParles' : 'pantallaCentenas');  
-        var contenedor = document.getElementById(destinoId);  
-          
-        var fila = document.createElement('div');  
-        fila.className = 'renglon-jugada' + (esBote ? ' es-bote' : '');  
-        fila.innerText = texto;  
-
-        // --- ELIMINACIÓN POR PULSACIÓN LARGA ---  
-        let temporizadorPresionado;  
-
-        const iniciarPresion = () => {  
-            temporizadorPresionado = setTimeout(async () => {  
-                if (bancoBloqueadoPorHorario || fraudeHoraDetectado) {  
-                    alert("Acción denegada: No se pueden eliminar jugadas fuera de los horarios establecidos.");  
-                    return;  
-                }  
-
-                if (confirm(`¿Deseas eliminar esta jugada?\n"${texto}"`)) {  
-                    toggleLoading(true);  
-                    try {  
-                        if (nombreTabla === 'apuestas') {  
-                            const { data: registro } = await supabaseClient.from('apuestas').select('importe_bruto, importe_limpio').eq('id', idRegistro).single();  
-                            if (registro) {  
-                                await recalcularTotalesEnListaPadre(-registro.importe_bruto, -registro.importe_limpio);  
-                            }  
-                        }  
-                        await supabaseClient.from(nombreTabla).delete().eq('id', idRegistro);  
-                        await cargarJugadasDesdeSupabase();  
-                    } catch(err) { alert(err.message); }  
-                    toggleLoading(false);  
-                }  
-            }, 1000);   
-        };  
-
-        const cancelarPresion = () => clearTimeout(temporizadorPresionado);  
-
-        fila.addEventListener('pointerdown', iniciarPresion);  
-        fila.addEventListener('pointerup', cancelarPresion);  
-        fila.addEventListener('pointerleave', cancelarPresion);  
-        fila.addEventListener('contextmenu', (e) => e.preventDefault());  
-
-        contenedor.appendChild(fila);  
-    }  
-
-    function actualizarValoresYTotales(tipo, brutoSuma, limpioSuma) {  
-        var elImporte = document.getElementById(tipo === 'fc' ? 'importaFC' : (tipo === 'parles' ? 'importaParles' : (tipo === 'centenas' ? 'importaCentenas' : 'importaBotes')));  
-        var elLimpio = document.getElementById(tipo === 'fc' ? 'limpioFC' : (tipo === 'parles' ? 'limpioParles' : (tipo === 'centenas' ? 'limpioCentenas' : 'limpioBotes')));  
-
-        var brutoActual = parseFloat(elImporte.innerText.replace('$', '')) || 0;  
-        var limpioActual = parseFloat(elLimpio.innerText.replace('$', '')) || 0;  
-          
-        elImporte.innerText = "$" + (brutoActual + brutoSuma).toFixed(2);  
-        elLimpio.innerText = "$" + (limpioActual + limpioSuma).toFixed(2);   
-
-        var impFC = parseFloat(document.getElementById('importaFC').innerText.replace('$', '')) || 0;  
-        var impPar = parseFloat(document.getElementById('importaParles').innerText.replace('$', '')) || 0;  
-        var impCen = parseFloat(document.getElementById('importaCentenas').innerText.replace('$', '')) || 0;  
-        var impBot = parseFloat(document.getElementById('importaBotes').innerText.replace('$', '')) || 0;  
-
-        var limFC = parseFloat(document.getElementById('limpioFC').innerText.replace('$', '')) || 0;  
-        var limPar = parseFloat(document.getElementById('limpioParles').innerText.replace('$', '')) || 0;  
-        var limCen = parseFloat(document.getElementById('limpioCentenas').innerText.replace('$', '')) || 0;  
-        var limBot = parseFloat(document.getElementById('limpioBotes').innerText.replace('$', '')) || 0;  
-
-        // TOTAL GENERAL SUMA LISTA ORDINARIA + BOTES  
-        document.getElementById('totalImporta').innerText = "$" + (impFC + impPar + impCen + impBot).toFixed(2);  
-        document.getElementById('totalLimpios').innerText = "$" + (limFC + limPar + limCen + limBot).toFixed(2);  
-    }  
-
-    async function limpiarDatosUsuario() {  
-        if (!listaActivaId) return;  
-        var confirmar = confirm("¿Vaciar por completo la lista activa y el bote en Supabase? Esta operación no se puede deshacer.");  
-        if (confirmar) {  
-            toggleLoading(true);  
-            await supabaseClient.from('apuestas').delete().eq('lista_id', listaActivaId);  
-            await supabaseClient.from('bote').delete().eq('lista_id', listaActivaId);  
-            await supabaseClient.from('listas_de_trabajo').update({ total_importa: 0, total_limpio: 0 }).eq('id', listaActivaId);  
-            limpiarPantallasVisuales();       
-            toggleLoading(false);  
-        }  
-    }  
-
-    async function verListasGuardadas() {  
-        if (!usuarioActivo) return;  
-        const { data } = await supabaseClient  
-            .from('listas_de_trabajo')  
-            .select('*')  
-            .eq('usuario', usuarioActivo)  
-            .order('fecha', { ascending: false })  
-            .limit(10);  
-
-        if (!data || data.length === 0) {  
-            alert("No tienes listas guardadas."); return;  
-        }  
-        alert("--- ÚLTIMAS LISTAS ---\n" + data.map(l => `${l.fecha} (${l.turno}) -> Total Bruto: $${l.total_importa}`).join('\n'));  
-    }  
-
-    function limpiarPantallasVisuales() {  
-        document.getElementById('pantallaCentenas').innerHTML = "";  
-        document.getElementById('pantallaFijosCorridos').innerHTML = "";  
-        document.getElementById('pantallaParles').innerHTML = "";  
-        document.getElementById('importaFC').innerText = "$0.00";  
-        document.getElementById('limpioFC').innerText = "$0.00";  
-        document.getElementById('importaParles').innerText = "$0.00";  
-        document.getElementById('limpioParles').innerText = "$0.00";  
-        document.getElementById('importaCentenas').innerText = "$0.00";  
-        document.getElementById('limpioCentenas').innerText = "$0.00";  
-        document.getElementById('importaBotes').innerText = "$0.00";  
-        document.getElementById('limpioBotes').innerText = "$0.00";  
-        document.getElementById('totalImporta').innerText = "$0.00";  
-        document.getElementById('totalLimpios').innerText = "$0.00";  
-    }  
-
-    function formatearNumeros(input) {  
-        var textoLimpio = input.value.replace(/\D/g, '');  
-        var resultado = textoLimpio.match(/.{1,2}/g);  
-        input.value = resultado ? resultado.join(' ') : '';  
-
-        var bloques = input.value.trim().split(' ');  
-        var encontradoLimitado = false;  
-
-        if (bloques.length > 0 && input.value.trim() !== "") {  
-            for (var i = 0; i < bloques.length; i++) {  
-                if (bloques[i].length === 2 && dbNumerosLimitados.includes(bloques[i])) {  
-                    encontradoLimitado = true;  
-                    break;  
-                }  
-            }  
-        }  
-
-        if (encontradoLimitado) {  
-            input.classList.add('numero-limitado');  
-        } else {  
-            input.classList.remove('numero-limitado');  
-        }  
-    }   
-
-    function evaluarEnter(event) { if (event.key === 'Enter') procesarJugada(); }  
-    function toggleMenu() { var m = document.getElementById('menuDesglegable'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }   
-    function machined(v) { return v < 10 ? '0' + v : v; }  
-
-    function actualizarReloj() {  
-        var ahora = new Date();  
-        var tiempoRealEjecucion = Date.now();  
-        if (tiempoRealEjecucion - ultimaHoraVerificada < -toleranciaFraude || tiempoRealEjecucion - ultimaHoraVerificada > (1000 + toleranciaFraude)) {  
-            fraudeHoraDetectado = true;  
-        }  
-        ultimaHoraVerificada = Date.now();  
-
-        if (fraudeHoraDetectado) {  
-            document.getElementById('relojDigital').innerText = "BLOQUEADO";  
-            document.getElementById('relojDigital').style.color = "#ef4444";  
-            document.getElementById('avisoBancoCerrado').innerText = "HORA CORRUPTA";  
-            document.getElementById('avisoBancoCerrado').style.display = "flex";  
-            return;  
-        }  
-
-        var horas = ahora.getHours();  
-        var minutos = ahora.getMinutes();  
-        var segundos = ahora.getSeconds();  
-        var ampm = horas >= 12 ? 'PM' : 'AM';  
-          
-        evaluarTrancaHorarios(horas, minutos);  
-
-        var horasDoce = horas % 12 || 12;   
-        document.getElementById('relojDigital').innerText = horasDoce + ':' + machined(minutos) + ':' + machined(segundos) + ' ' + ampm;  
-    }  
-
-    function evaluarTrancaHorarios(hora, minuto) {  
-        if (fraudeHoraDetectado) return;  
-        var tiempoEnMinutos = (hora * 60) + minuto;  
-        var dentroM = (tiempoEnMinutos >= 420 && tiempoEnMinutos < 805);  
-        var dentroN = (tiempoEnMinutos >= 840 && tiempoEnMinutos < 1290);  
-
-        var aviso = document.getElementById('avisoBancoCerrado');  
-        if (dentroM || dentroN) {  
-            bancoBloqueadoPorHorario = false;  
-            aviso.style.display = "none";  
-        } else {  
-            bancoBloqueadoPorHorario = true;  
-            aviso.style.display = "flex";  
-        }  
-    }  
-      
-    setInterval(actualizarReloj, 1000);  
-    actualizarReloj();   
-</script>
-
-</body>  
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KingBall Web - Login & Registro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* --- ESTILOS GENERALES Y RESET --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #0d1b2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- ANIMACIÓN DE FONDO: BOLAS DE BILLAR --- */
+        .billiard-ball {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            box-shadow: inset -5px -5px 12px rgba(0,0,0,0.5), 4px 6px 10px rgba(0,0,0,0.3);
+            z-index: 1;
+            opacity: 0.9;
+        }
+
+        .billiard-ball::after {
+            content: attr(data-number);
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        /* Colores y ubicaciones de las bolas */
+        .ball-1 { width: 45px; height: 45px; background-color: #ffcc00; top: 10%; left: -60px; animation: moveRight 16s linear infinite; }
+        .ball-2 { width: 48px; height: 48px; background-color: #0056b3; top: 25%; right: -70px; animation: moveLeft 19s linear infinite; }
+        .ball-3 { width: 42px; height: 42px; background-color: #cc0000; top: 40%; left: -60px; animation: moveRight 14s linear infinite; }
+        .ball-8 { width: 50px; height: 50px; background-color: #111111; top: 55%; right: -80px; animation: moveLeft 21s linear infinite 1s; }
+        .ball-9 { width: 43px; height: 43px; background-color: #e6b800; border: 8px solid #ffffff; top: 70%; left: -60px; animation: moveRight 17s linear infinite 2s; }
+        .ball-10 { width: 46px; height: 46px; background-color: #007bff; border: 8px solid #ffffff; top: 85%; right: -70px; animation: moveLeft 18s linear infinite 1.5s; }
+        
+        .ball-9::after, .ball-10::after { width: 15px; height: 15px; font-size: 9px; }
+
+        @keyframes moveRight {
+            0% { left: -60px; transform: rotate(0deg); }
+            100% { left: 105vw; transform: rotate(360deg); }
+        }
+        @keyframes moveLeft {
+            0% { right: -70px; transform: rotate(0deg); }
+            100% { right: 105vw; transform: rotate(-360deg); }
+        }
+
+        /* --- CONTENEDOR PRINCIPAL DEL LOGIN --- */
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 35px 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s ease;
+        }
+
+        /* --- LOGO CON CORONA ANIMADA --- */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            color: #1C2D32;
+        }
+
+        .crown-icon {
+            font-size: 36px;
+            color: #d4af37;
+            animation: crownPulse 3s ease-in-out infinite;
+        }
+
+        .logo-text {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: #1C2D32;
+        }
+
+        @keyframes crownPulse {
+            0%, 100% { transform: scale(1) rotate(-3deg); }
+            50% { transform: scale(1.1) rotate(3deg); }
+        }
+
+        /* --- CAMPOS DE ENTRADA (INPUTS) --- */
+        .input-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-group i.input-icon {
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3A6068;
+            font-size: 20px;
+        }
+
+        .input-group i.toggle-password {
+            position: absolute;
+            right: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3A6068;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 20px 16px 60px;
+            border: 2.5px solid #3A6068;
+            border-radius: 50px;
+            font-size: 16px;
+            color: #1C2D32;
+            outline: none;
+            background-color: transparent;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            box-shadow: 0 0 10px rgba(58, 96, 104, 0.4);
+        }
+
+        .input-field::placeholder {
+            color: #666;
+        }
+
+        /* --- BOTONES --- */
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #3A6068, #1C2D32);
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .btn-login:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+        }
+
+        .btn-login:disabled {
+            background: #6b7280;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Enlace/Botón sutil de Registro */
+        .register-switch {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #3A6068;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            outline: none;
+        }
+
+        .register-switch:hover {
+            color: #1C2D32;
+        }
+
+        /* --- CLASES DE CONTROL (Para alternar vistas) --- */
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- PANEL DE LA APLICACIÓN PRINCIPAL --- */
+        .app-panel {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            flex-direction: column;
+            background-color: #d1d5db;
+            z-index: 20;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        header { background-color: #bfa07a; color: #111; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.15); user-select: none; position: relative; }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .location-badge { font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 4px; color: #203354; }
+        .time-badge { background: #203354; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+
+        .menu-dots-btn { background: none; border: none; font-size: 20px; color: #111; cursor: pointer; padding: 4px 8px; border-radius: 50%; }
+        .dropdown-menu { display: none; position: absolute; top: 45px; right: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 180px; z-index: 250; overflow: hidden; }
+        .dropdown-menu button { width: 100%; padding: 12px 16px; background: none; border: none; text-align: left; font-size: 14px; font-weight: 600; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .dropdown-menu button:hover { background-color: #f3f4f6; }
+
+        .modal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 300; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .modal-box h3 { margin-bottom: 15px; color: #203354; font-size: 18px; border-bottom: 2px solid #bfa07a; padding-bottom: 5px; }
+        .modal-box p { font-size: 14px; color: #555; line-height: 1.4; margin-bottom: 15px; }
+        .modal-box .m-btn { width: 100%; padding: 12px; background: #203354; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .modal-box .close-btn { background: #6b7280; margin-top: 8px; }
+
+        /* Estilos del buscador de fechas en Listas Guardadas */
+        .filter-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .filter-label { font-size: 13px; font-weight: bold; color: #333; }
+        .date-input { width: 100%; padding: 10px; border: 1.5px solid #203354; border-radius: 6px; font-size: 15px; font-weight: bold; outline: none; }
+        .turn-selector { display: flex; gap: 10px; }
+        .turn-btn { flex: 1; padding: 10px; border: 1.5px solid #203354; background: white; color: #203354; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .turn-btn.active { background: #203354; color: white; }
+        .search-results-box { max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 6px; font-size: 13px; background: #f9f9f9; }
+
+        /* Contenedor Inferior del Modal de Resultados */
+        .summary-footer-box { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 6px; border-top: 2px solid #cbd5e1; font-size: 14px; font-weight: bold; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .summary-row:last-child { margin-bottom: 0; padding-top: 4px; border-top: 1px dashed #94a3b8; }
+        .text-green { color: #16a34a; }
+        .text-red { color: #dc2626; }
+
+        /* Opciones de Contraseña */
+        .password-box { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .pwd-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none; }
+
+        .main-container { flex: 1; display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; background-color: #ced4da; }
+        .column { display: flex; flex-direction: column; border-right: 1px solid #adb5bd; overflow-y: auto; }
+        .column:last-child { border-right: none; }
+        .list-content { display: flex; flex-direction: column; padding: 10px 12px; gap: 14px; }
+
+        /* Filas e Ítems */
+        .row-item { display: flex; align-items: center; font-size: 24px; font-weight: bold; user-select: none; -webkit-user-select: none; transition: background-color 0.2s, color 0.3s; cursor: pointer; color: #dc2626; } 
+        .row-item.processed { color: #16a34a; } 
+        .row-item:active { background-color: rgba(0,0,0,0.08); }
+        
+        .fijo-row { justify-content: flex-start; gap: 10px; }
+        .parle-row { display: flex; justify-content: space-between; align-items: center; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 10px; position: relative; }
+        .parle-vertical-numbers { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; font-size: 24px; width: 55%; }
+        .parle-vertical-numbers span { display: block; min-height: 26px; color: inherit; }
+        
+        .centena-horizontal-block { font-size: 24px; font-weight: bold; width: 55%; text-align: left; color: inherit; }
+        .parle-right-amount { display: flex; justify-content: center; align-items: center; width: 45%; height: 100%; position: absolute; right: 0; top: 0; bottom: 0; margin: auto 0; }
+
+        .bote-tag { color: #b91c1c !important; font-size: 13px; font-weight: 800; display: block; margin-top: 2px; letter-spacing: 0.5px; }
+        
+        /* Burbuja adaptada para 4 dígitos */
+        .amount-bubble { background: transparent; border: 1.5px solid #4b5563; border-radius: 20px; padding: 2px 10px; font-size: 14px; font-weight: 600; color: #203354; min-width: 65px; text-align: center; display: inline-block; }
+        .amount-bubble.bote-style { border-color: #b91c1c; color: #b91c1c; background-color: rgba(185, 28, 28, 0.05); }
+
+        /* --- TECLADO OSCURO APLICACIÓN --- */
+        .bottom-panel { background: #000000; padding: 12px; display: flex; flex-direction: column; gap: 12px; user-select: none; }
+        .input-box-wrapper { width: 100%; max-width: 500px; margin: 0 auto; display: flex; align-items: center; background: #ffffff; border-radius: 8px; padding-right: 12px; }
+        .custom-input { flex: 1; padding: 14px 15px; font-size: 26px; border: none; border-radius: 8px 0 0 8px; outline: none; color: #1d4ed8; font-weight: bold; background: #ffffff; }
+        .hide-keyboard-btn { font-size: 22px; color: #4b5563; cursor: pointer; padding: 5px; }
+        
+        .keyboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; transition: all 0.2s ease; }
+        .keyboard-grid.minimized { display: none !important; }
+        
+        .vkey { background: #374151; border: none; color: #ffffff; padding: 15px; font-size: 26px; font-weight: 500; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .vkey:active { background: #4b5563; }
+        .vkey.gray-dark { background: #1f2937; }
+        .vkey.btn-send { background: #1d4ed8; color: white; grid-column: span 4; font-size: 22px; font-weight: bold; padding: 16px; margin-top: 4px; }
+        .vkey.btn-send:active { background: #1e40af; }
+    </style>
+</head>
+<body>
+
+    <div class="billiard-ball ball-1" data-number="1"></div>
+    <div class="billiard-ball ball-2" data-number="2"></div>
+    <div class="billiard-ball ball-3" data-number="3"></div>
+    <div class="billiard-ball ball-8" data-number="8"></div>
+    <div class="billiard-ball ball-9" data-number="9"></div>
+    <div class="billiard-ball ball-10" data-number="10"></div>
+
+    <div class="login-container" id="auth-box">
+        
+        <div class="logo-container">
+            <i class="fa-solid fa-crown crown-icon"></i>
+            <span class="logo-text" id="form-title">KingBall Web</span>
+        </div>
+
+        <div id="login-form" style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+            <div class="input-group">
+                <i class="fa-regular fa-user input-icon"></i>
+                <input type="text" id="log-user" class="input-field" placeholder="Codigo / Usuario">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-key fa-solid input-icon"></i>
+                <input type="password" id="log-pass" class="input-field" placeholder="Clave">
+                <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePasswordVisibility('log-pass')"></i>
+            </div>
+
+            <button class="btn-login" id="btn-login-submit" onclick="loginReal()">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </button>
+            
+            <button class="register-switch" onclick="toggleForm('register')">¿No tienes cuenta? Regístrate aquí</button>
+        </div>
+
+        <div id="register-form" class="hidden" style="flex-direction: column; gap: 20px; width: 100%;">
+            <div class="input-group">
+                <i class="fa-regular fa-user input-icon"></i>
+                <input type="text" id="reg-user" class="input-field" placeholder="Nuevo Usuario">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-solid fa-phone input-icon"></i>
+                <input type="tel" id="reg-phone" class="input-field" placeholder="Número de Teléfono">
+            </div>
+
+            <div class="input-group">
+                <i class="fa-key fa-solid input-icon"></i>
+                <input type="password" id="reg-pass" class="input-field" placeholder="Contraseña">
+                <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePasswordVisibility('reg-pass')"></i>
+            </div>
+
+            <button class="btn-login" id="btn-register-submit" style="background: linear-gradient(to right, #4b7a85, #243b42);" onclick="registroReal()">
+                <i class="fa-solid fa-user-plus" style="font-size: 20px; margin-right: 10px;"></i> Registrarse
+            </button>
+            
+            <button class="register-switch" onclick="toggleForm('login')">¿Ya tienes cuenta? Inicia Sesión</button>
+        </div>
+
+    </div>
+
+    <div class="app-panel" id="main-app">
+        <header>
+            <div class="header-left">
+                <div class="location-badge"><i class="fa-solid fa-caret-right"></i> FLORIDA</div>
+                <div class="time-badge" id="solar-icon"></div>
+            </div>
+            <div class="header-right">
+                <div style="font-weight: bold; font-size:14px;">Lista: <span id="lbl-limpio-lista" style="color:#111">0.00</span></div>
+                <div style="font-weight: bold; font-size:14px;">Bote: <span id="lbl-limpio-bote" style="color:#111">0.00</span></div>
+                <button class="menu-dots-btn" onclick="toggleMenu(event)"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            </div>
+            <div class="dropdown-menu" id="dots-menu">
+                <button onclick="openModal('m-reglamento')"><i class="fa-solid fa-file-invoice"></i> Reglamento</button>
+                <button onclick="openModal('m-limitados')"><i class="fa-solid fa-ban"></i> Limitados</button>
+                <button onclick="openModal('m-guardadas')"><i class="fa-solid fa-folder-open"></i> Listas Guardadas</button>
+                <button onclick="openModal('m-opciones')"><i class="fa-solid fa-gear"></i> Opciones</button>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <div class="column" style="border-right: 1px solid #a1a1a1;">
+                <div class="list-content" id="box-fijos"></div>
+            </div>
+            <div class="column">
+                <div class="list-content" id="box-parles"></div>
+            </div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="input-box-wrapper">
+                <input type="text" id="main-input" class="custom-input" placeholder="" inputmode="none" readonly>
+                <i class="fa-solid fa-keyboard hide-keyboard-btn" onclick="toggleKeyboardVisibility()"></i>
+            </div>
+            <div class="keyboard-grid" id="kb-grid-element">
+                <button class="vkey" onclick="kPress('1')">1</button>
+                <button class="vkey" onclick="kPress('2')">2</button>
+                <button class="vkey" onclick="kPress('3')">3</button>
+                <button class="vkey gray-dark" onclick="kPress('del')"><i class="fa-solid fa-delete-left"></i></button>
+
+                <button class="vkey" onclick="kPress('4')">4</button>
+                <button class="vkey" onclick="kPress('5')">5</button>
+                <button class="vkey" onclick="kPress('6')">6</button>
+                <button class="vkey gray-dark" onclick="kPress('-')">-</button>
+
+                <button class="vkey" onclick="kPress('7')">7</button>
+                <button class="vkey" onclick="kPress('8')">8</button>
+                <button class="vkey" onclick="kPress('9')">9</button>
+                <button class="vkey gray-dark" onclick="kPress(',')">,</button>
+
+                <button class="vkey gray-dark" style="visibility: hidden;"></button>
+                <button class="vkey" onclick="kPress('0')">0</button>
+                <button class="vkey gray-dark" style="visibility: hidden;"></button>
+                <button class="vkey gray-dark" onclick="kPress('*')">*</button>
+
+                <button class="vkey btn-send" id="btn-main-send" onclick="sendPlay()">Enviar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-container" onclick="closeModal()">
+        <div class="modal-box hidden" id="m-reglamento" onclick="event.stopPropagation()">
+            <h3>Reglamento</h3>
+            <p>1. Los fijos y corridos tienen un tope acumulado de 500 por número.<br>2. Parles y centenas tienen un tope acumulado de 50 por combinación.<br>3. Todo monto excedente pasará al Bote.<br>4. Los números limitados se pagan: Fijo 50, Corridos 20 y Parle 550.</p>
+            <button class="m-btn close-btn" onclick="closeModal()">Cerrar</button>
+        </div>
+        <div class="modal-box hidden" id="m-limitados" onclick="event.stopPropagation()">
+            <h3>Números Limitados</h3>
+            <div id="db-limitados-list" style="max-height: 120px; overflow-y: auto; font-size:14px; color:#444;">Cargando...</div>
+            <button class="m-btn close-btn" onclick="closeModal()">Cerrar</button>
+        </div>
+
+        <div class="modal-box hidden" id="m-guardadas" onclick="event.stopPropagation()">
+            <h3>Buscar Listas Guardadas</h3>
+            <div class="filter-group">
+                <label class="filter-label">Seleccione el Día:</label>
+                <input type="date" id="search-date" class="date-input">
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Seleccione la Jornada:</label>
+                <div class="turn-selector">
+                    <button id="btn-turn-dia" class="turn-btn active" onclick="selectSearchTurn('DIA')">DÍA</button>
+                    <button id="btn-turn-noche" class="turn-btn" onclick="selectSearchTurn('NOCHE')">NOCHE</button>
+                </div>
+            </div>
+            <button class="m-btn" onclick="fetchSavedLists()" style="margin-bottom: 12px; background: #1d4ed8;">Buscar Registros</button>
+            <div id="search-results" class="search-results-box">Configure los filtros y presione Buscar.</div>
+            
+            <div class="summary-footer-box" id="search-summary-footer" style="display:none;">
+                <div class="summary-row"><span>Limpio:</span><span id="sum-limpio">$0.00</span></div>
+                <div class="summary-row"><span>Premio:</span><span id="sum-premio" class="text-green">$0.00</span></div>
+                <div class="summary-row"><span>Total:</span><span id="sum-total">$0.00</span></div>
+            </div>
+
+            <button class="m-btn close-btn" onclick="closeModal()" style="margin-top:10px;">Cerrar</button>
+        </div>
+
+        <div class="modal-box hidden" id="m-opciones" onclick="event.stopPropagation()">
+            <h3>Opciones de Cuenta</h3>
+            <div class="password-box">
+                <input type="password" id="opt-old-pass" class="pwd-input" placeholder="Contraseña Actual">
+                <input type="password" id="opt-new-pass" class="pwd-input" placeholder="Nueva Contraseña">
+                <button class="m-btn" onclick="actualizarClaveReal()" style="background: #16a34a;">Actualizar Contraseña</button>
+            </div>
+            <button class="m-btn close-btn" onclick="closeModal()" style="margin-top: 15px;">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN SUPABASE ---
+        const SUPABASE_URL = "https://ydpzblxjmmflzgsgfpmx.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_Zp2oQAowai67A_QYrH0Ukw_aLPSf3U-";
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUsuario = "";
+        let currentJornadaGlobal = "DIA"; // Se autocalcula según el reloj
+        let selectedSearchTurn = "DIA";   // Filtro del modal de búsquedas
+        let listaNumerosLimitadosGlobal = []; // Caché local de números limitados
+
+        const memoriaFijos = {}, memoriaCorridos = {}, memoriaCentenas = {}, memoriaParles = {};
+        let totalLista = 0, totalBote = 0;
+        const input = document.getElementById('main-input');
+
+        // Poner la fecha de hoy por defecto en el input del calendario
+        document.getElementById('search-date').valueAsDate = new Date();
+
+        function toggleForm(view) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            if (view === 'register') {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerForm.style.display = 'flex';
+            } else {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                loginForm.style.display = 'flex';
+            }
+        }
+
+        function togglePasswordVisibility(id) {
+            const el = document.getElementById(id);
+            const icon = el.nextElementSibling;
+            if (el.type === "password") { el.type = "text"; icon.classList.replace('fa-eye-slash', 'fa-eye'); } 
+            else { el.type = "password"; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
+        }
+
+        function toggleKeyboardVisibility() {
+            const kb = document.getElementById('kb-grid-element');
+            kb.classList.toggle('minimized');
+        }
+
+        function selectSearchTurn(turn) {
+            selectedSearchTurn = turn;
+            document.getElementById('btn-turn-dia').classList.toggle('active', turn === 'DIA');
+            document.getElementById('btn-turn-noche').classList.toggle('active', turn === 'NOCHE');
+        }
+
+        // --- LOGIN REAL ---
+        async function loginReal() {
+            const u = document.getElementById('log-user').value.trim();
+            const c = document.getElementById('log-pass').value.trim();
+            const btn = document.getElementById('btn-login-submit');
+            if(!u || !c) { alert("Escribe el usuario y la clave"); return; }
+            
+            btn.disabled = true;
+            const { data, error } = await _supabase.from('usuarios').select('*').eq('usuario', u).eq('clave', c);
+            
+            if (error || !data || data.length === 0) {
+                alert("Usuario o clave incorrectos en la base de datos.");
+                btn.disabled = false;
+            } else {
+                currentUsuario = u;
+                document.getElementById('auth-box').style.display = 'none';
+                document.querySelectorAll('.billiard-ball').forEach(b => b.style.display = 'none');
+                document.getElementById('main-app').style.display = 'flex';
+                
+                initClock(); // Calcula la jornada (DIA/NOCHE)
+                await fetchLimitados();
+                await cargarJornadaActual(); // Descarga de la BD la información del día al entrar
+            }
+        }
+
+        async function registroReal() {
+            const u = document.getElementById('reg-user').value.trim();
+            const c = document.getElementById('reg-pass').value.trim();
+            const btn = document.getElementById('btn-register-submit');
+            if(!u || !c) { alert("Completa los campos obligatorios"); return; }
+
+            btn.disabled = true;
+            const { status, error } = await _supabase.from('usuarios').insert([{ usuario: u, clave: c }]);
+            if(!error && status === 201) {
+                alert("Usuario registrado con éxito. Ya puedes iniciar sesión.");
+                toggleForm('login');
+            } else {
+                alert("El usuario ya existe o hubo un error al registrar.");
+            }
+            btn.disabled = false;
+        }
+
+        // --- CAMBIO DE CONTRASEÑA TOTALMENTE FUNCIONAL ---
+        async function actualizarClaveReal() {
+            const vieja = document.getElementById('opt-old-pass').value.trim();
+            const nueva = document.getElementById('opt-new-pass').value.trim();
+            
+            if(!vieja || !nueva) { alert("Por favor rellene ambos campos."); return; }
+
+            // Validar primero si la clave actual es correcta
+            const { data, error } = await _supabase.from('usuarios')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .eq('clave', vieja);
+
+            if(error || !data || data.length === 0) {
+                alert("La contraseña actual es incorrecta.");
+                return;
+            }
+
+            // Realizar el cambio de clave en Supabase
+            const { error: updateError } = await _supabase.from('usuarios')
+                .update({ clave: nueva })
+                .eq('usuario', currentUsuario);
+
+            if(updateError) {
+                alert("Error al intentar cambiar la contraseña.");
+            } else {
+                alert("Contraseña actualizada con éxito.");
+                document.getElementById('opt-old-pass').value = "";
+                document.getElementById('opt-new-pass').value = "";
+                closeModal();
+            }
+        }
+
+        // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
+        async function cargarJornadaActual() {
+            const hoy = new Date().toISOString().split('T')[0];
+            
+            // Limpiar interfaz y memorias previas
+            document.getElementById('box-fijos').innerHTML = "";
+            document.getElementById('box-parles').innerHTML = "";
+            totalLista = 0; totalBote = 0;
+            updateCounters();
+
+            // Cargar datos de la tabla 'jugadas'
+            const { data: jugadas, error: errJ } = await _supabase.from('jugadas')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .gte('created_at', `${hoy}T00:00:00Z`)
+                .lte('created_at', `${hoy}T23:59:59Z`);
+
+            if (!errJ && jugadas) {
+                jugadas.forEach(j => {
+                    if (j.jornada === currentJornadaGlobal || (!j.jornada)) { 
+                        totalLista += j.costo_total || 0;
+                        if (j.tipo === 'fijo') {
+                            memoriaFijos[j.numeros] = (memoriaFijos[j.numeros] || 0) + (j.monto_fijo || 0);
+                            memoriaCorridos[j.numeros] = (memoriaCorridos[j.numeros] || 0) + (j.monto_corrido || 0);
+                            let el = createFijoElement(j.numeros, j.monto_fijo, j.monto_corrido, false);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, j.costo_total, false, 'fijo', j.numeros, j.monto_fijo, j.monto_corrido, 'jugadas');
+                        } else if (j.tipo === 'centena') {
+                            memoriaCentenas[j.numeros] = (memoriaCentenas[j.numeros] || 0) + (j.monto_fijo || 0);
+                            let el = createCentenaElement(j.numeros, j.monto_fijo, false);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, j.costo_total, false, 'centena', j.numeros, j.monto_fijo, 0, 'jugadas');
+                        } else if (j.tipo === 'parle') {
+                            memoriaParles[j.numeros] = (memoriaParles[j.numeros] || 0) + (j.monto_fijo || 0);
+                            let el = createParleVerticalElement(j.numeros.split('-'), j.monto_fijo, false);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, j.costo_total, false, 'parle', j.numeros, j.monto_fijo, 0, 'jugadas');
+                        }
+                    }
+                });
+            }
+
+            // Cargar datos de la tabla 'botes'
+            const { data: botes, error: errB } = await _supabase.from('botes')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .gte('created_at', `${hoy}T00:00:00Z`)
+                .lte('created_at', `${hoy}T23:59:59Z`);
+
+            if (!errB && botes) {
+                botes.forEach(b => {
+                    if (b.jornada === currentJornadaGlobal || (!b.jornada)) {
+                        totalBote += b.costo_total || 0;
+                        if (b.tipo === 'fijo') {
+                            let el = createFijoElement(b.numeros, b.monto_fijo, b.monto_corrido, true);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, b.costo_total, true, 'fijo', b.numeros, 0, 0, 'botes');
+                        } else if (b.tipo === 'centena') {
+                            let el = createCentenaElement(b.numeros, b.monto_fijo, true);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, b.costo_total, true, 'centena', b.numeros, 0, 0, 'botes');
+                        } else if (b.tipo === 'parle') {
+                            let el = createParleVerticalElement(b.numeros.split('-'), b.monto_fijo, true);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, b.costo_total, true, 'parle', b.numeros, 0, 0, 'botes');
+                        }
+                    }
+                });
+            }
+            updateCounters();
+        }
+
+        // --- CONSULTAR LISTAS GUARDADAS Y CALCULAR PREMIOS CONSIDERANDO NÚMEROS LIMITADOS ---
+        async function fetchSavedLists() {
+            const dateVal = document.getElementById('search-date').value;
+            const resBox = document.getElementById('search-results');
+            const footerBox = document.getElementById('search-summary-footer');
+            if(!dateVal) { alert("Por favor seleccione un día en el calendario."); return; }
+
+            resBox.innerHTML = "Buscando en Supabase...";
+            footerBox.style.display = 'none';
+
+            // 1. Obtener tiro ganador
+            let tiroCentena = "", tiroFijo = "", tiroCorrido1 = "", tiroCorrido2 = "";
+            const { data: tData, error: tErr } = await _supabase.from('tiros')
+                .select('*')
+                .eq('fecha', dateVal)
+                .eq('jornada', selectedSearchTurn)
+                .maybeSingle();
+
+            if (!tErr && tData && tData.resultado) {
+                let parts = tData.resultado.trim().split(/\s+/);
+                if (parts[0] && parts[0].length === 3) {
+                    tiroCentena = parts[0];
+                    tiroFijo = parts[0].substring(1);
+                }
+                if (parts[1]) tiroCorrido1 = parts[1];
+                if (parts[2]) tiroCorrido2 = parts[2];
+            }
+
+            // 2. Consultar jugadas y botes
+            const { data: jugadas } = await _supabase.from('jugadas')
+                .select('*').eq('usuario', currentUsuario)
+                .gte('created_at', `${dateVal}T00:00:00Z`).lte('created_at', `${dateVal}T23:59:59Z`)
+                .eq('jornada', selectedSearchTurn);
+
+            const { data: botes } = await _supabase.from('botes')
+                .select('*').eq('usuario', currentUsuario)
+                .gte('created_at', `${dateVal}T00:00:00Z`).lte('created_at', `${dateVal}T23:59:59Z`)
+                .eq('jornada', selectedSearchTurn);
+
+            if((!jugadas || jugadas.length === 0) && (!botes || botes.length === 0)) {
+                resBox.innerHTML = `<span style="color:#b91c1c;">No se encontraron registros para el ${dateVal} en la jornada ${selectedSearchTurn}.</span>`;
+                return;
+            }
+
+            let acumLimpio = 0;
+            let acumPremio = 0;
+            let htmlFijos = "", htmlParles = "", htmlCentenas = "";
+
+            // Evaluar fijos y corridos con penalización por número limitado
+            function evaluarFijoCorrido(numero, mFijo, mCorrido) {
+                let p = 0;
+                let esLimitado = listaNumerosLimitadosGlobal.includes(numero);
+                let multFijo = esLimitado ? 50 : 75;
+                let multCorrido = esLimitado ? 20 : 25;
+
+                if (tiroFijo && numero === tiroFijo) {
+                    p += (mFijo * multFijo) + (mCorrido * multCorrido);
+                }
+                if ((tiroCorrido1 && numero === tiroCorrido1) || (tiroCorrido2 && numero === tiroCorrido2)) {
+                    p += (mCorrido * multCorrido);
+                }
+                return p;
+            }
+
+            function evaluarCentena(numero, monto) {
+                if (tiroCentena && numero === tiroCentena) {
+                    return monto * 400; // Centenas ordinarias
+                }
+                return 0;
+            }
+
+            // Evaluar parles con penalización si alguno de sus elementos es limitado
+            function evaluarParle(pKey, monto) {
+                let ganadores = [];
+                if(tiroFijo) ganadores.push(tiroFijo);
+                if(tiroCorrido1) ganadores.push(tiroCorrido1);
+                if(tiroCorrido2) ganadores.push(tiroCorrido2);
+
+                let reqNumbers = pKey.split('-');
+                let aciertos = reqNumbers.every(num => ganadores.includes(num));
+                
+                if (aciertos && reqNumbers.length >= 2) {
+                    // Si cualquiera de los números que componen el parle es limitado, se paga a 550
+                    let tieneLimitado = reqNumbers.some(num => listaNumerosLimitadosGlobal.includes(num));
+                    let multParle = tieneLimitado ? 550 : 1100;
+                    return monto * multParle;
+                }
+                return 0;
+            }
+
+            if (jugadas) {
+                jugadas.forEach(j => {
+                    acumLimpio += j.costo_total || 0;
+                    if (j.tipo === 'fijo') {
+                        let premioItem = evaluarFijoCorrido(j.numeros, j.monto_fijo, j.monto_corrido);
+                        acumPremio += premioItem;
+                        htmlFijos += `• <strong>${j.numeros}</strong> -> Fijo: $${j.monto_fijo} | Corrido: $${j.monto_corrido} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (j.tipo === 'centena') {
+                        let premioItem = evaluarCentena(j.numeros, j.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlCentenas += `• <strong>${j.numeros}</strong> -> Centena: $${j.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (j.tipo === 'parle') {
+                        let premioItem = evaluarParle(j.numeros, j.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlParles += `• <strong>${j.numeros}</strong> -> Parle: $${j.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    }
+                });
+            }
+
+            if (botes) {
+                botes.forEach(b => {
+                    acumLimpio += b.costo_total || 0;
+                    if (b.tipo === 'fijo') {
+                        let premioItem = evaluarFijoCorrido(b.numeros, b.monto_fijo, b.monto_corrido);
+                        acumPremio += premioItem;
+                        htmlFijos += `• <strong>${b.numeros} <span class="text-red">[Bote]</span></strong> -> Fijo: $${b.monto_fijo} | Corrido: $${b.monto_corrido} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (b.tipo === 'centena') {
+                        let premioItem = evaluarCentena(b.numeros, b.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlCentenas += `• <strong>${b.numeros} <span class="text-red">[Bote]</span></strong> -> Centena: $${b.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (b.tipo === 'parle') {
+                        let premioItem = evaluarParle(b.numeros, b.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlParles += `• <strong>${b.numeros} <span class="text-red">[Bote]</span></strong> -> Parle: $${b.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    }
+                });
+            }
+
+            let htmlString = `<strong>Jornada: ${selectedSearchTurn}</strong><br>`;
+            if(tData && tData.resultado) {
+                htmlString += `<span class="text-green">Tiro Oficial: <strong>${tData.resultado}</strong></span><br>`;
+            } else {
+                htmlString += `<span style="color:#6b7280; font-style:italic;">Sin tiro oficial registrado aún para este turno.</span><br>`;
+            }
+            htmlString += `<hr style='margin:6px 0; border: 0; border-top: 1px solid #ccc;'>`;
+
+            if (htmlFijos) htmlString += `<span style="text-decoration: underline; font-weight:bold;">FIJOS Y CORRIDOS:</span><br>${htmlFijos}<br>`;
+            if (htmlParles) htmlString += `<span style="text-decoration: underline; font-weight:bold;">PARLES:</span><br>${htmlParles}<br>`;
+            if (htmlCentenas) htmlString += `<span style="text-decoration: underline; font-weight:bold;">CENTENAS:</span><br>${htmlCentenas}`;
+
+            resBox.innerHTML = htmlString;
+            let totalNeto = acumLimpio - acumPremio;
+
+            document.getElementById('sum-limpio').innerText = `$${acumLimpio.toFixed(2)}`;
+            document.getElementById('sum-premio').innerText = `$${acumPremio.toFixed(2)}`;
+            
+            let totalElement = document.getElementById('sum-total');
+            if (totalNeto < 0) {
+                totalElement.innerText = `Ganas: $${Math.abs(totalNeto).toFixed(2)}`;
+                totalElement.className = "text-green";
+            } else {
+                totalElement.innerText = `Pierdes: $${totalNeto.toFixed(2)}`;
+                totalElement.className = "text-red";
+            }
+            footerBox.style.display = 'block';
+        }
+
+        // --- CONTROL MENÚS Y MODALES ---
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('dots-menu');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+        function openModal(id) {
+            document.getElementById('dots-menu').style.display = 'none';
+            document.getElementById('modal-container').style.display = 'flex';
+            document.querySelectorAll('.modal-box').forEach(b => b.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('modal-container').style.display = 'none'; }
+        document.addEventListener('click', () => { document.getElementById('dots-menu').style.display = 'none'; });
+
+        async function fetchLimitados() {
+            const { data } = await _supabase.from('limitados').select('*');
+            const container = document.getElementById('db-limitados-list');
+            listaNumerosLimitadosGlobal = [];
+            if (!data || data.length === 0) { container.innerHTML = "No hay números bloqueados administrativamente."; return; }
+            
+            data.forEach(item => { if(item.numero) listaNumerosLimitadosGlobal.push(item.numero); });
+            container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
+        }
+
+        function initClock() {
+            function checkTime() {
+                const now = new Date();
+                const min = (now.getHours() * 60) + now.getMinutes();
+                const icon = document.getElementById('solar-icon');
+                const btnSend = document.getElementById('btn-main-send');
+
+                if (min >= 360 && min <= 805) { 
+                    icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
+                    currentJornadaGlobal = "DIA"; 
+                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+                } else if (min >= 840 && min <= 1290) { 
+                    icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
+                    currentJornadaGlobal = "NOCHE"; 
+                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+                } else { 
+                    icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
+                    currentJornadaGlobal = "CERRADO"; 
+                    btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed";
+                }
+            }
+            checkTime(); setInterval(checkTime, 30000);
+        }
+
+        // --- TECLADO VIRTUAL ---
+        function kPress(key) {
+            if (currentJornadaGlobal === "CERRADO") return;
+            if (key === 'del') { input.value = input.value.slice(0, -1); return; }
+            let val = input.value;
+            if (!isNaN(key)) {
+                let segments = val.split(/[\-,\,]/);
+                let lastPart = segments[segments.length - 1] || "";
+                if(lastPart.includes(' ')) {
+                    let spaceParts = lastPart.split(' ');
+                    lastPart = spaceParts[spaceParts.length - 1];
+                }
+                if (lastPart.length === 2 && !val.includes('-') && !val.endsWith('-') && !val.endsWith(',') && !val.endsWith(' ')) {
+                    val += ',';
+                }
+            }
+            input.value = val + key;
+        }
+
+        // --- ENVIAR JUGADAS ---
+        async function guardarEnSupabase(tabla, payload, elementHtml) {
+            if (currentJornadaGlobal === "CERRADO") { alert("La sección está cerrada."); return; }
+            payload.jornada = currentJornadaGlobal;
+            const { status, error } = await _supabase.from(tabla).insert([payload]);
+            if (!error && (status === 201 || status === 200)) {
+                if (elementHtml) elementHtml.classList.add('processed');
+            }
+        }
+
+        async function borrarDeSupabase(tabla, numQuery) {
+            if (currentJornadaGlobal === "CERRADO") return;
+            await _supabase.from(tabla).delete().eq('numeros', numQuery).eq('usuario', currentUsuario).eq('jornada', currentJornadaGlobal);
+        }
+
+        // MODIFICADO: Evento de eliminación fijado exactamente a un segundo y medio (1500 ms)
+        function attachLongPressDelete(element, costValue, isBote, typeKey, numKey, fAmt = 0, cAmt = 0, dbTabla = 'jugadas') {
+            let timer;
+            function start() {
+                timer = setTimeout(() => {
+                    if (currentJornadaGlobal === "CERRADO") {
+                        alert("La sección está cerrada. No se pueden modificar ni borrar datos.");
+                        return;
+                    }
+                    if (confirm("¿Desea borrar esta jugada?")) {
+                        if(isBote) { totalBote -= costValue; if (totalBote < 0) totalBote = 0; } 
+                        else {
+                            totalLista -= costValue; if (totalLista < 0) totalLista = 0;
+                            if (typeKey === 'fijo') {
+                                memoriaFijos[numKey] = (memoriaFijos[numKey] || 0) - fAmt;
+                                memoriaCorridos[numKey] = (memoriaCorridos[numKey] || 0) - cAmt;
+                            } else if (typeKey === 'centena') {
+                                memoriaCentenas[numKey] = (memoriaCentenas[numKey] || 0) - fAmt;
+                            } else if (typeKey === 'parle') {
+                                memoriaParles[numKey] = (memoriaParles[numKey] || 0) - fAmt;
+                            }
+                        }
+                        borrarDeSupabase(dbTabla, numKey);
+                        updateCounters();
+                        element.remove();
+                    }
+                }, 1500); // 1.5 Segundos cumplidos rigurosamente
+            }
+            function cancel() { clearTimeout(timer); }
+            element.addEventListener('mousedown', start); element.addEventListener('touchstart', start, { passive: true });
+            element.addEventListener('mouseup', cancel); element.addEventListener('mouseleave', cancel); element.addEventListener('touchend', cancel);
+        }
+
+        function sendPlay() {
+            if (currentJornadaGlobal === "CERRADO") return;
+
+            let query = input.value.trim();
+            if (!query || !query.includes('-')) return;
+
+            let indexDash = query.indexOf('-');
+            let leftSide = query.substring(0, indexDash).trim();
+            let rightSide = query.substring(indexDash + 1).trim();
+
+            let amounts = rightSide.split('-');
+            let mFijo = parseInt(amounts[0]) || 0; 
+            let mCorrido = parseInt(amounts[1]) || 0;
+
+            if (leftSide.includes(' ')) {
+                let spaceParts = leftSide.split(/\s+/);
+                if (spaceParts.length === 2 && spaceParts[1].length === 1) {
+                    let centenaUnida = spaceParts[1] + spaceParts[0]; 
+                    processCentena(centenaUnida, mFijo);
+                    input.value = ""; return;
+                }
+            }
+
+            let tokens = leftSide.split(',');
+            let finalNumbers = [];
+            tokens.forEach(t => {
+                let cleanT = t.trim();
+                if(cleanT.includes('*')) {
+                    if(cleanT.startsWith('*')) {
+                        let unit = cleanT.replace('*', '');
+                        for(let i=0; i<=9; i++) finalNumbers.push(`${i}${unit}`);
+                    } else if(cleanT.endsWith('*')) {
+                        let dec = cleanT.replace('*', '');
+                        for(let i=0; i<=9; i++) finalNumbers.push(`${dec}${i}`);
+                    }
+                } else if(cleanT.length > 0) { finalNumbers.push(cleanT); }
+            });
+
+            if (tokens.length === 1 && (tokens[0].length === 2 || tokens[0].includes('*'))) {
+                finalNumbers.forEach(num => processFijo(num, mFijo, mCorrido));
+            } else {
+                if (finalNumbers.length === 1 && finalNumbers[0].length === 3) {
+                    processCentena(finalNumbers[0], mFijo);
+                } else if (finalNumbers.length >= 2) {
+                    processParle(finalNumbers, mFijo);
+                }
+            }
+            input.value = "";
+        }
+
+        function processFijo(num, fijo, corrido) {
+            let acumuladoF = memoriaFijos[num] || 0;
+            let acumuladoC = memoriaCorridos[num] || 0;
+            let fLista = 0, fBote = 0, cLista = 0, cBote = 0;
+
+            if (acumuladoF >= 500) { fBote = fijo; } 
+            else if (acumuladoF + fijo > 500) { fLista = 500 - acumuladoF; fBote = fijo - fLista; } 
+            else { fLista = fijo; }
+
+            if (acumuladoC >= 500) { cBote = corrido; } 
+            else if (acumuladoC + corrido > 500) { cLista = 500 - acumuladoC; cBote = corrido - cLista; } 
+            else { cLista = corrido; }
+
+            memoriaFijos[num] = acumuladoF + fLista;
+            memoriaCorridos[num] = acumuladoC + cLista;
+
+            if (fLista > 0 || cLista > 0) {
+                let costLista = (fLista + cLista) * 0.8;
+                let el = createFijoElement(num, fLista, cLista, false);
+                totalLista += costLista;
+                attachLongPressDelete(el, costLista, false, 'fijo', num, fLista, cLista, 'jugadas');
+                guardarEnSupabase('jugadas', { usuario: currentUsuario, tipo: 'fijo', numeros: num, monto_fijo: fLista, monto_corrido: cLista, costo_total: costLista }, el);
+            }
+            if (fBote > 0 || cBote > 0) {
+                let costBote = (fBote + cBote) * 0.8;
+                let elBote = createFijoElement(num, fBote, cBote, true);
+                totalBote += costBote;
+                attachLongPressDelete(elBote, costBote, true, 'fijo', num, 0, 0, 'botes');
+                guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'fijo', numeros: num, monto_fijo: fBote, monto_corrido: cBote, costo_total: costBote }, elBote);
+            }
+            updateCounters();
+        }
+
+        function processCentena(num, monto) {
+            let acumulado = memoriaCentenas[num] || 0;
+            let cLista = 0, cBote = 0;
+
+            if (acumulado >= 50) { cBote = monto; } 
+            else if (acumulado + monto > 50) { cLista = 50 - acumulado; cBote = monto - cLista; } 
+            else { cLista = monto; }
+
+            memoriaCentenas[num] = acumulado + cLista;
+
+            if (cLista > 0) {
+                let el = createCentenaElement(num, cLista, false);
+                totalLista += cLista;
+                attachLongPressDelete(el, cLista, false, 'centena', num, cLista, 0, 'jugadas');
+                guardarEnSupabase('jugadas', { usuario: currentUsuario, tipo: 'centena', numeros: num, monto_fijo: cLista, costo_total: cLista }, el);
+            }
+            if (cBote > 0) {
+                let elBote = createCentenaElement(num, cBote, true);
+                totalBote += cBote;
+                attachLongPressDelete(elBote, cBote, true, 'centena', num, 0, 0, 'botes');
+                guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'centena', numeros: num, monto_fijo: cBote, costo_total: cBote }, elBote);
+            }
+            updateCounters();
+        }
+
+        function processParle(numbers, monto) {
+            let pKey = numbers.slice().sort().join('-');
+            let acumulado = memoriaParles[pKey] || 0;
+            let pLista = 0, pBote = 0;
+
+            if (acumulado >= 50) { pBote = monto; } 
+            else if (acumulado + monto > 50) { pLista = 50 - acumulado; pBote = monto - pLista; } 
+            else { pLista = monto; }
+
+            memoriaParles[pKey] = acumulado + pLista;
+            let combs = (numbers.length * (numbers.length - 1)) / 2;
+
+            if (pLista > 0) {
+                let costLista = (combs * pLista) * 0.7;
+                let el = createParleVerticalElement(numbers, pLista, false);
+                totalLista += costLista;
+                attachLongPressDelete(el, costLista, false, 'parle', pKey, pLista, 0, 'jugadas');
+                guardarEnSupabase('jugadas', { usuario: currentUsuario, tipo: 'parle', numeros: pKey, monto_fijo: pLista, costo_total: costLista }, el);
+            }
+            if (pBote > 0) {
+                let costBote = (combs * pBote) * 0.7;
+                let elBote = createParleVerticalElement(numbers, pBote, true);
+                totalBote += costBote;
+                attachLongPressDelete(elBote, costBote, true, 'parle', pKey, 0, 0, 'botes');
+                guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'parle', numeros: pKey, monto_fijo: pBote, costo_total: costBote }, elBote);
+            }
+            updateCounters();
+        }
+
+        function updateCounters() {
+            document.getElementById('lbl-limpio-lista').innerText = totalLista.toFixed(2);
+            document.getElementById('lbl-limpio-bote').innerText = totalBote.toFixed(2);
+        }
+
+        function createFijoElement(num, fijo, corrido, isBote) {
+            const container = document.getElementById('box-fijos');
+            const div = document.createElement('div'); div.className = "row-item fijo-row";
+            let bubbleStyle = isBote ? "amount-bubble bote-style" : "amount-bubble";
+            let boteLabel = isBote ? "<span class='bote-tag'>[Bote]</span>" : "";
+            div.innerHTML = `<div><span>${num}</span>${boteLabel}</div> <span class="${bubbleStyle}">${fijo}</span> <span class="${bubbleStyle}">${corrido > 0 ? corrido : 0}</span>`;
+            container.prepend(div); return div;
+        }
+
+        function createCentenaElement(num, monto, isBote) {
+            const container = document.getElementById('box-parles');
+            const div = document.createElement('div'); div.className = "row-item parle-row";
+            let bubbleStyle = isBote ? "amount-bubble bote-style" : "amount-bubble";
+            let boteLabel = isBote ? "<span class='bote-tag'>[Bote]</span>" : "";
+            div.innerHTML = `<div class="centena-horizontal-block"><span>${num}</span>${boteLabel}</div><div class="parle-right-amount"><span class="${bubbleStyle}">${monto}</span></div>`;
+            container.prepend(div); return div;
+        }
+
+        function createParleVerticalElement(numbers, monto, isBote) {
+            const container = document.getElementById('box-parles');
+            const div = document.createElement('div'); div.className = "row-item parle-row";
+            let bubbleStyle = isBote ? "amount-bubble bote-style" : "amount-bubble";
+            let linesHtml = ""; numbers.forEach(num => { linesHtml += `<span>${num}</span>`; });
+            if(isBote) linesHtml += `<span class='bote-tag'>[Bote]</span>`;
+            div.innerHTML = `<div class="parle-vertical-numbers">${linesHtml}</div><div class="parle-right-amount"><span class="${bubbleStyle}">${monto}</span></div>`;
+            container.prepend(div); return div;
+        }
+    </script>
+</body>
 </html>
