@@ -6,10 +6,12 @@
     <title>KingBall Web - Login & Registro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="KingBall">
-    
+    <meta name="apple-mobile-web-app-title" content="KingBall Web">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIktpbmdCYWxsIFdlYiIsCiAgInNob3J0X25hbWUiOiAiS2luZ0JhbGwiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBkMWIyYSIsCiAgInRoZW1lX2NvbG9yIjogIiM0NjgyQjQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yNDg5LzI0ODk0NjMucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+
     <style>
         /* --- ESTILOS GENERALES Y RESET --- */
         * {
@@ -30,7 +32,7 @@
             position: relative;
         }
 
-        /* --- ANIMACIÓN DE FONDO --- */
+        /* --- ANIMACIÓN DE FONDO: BOLAS DE BILLAR --- */
         .billiard-ball {
             position: absolute;
             border-radius: 50%;
@@ -58,6 +60,7 @@
             font-size: 11px;
         }
 
+        /* Colores y ubicaciones de las bolas */
         .ball-1 { width: 45px; height: 45px; background-color: #ffcc00; top: 10%; left: -60px; animation: moveRight 16s linear infinite; }
         .ball-2 { width: 48px; height: 48px; background-color: #0056b3; top: 25%; right: -70px; animation: moveLeft 19s linear infinite; }
         .ball-3 { width: 42px; height: 42px; background-color: #cc0000; top: 40%; left: -60px; animation: moveRight 14s linear infinite; }
@@ -93,6 +96,7 @@
             transition: all 0.4s ease;
         }
 
+        /* --- LOGO CON CORONA ANIMADA --- */
         .logo-container {
             display: flex;
             align-items: center;
@@ -119,6 +123,7 @@
             50% { transform: scale(1.1) rotate(3deg); }
         }
 
+        /* --- CAMPOS DE ENTRADA (INPUTS) --- */
         .input-group {
             position: relative;
             width: 100%;
@@ -159,6 +164,11 @@
             box-shadow: 0 0 10px rgba(58, 96, 104, 0.4);
         }
 
+        .input-field::placeholder {
+            color: #666;
+        }
+
+        /* --- BOTONES --- */
         .btn-login {
             width: 100%;
             padding: 16px;
@@ -175,9 +185,18 @@
             transition: transform 0.2s, opacity 0.2s;
         }
 
-        .btn-login:hover { opacity: 0.95; transform: translateY(-2px); }
-        .btn-login:disabled { background: #6b7280; opacity: 0.6; cursor: not-allowed; }
+        .btn-login:hover {
+            opacity: 0.95;
+            transform: translateY(-2px);
+        }
 
+        .btn-login:disabled {
+            background: #6b7280;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Enlace/Botón sutil de Registro */
         .register-switch {
             margin-top: 10px;
             font-size: 14px;
@@ -190,7 +209,14 @@
             outline: none;
         }
 
-        .hidden { display: none !important; }
+        .register-switch:hover {
+            color: #1C2D32;
+        }
+
+        /* --- CLASES DE CONTROL (Para alternar vistas) --- */
+        .hidden {
+            display: none !important;
+        }
 
         /* --- PANEL DE LA APLICACIÓN PRINCIPAL --- */
         .app-panel {
@@ -212,7 +238,7 @@
         .header-right { display: flex; align-items: center; gap: 12px; }
 
         .menu-dots-btn { background: none; border: none; font-size: 20px; color: #111; cursor: pointer; padding: 4px 8px; border-radius: 50%; }
-        .dropdown-menu { display: none; position: absolute; top: 45px; right: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 180px; z-index: 250; overflow: hidden; }
+        .dropdown-menu { display: none; position: absolute; top: 45px; right: 15px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 190px; z-index: 250; overflow: hidden; }
         .dropdown-menu button { width: 100%; padding: 12px 16px; background: none; border: none; text-align: left; font-size: 14px; font-weight: 600; color: #333; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .dropdown-menu button:hover { background-color: #f3f4f6; }
 
@@ -223,6 +249,7 @@
         .modal-box .m-btn { width: 100%; padding: 12px; background: #203354; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .modal-box .close-btn { background: #6b7280; margin-top: 8px; }
 
+        /* Estilos del buscador de fechas en Listas Guardadas */
         .filter-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
         .filter-label { font-size: 13px; font-weight: bold; color: #333; }
         .date-input { width: 100%; padding: 10px; border: 1.5px solid #203354; border-radius: 6px; font-size: 15px; font-weight: bold; outline: none; }
@@ -231,12 +258,14 @@
         .turn-btn.active { background: #203354; color: white; }
         .search-results-box { max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 6px; font-size: 13px; background: #f9f9f9; }
 
+        /* Contenedor Inferior del Modal de Resultados */
         .summary-footer-box { margin-top: 10px; padding: 10px; background: #f1f5f9; border-radius: 6px; border-top: 2px solid #cbd5e1; font-size: 14px; font-weight: bold; }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .summary-row:last-child { margin-bottom: 0; padding-top: 4px; border-top: 1px dashed #94a3b8; }
         .text-green { color: #16a34a; }
         .text-red { color: #dc2626; }
 
+        /* Opciones de Contraseña */
         .password-box { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .pwd-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none; }
 
@@ -257,24 +286,27 @@
         
         .centena-horizontal-block { font-size: 24px; font-weight: bold; width: 55%; text-align: left; color: inherit; }
         .parle-right-amount { display: flex; justify-content: center; align-items: center; width: 45%; height: 100%; position: absolute; right: 0; top: 0; bottom: 0; margin: auto 0; }
+
         .bote-tag { color: #b91c1c !important; font-size: 13px; font-weight: 800; display: block; margin-top: 2px; letter-spacing: 0.5px; }
+        
+        /* Burbuja adaptada para 4 dígitos */
         .amount-bubble { background: transparent; border: 1.5px solid #4b5563; border-radius: 20px; padding: 2px 10px; font-size: 14px; font-weight: 600; color: #203354; min-width: 65px; text-align: center; display: inline-block; }
         .amount-bubble.bote-style { border-color: #b91c1c; color: #b91c1c; background-color: rgba(185, 28, 28, 0.05); }
 
-        /* --- PANEL INFERIOR Y TECLADO --- */
-        .bottom-panel { background: #000000; padding: 12px; display: flex; flex-direction: column; gap: 12px; user-select: none; }
+        /* --- TECLADO OSCURO APLICACIÓN --- */
+        .bottom-panel { background: #000000; padding: 12px; display: flex; flex-direction: column; gap: 12px; user-select: none; z-index: 100; }
         .input-box-wrapper { width: 100%; max-width: 500px; margin: 0 auto; display: flex; align-items: center; background: #ffffff; border-radius: 8px; padding-right: 12px; }
         .custom-input { flex: 1; padding: 14px 15px; font-size: 26px; border: none; border-radius: 8px 0 0 8px; outline: none; color: #1d4ed8; font-weight: bold; background: #ffffff; }
-        .hide-keyboard-btn { font-size: 24px; color: #4b5563; cursor: pointer; padding: 8px; transition: transform 0.2s; }
-        .hide-keyboard-btn:active { transform: scale(0.9); }
+        .hide-keyboard-btn { font-size: 22px; color: #4b5563; cursor: pointer; padding: 5px; }
         
-        .keyboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; transition: all 0.3s ease; }
+        .keyboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; transition: all 0.2s ease; }
         .keyboard-grid.minimized { display: none !important; }
         
         .vkey { background: #374151; border: none; color: #ffffff; padding: 15px; font-size: 26px; font-weight: 500; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
         .vkey:active { background: #4b5563; }
         .vkey.gray-dark { background: #1f2937; }
         .vkey.btn-send { background: #1d4ed8; color: white; grid-column: span 4; font-size: 22px; font-weight: bold; padding: 16px; margin-top: 4px; }
+        .vkey.btn-send:active { background: #1e40af; }
     </style>
 </head>
 <body>
@@ -287,6 +319,7 @@
     <div class="billiard-ball ball-10" data-number="10"></div>
 
     <div class="login-container" id="auth-box">
+        
         <div class="logo-container">
             <i class="fa-solid fa-crown crown-icon"></i>
             <span class="logo-text" id="form-title">KingBall Web</span>
@@ -297,14 +330,17 @@
                 <i class="fa-regular fa-user input-icon"></i>
                 <input type="text" id="log-user" class="input-field" placeholder="Codigo / Usuario">
             </div>
+
             <div class="input-group">
                 <i class="fa-key fa-solid input-icon"></i>
                 <input type="password" id="log-pass" class="input-field" placeholder="Clave">
                 <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePasswordVisibility('log-pass')"></i>
             </div>
+
             <button class="btn-login" id="btn-login-submit" onclick="loginReal()">
                 <i class="fa-solid fa-right-to-bracket"></i>
             </button>
+            
             <button class="register-switch" onclick="toggleForm('register')">¿No tienes cuenta? Regístrate aquí</button>
         </div>
 
@@ -313,20 +349,25 @@
                 <i class="fa-regular fa-user input-icon"></i>
                 <input type="text" id="reg-user" class="input-field" placeholder="Nuevo Usuario">
             </div>
+
             <div class="input-group">
                 <i class="fa-solid fa-phone input-icon"></i>
                 <input type="tel" id="reg-phone" class="input-field" placeholder="Número de Teléfono">
             </div>
+
             <div class="input-group">
                 <i class="fa-key fa-solid input-icon"></i>
                 <input type="password" id="reg-pass" class="input-field" placeholder="Contraseña">
                 <i class="fa-regular fa-eye-slash toggle-password" onclick="togglePasswordVisibility('reg-pass')"></i>
             </div>
+
             <button class="btn-login" id="btn-register-submit" style="background: linear-gradient(to right, #4b7a85, #243b42);" onclick="registroReal()">
                 <i class="fa-solid fa-user-plus" style="font-size: 20px; margin-right: 10px;"></i> Registrarse
             </button>
+            
             <button class="register-switch" onclick="toggleForm('login')">¿Ya tienes cuenta? Inicia Sesión</button>
         </div>
+
     </div>
 
     <div class="app-panel" id="main-app">
@@ -344,7 +385,9 @@
                 <button onclick="openModal('m-reglamento')"><i class="fa-solid fa-file-invoice"></i> Reglamento</button>
                 <button onclick="openModal('m-limitados')"><i class="fa-solid fa-ban"></i> Limitados</button>
                 <button onclick="openModal('m-guardadas')"><i class="fa-solid fa-folder-open"></i> Listas Guardadas</button>
+                <button id="btn-install-app" onclick="triggerAppInstallation()" style="display:none;"><i class="fa-solid fa-download"></i> Instalar App</button>
                 <button onclick="openModal('m-opciones')"><i class="fa-solid fa-gear"></i> Opciones</button>
+                <button onclick="cerrarSesionManual()" style="color: #dc2626;"><i class="fa-solid fa-power-off"></i> Salir</button>
             </div>
         </header>
 
@@ -359,8 +402,8 @@
 
         <div class="bottom-panel">
             <div class="input-box-wrapper">
-                <input type="text" id="main-input" class="custom-input" placeholder="" inputmode="none" readonly>
-                <i class="fa-solid fa-keyboard hide-keyboard-btn" id="kbd-toggle-icon" onclick="toggleKeyboardVisibility()"></i>
+                <input type="text" id="main-input" class="custom-input" placeholder="Toque teclado para escribir" inputmode="none" readonly onclick="ensureKeyboardVisible()">
+                <i class="fa-solid fa-keyboard hide-keyboard-btn" onclick="toggleKeyboardVisibility()"></i>
             </div>
             <div class="keyboard-grid" id="kb-grid-element">
                 <button class="vkey" onclick="kPress('1')">1</button>
@@ -378,7 +421,7 @@
                 <button class="vkey" onclick="kPress('9')">9</button>
                 <button class="vkey gray-dark" onclick="kPress(',')">,</button>
 
-                <button class="vkey gray-dark" style="visibility: hidden;"></button>
+                <button class="vkey gray-dark" onclick="toggleKeyboardVisibility()"><i class="fa-solid fa-keyboard-slash" style="font-size: 20px; color: #9ca3af;"></i></button>
                 <button class="vkey" onclick="kPress('0')">0</button>
                 <button class="vkey gray-dark" style="visibility: hidden;"></button>
                 <button class="vkey gray-dark" onclick="kPress('*')">*</button>
@@ -421,6 +464,7 @@
                 <div class="summary-row"><span>Premio:</span><span id="sum-premio" class="text-green">$0.00</span></div>
                 <div class="summary-row"><span>Total:</span><span id="sum-total">$0.00</span></div>
             </div>
+
             <button class="m-btn close-btn" onclick="closeModal()" style="margin-top:10px;">Cerrar</button>
         </div>
 
@@ -429,17 +473,14 @@
             <div class="password-box">
                 <input type="password" id="opt-old-pass" class="pwd-input" placeholder="Contraseña Actual">
                 <input type="password" id="opt-new-pass" class="pwd-input" placeholder="Nueva Contraseña">
-                <button class="m-btn" onclick="actualizarClaveReal()" style="background: #16a34a; margin-bottom: 10px;">Actualizar Contraseña</button>
-                
-                <button class="m-btn" id="btn-install-app" style="background: #e6b800; color: #111; display: none;" onclick="triggerAppInstallation()">
-                    <i class="fa-solid fa-download"></i> Instalar Aplicación
-                </button>
+                <button class="m-btn" onclick="actualizarClaveReal()" style="background: #16a34a;">Actualizar Contraseña</button>
             </div>
             <button class="m-btn close-btn" onclick="closeModal()" style="margin-top: 15px;">Cerrar</button>
         </div>
     </div>
 
     <script>
+        // --- CONFIGURACIÓN SUPABASE ---
         const SUPABASE_URL = "https://ydpzblxjmmflzgsgfpmx.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_Zp2oQAowai67A_QYrH0Ukw_aLPSf3U-";
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -448,7 +489,7 @@
         let currentJornadaGlobal = "DIA"; 
         let selectedSearchTurn = "DIA";   
         let listaNumerosLimitadosGlobal = []; 
-        let deferredPrompt = null; // Guardará el evento de instalación
+        let deferredPrompt = null; // Captura de instalación PWA
 
         const memoriaFijos = {}, memoriaCorridos = {}, memoriaCentenas = {}, memoriaParles = {};
         let totalLista = 0, totalBote = 0;
@@ -456,27 +497,70 @@
 
         document.getElementById('search-date').valueAsDate = new Date();
 
-        // --- SISTEMA PWA: CAPTURAR INSTALACIÓN ---
+        // --- SISTEMA DE CONTROL DE SESIÓN PERSISTENTE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initClock(); // Primero calcula la sección horaria actual del cliente
+            verificarSesionGuardada();
+        });
+
+        function verificarSesionGuardada() {
+            const sesionUsuario = localStorage.getItem('kb_session_user');
+            const sesionJornada = localStorage.getItem('kb_session_jornada');
+            const hoyFecha = new Date().toISOString().split('T')[0];
+            const sesionFecha = localStorage.getItem('kb_session_fecha');
+
+            // Si los datos existen, y corresponden a la misma fecha y sección/jornada horaria, entra directo
+            if (sesionUsuario && sesionJornada === currentJornadaGlobal && sesionFecha === hoyFecha) {
+                entrarDirectoAplicacion(sesionUsuario);
+            } else {
+                // Si cambió de sección o es otro día, limpia y solicita credenciales de seguridad
+                localStorage.removeItem('kb_session_user');
+                localStorage.removeItem('kb_session_jornada');
+                localStorage.removeItem('kb_session_fecha');
+            }
+        }
+
+        async function entrarDirectoAplicacion(usuario) {
+            currentUsuario = usuario;
+            document.getElementById('auth-box').style.display = 'none';
+            document.querySelectorAll('.billiard-ball').forEach(b => b.style.display = 'none');
+            document.getElementById('main-app').style.display = 'flex';
+            
+            await fetchLimitados();
+            await cargarJornadaActual();
+        }
+
+        function cerrarSesionManual() {
+            localStorage.removeItem('kb_session_user');
+            localStorage.removeItem('kb_session_jornada');
+            localStorage.removeItem('kb_session_fecha');
+            location.reload();
+        }
+
+        // --- MANEJO DE INSTALACIÓN (PWA) ---
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             const btnInstall = document.getElementById('btn-install-app');
-            if (btnInstall) btnInstall.style.display = 'block'; // Muestra el botón si es instalable
+            if (btnInstall) btnInstall.style.display = 'flex'; // Muestra la opción en el menú contextual
         });
 
         function triggerAppInstallation() {
-            if (!deferredPrompt) return;
+            if (!deferredPrompt) {
+                alert("La aplicación ya se encuentra instalada o su navegador no soporta instalaciones directas.");
+                return;
+            }
+            document.getElementById('dots-menu').style.display = 'none';
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('El usuario instaló KingBall');
+                    console.log('El usuario aceptó la instalación de KingBall');
+                    document.getElementById('btn-install-app').style.display = 'none';
                 }
                 deferredPrompt = null;
-                document.getElementById('btn-install-app').style.display = 'none';
             });
         }
 
-        // --- CONTROL DE INTERFAZ ---
         function toggleForm(view) {
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
@@ -498,18 +582,14 @@
             else { el.type = "password"; icon.classList.replace('fa-eye', 'fa-eye-slash'); }
         }
 
-        // Corrección del Teclado: Cambia de estilo visual al minimizarse/mostrarse
         function toggleKeyboardVisibility() {
             const kb = document.getElementById('kb-grid-element');
-            const icon = document.getElementById('kbd-toggle-icon');
             kb.classList.toggle('minimized');
-            if(kb.classList.contains('minimized')) {
-                icon.className = "fa-solid fa-keyboard-pointer hide-keyboard-btn";
-                icon.style.color = "#1d4ed8"; // Color de alerta teclado oculto
-            } else {
-                icon.className = "fa-solid fa-keyboard hide-keyboard-btn";
-                icon.style.color = "#4b5563";
-            }
+        }
+
+        function ensureKeyboardVisible() {
+            const kb = document.getElementById('kb-grid-element');
+            kb.classList.remove('minimized');
         }
 
         function selectSearchTurn(turn) {
@@ -518,33 +598,7 @@
             document.getElementById('btn-turn-noche').classList.toggle('active', turn === 'NOCHE');
         }
 
-        // --- MANEJO DE SESIÓN PERSISTENTE POR JORNADA ---
-        function verificarSesionGuardada() {
-            const sesionUser = localStorage.getItem('kb_session_user');
-            const sesionJornada = localStorage.getItem('kb_session_jornada');
-            
-            // Si hay sesión guardada y corresponde a la jornada horaria actual, entra directo
-            if (sesionUser && sesionJornada === currentJornadaGlobal) {
-                currentUsuario = sesionUser;
-                ingresarAApp();
-            } else {
-                // Si la jornada cambió, borramos datos viejos para exigir nuevo Login
-                localStorage.removeItem('kb_session_user');
-                localStorage.removeItem('kb_session_jornada');
-                document.getElementById('auth-box').style.display = 'flex';
-            }
-        }
-
-        function ingresarAApp() {
-            document.getElementById('auth-box').style.display = 'none';
-            document.querySelectorAll('.billiard-ball').forEach(b => b.style.display = 'none');
-            document.getElementById('main-app').style.display = 'flex';
-            
-            fetchLimitados();
-            cargarJornadaActual();
-        }
-
-        // --- LOGIN REAL ---
+        // --- LOGIN REAL CON PERSISTENCIA ---
         async function loginReal() {
             const u = document.getElementById('log-user').value.trim();
             const c = document.getElementById('log-pass').value.trim();
@@ -558,12 +612,12 @@
                 alert("Usuario o clave incorrectos en la base de datos.");
                 btn.disabled = false;
             } else {
-                currentUsuario = u;
-                // Guardamos la sesión vinculada estrictamente a la sección del turno actual
+                // Guardar parámetros de control de sesión única por jornada horaria
                 localStorage.setItem('kb_session_user', u);
                 localStorage.setItem('kb_session_jornada', currentJornadaGlobal);
+                localStorage.setItem('kb_session_fecha', new Date().toISOString().split('T')[0]);
                 
-                ingresarAApp();
+                entrarDirectoAplicacion(u);
             }
         }
 
@@ -587,14 +641,26 @@
         async function actualizarClaveReal() {
             const vieja = document.getElementById('opt-old-pass').value.trim();
             const nueva = document.getElementById('opt-new-pass').value.trim();
+            
             if(!vieja || !nueva) { alert("Por favor rellene ambos campos."); return; }
 
-            const { data, error } = await _supabase.from('usuarios').select('*').eq('usuario', currentUsuario).eq('clave', vieja);
-            if(error || !data || data.length === 0) { alert("La contraseña actual es incorrecta."); return; }
+            const { data, error } = await _supabase.from('usuarios')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .eq('clave', vieja);
 
-            const { error: updateError } = await _supabase.from('usuarios').update({ clave: nueva }).eq('usuario', currentUsuario);
-            if(updateError) { alert("Error al intentar cambiar la contraseña."); } 
-            else {
+            if(error || !data || data.length === 0) {
+                alert("La contraseña actual es incorrecta.");
+                return;
+            }
+
+            const { error: updateError } = await _supabase.from('usuarios')
+                .update({ clave: nueva })
+                .eq('usuario', currentUsuario);
+
+            if(updateError) {
+                alert("Error al intentar cambiar la contraseña.");
+            } else {
                 alert("Contraseña actualizada con éxito.");
                 document.getElementById('opt-old-pass').value = "";
                 document.getElementById('opt-new-pass').value = "";
@@ -602,16 +668,22 @@
             }
         }
 
-        // --- CARGA DE JUGADAS ---
+        // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
         async function cargarJornadaActual() {
             const hoy = new Date().toISOString().split('T')[0];
+            
             document.getElementById('box-fijos').innerHTML = "";
             document.getElementById('box-parles').innerHTML = "";
             totalLista = 0; totalBote = 0;
             updateCounters();
 
-            const { data: jugadas } = await _supabase.from('jugadas').select('*').eq('usuario', currentUsuario).gte('created_at', `${hoy}T00:00:00Z`).lte('created_at', `${hoy}T23:59:59Z`);
-            if (jugadas) {
+            const { data: jugadas, error: errJ } = await _supabase.from('jugadas')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .gte('created_at', `${hoy}T00:00:00Z`)
+                .lte('created_at', `${hoy}T23:59:59Z`);
+
+            if (!errJ && jugadas) {
                 jugadas.forEach(j => {
                     if (j.jornada === currentJornadaGlobal || (!j.jornada)) { 
                         totalLista += j.costo_total || 0;
@@ -636,8 +708,13 @@
                 });
             }
 
-            const { data: botes } = await _supabase.from('botes').select('*').eq('usuario', currentUsuario).gte('created_at', `${hoy}T00:00:00Z`).lte('created_at', `${hoy}T23:59:59Z`);
-            if (botes) {
+            const { data: botes, error: errB } = await _supabase.from('botes')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .gte('created_at', `${hoy}T00:00:00Z`)
+                .lte('created_at', `${hoy}T23:59:59Z`);
+
+            if (!errB && botes) {
                 botes.forEach(b => {
                     if (b.jornada === currentJornadaGlobal || (!b.jornada)) {
                         totalBote += b.costo_total || 0;
@@ -665,29 +742,45 @@
             const dateVal = document.getElementById('search-date').value;
             const resBox = document.getElementById('search-results');
             const footerBox = document.getElementById('search-summary-footer');
-            if(!dateVal) { alert("Por favor seleccione un día."); return; }
+            if(!dateVal) { alert("Por favor seleccione un día en el calendario."); return; }
 
             resBox.innerHTML = "Buscando en Supabase...";
             footerBox.style.display = 'none';
 
             let tiroCentena = "", tiroFijo = "", tiroCorrido1 = "", tiroCorrido2 = "";
-            const { data: tData } = await _supabase.from('tiros').select('*').eq('fecha', dateVal).eq('jornada', selectedSearchTurn).maybeSingle();
+            const { data: tData, error: tErr } = await _supabase.from('tiros')
+                .select('*')
+                .eq('fecha', dateVal)
+                .eq('jornada', selectedSearchTurn)
+                .maybeSingle();
 
-            if (tData && tData.resultado) {
+            if (!tErr && tData && tData.resultado) {
                 let parts = tData.resultado.trim().split(/\s+/);
-                if (parts[0] && parts[0].length === 3) { tiroCentena = parts[0]; tiroFijo = parts[0].substring(1); }
-                if (parts[1]) tiroCorrido1 = parts[1]; if (parts[2]) tiroCorrido2 = parts[2];
+                if (parts[0] && parts[0].length === 3) {
+                    tiroCentena = parts[0];
+                    tiroFijo = parts[0].substring(1);
+                }
+                if (parts[1]) tiroCorrido1 = parts[1];
+                if (parts[2]) tiroCorrido2 = parts[2];
             }
 
-            const { data: jugadas } = await _supabase.from('jugadas').select('*').eq('usuario', currentUsuario).gte('created_at', `${dateVal}T00:00:00Z`).lte('created_at', `${dateVal}T23:59:59Z`).eq('jornada', selectedSearchTurn);
-            const { data: botes } = await _supabase.from('botes').select('*').eq('usuario', currentUsuario).gte('created_at', `${dateVal}T00:00:00Z`).lte('created_at', `${dateVal}T23:59:59Z`).eq('jornada', selectedSearchTurn);
+            const { data: jugadas } = await _supabase.from('jugadas')
+                .select('*').eq('usuario', currentUsuario)
+                .gte('created_at', `${dateVal}T00:00:00Z`).lte('created_at', `${dateVal}T23:59:59Z`)
+                .eq('jornada', selectedSearchTurn);
+
+            const { data: botes } = await _supabase.from('botes')
+                .select('*').eq('usuario', currentUsuario)
+                .gte('created_at', `${dateVal}T00:00:00Z`).lte('created_at', `${dateVal}T23:59:59Z`)
+                .eq('jornada', selectedSearchTurn);
 
             if((!jugadas || jugadas.length === 0) && (!botes || botes.length === 0)) {
-                resBox.innerHTML = `<span style="color:#b91c1c;">No se encontraron registros.</span>`;
+                resBox.innerHTML = `<span style="color:#b91c1c;">No se encontraron registros para el ${dateVal} en la jornada ${selectedSearchTurn}.</span>`;
                 return;
             }
 
-            let acumLimpio = 0, acumPremio = 0;
+            let acumLimpio = 0;
+            let acumPremio = 0;
             let htmlFijos = "", htmlParles = "", htmlCentenas = "";
 
             function evaluarFijoCorrido(numero, mFijo, mCorrido) {
@@ -695,9 +788,38 @@
                 let esLimitado = listaNumerosLimitadosGlobal.includes(numero);
                 let multFijo = esLimitado ? 50 : 75;
                 let multCorrido = esLimitado ? 20 : 25;
-                if (tiroFijo && numero === tiroFijo) p += (mFijo * multFijo) + (mCorrido * multCorrido);
-                if ((tiroCorrido1 && numero === tiroCorrido1) || (tiroCorrido2 && numero === tiroCorrido2)) p += (mCorrido * multCorrido);
+
+                if (tiroFijo && numero === tiroFijo) {
+                    p += (mFijo * multFijo) + (mCorrido * multCorrido);
+                }
+                if ((tiroCorrido1 && numero === tiroCorrido1) || (tiroCorrido2 && numero === tiroCorrido2)) {
+                    p += (mCorrido * multCorrido);
+                }
                 return p;
+            }
+
+            function evaluarCentena(numero, monto) {
+                if (tiroCentena && numero === tiroCentena) {
+                    return monto * 400; 
+                }
+                return 0;
+            }
+
+            function evaluarParle(pKey, monto) {
+                let ganadores = [];
+                if(tiroFijo) ganadores.push(tiroFijo);
+                if(tiroCorrido1) ganadores.push(tiroCorrido1);
+                if(tiroCorrido2) ganadores.push(tiroCorrido2);
+
+                let reqNumbers = pKey.split('-');
+                let aciertos = reqNumbers.every(num => ganadores.includes(num));
+                
+                if (aciertos && reqNumbers.length >= 2) {
+                    let tieneLimitado = reqNumbers.some(num => listaNumerosLimitadosGlobal.includes(num));
+                    let multParle = tieneLimitado ? 550 : 1100;
+                    return monto * multParle;
+                }
+                return 0;
             }
 
             if (jugadas) {
@@ -707,53 +829,113 @@
                         let premioItem = evaluarFijoCorrido(j.numeros, j.monto_fijo, j.monto_corrido);
                         acumPremio += premioItem;
                         htmlFijos += `• <strong>${j.numeros}</strong> -> Fijo: $${j.monto_fijo} | Corrido: $${j.monto_corrido} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (j.tipo === 'centena') {
+                        let premioItem = evaluarCentena(j.numeros, j.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlCentenas += `• <strong>${j.numeros}</strong> -> Centena: $${j.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (j.tipo === 'parle') {
+                        let premioItem = evaluarParle(j.numeros, j.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlParles += `• <strong>${j.numeros}</strong> -> Parle: $${j.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
                     }
                 });
             }
 
-            resBox.innerHTML = htmlFijos || "No hay tiros procesados.";
+            if (botes) {
+                botes.forEach(b => {
+                    acumLimpio += b.costo_total || 0;
+                    if (b.tipo === 'fijo') {
+                        let premioItem = evaluarFijoCorrido(b.numeros, b.monto_fijo, b.monto_corrido);
+                        acumPremio += premioItem;
+                        htmlFijos += `• <strong>${b.numeros} <span class="text-red">[Bote]</span></strong> -> Fijo: $${b.monto_fijo} | Corrido: $${b.monto_corrido} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (b.tipo === 'centena') {
+                        let premioItem = evaluarCentena(b.numeros, b.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlCentenas += `• <strong>${b.numeros} <span class="text-red">[Bote]</span></strong> -> Centena: $${b.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    } else if (b.tipo === 'parle') {
+                        let premioItem = evaluarParle(b.numeros, b.monto_fijo);
+                        acumPremio += premioItem;
+                        htmlParles += `• <strong>${b.numeros} <span class="text-red">[Bote]</span></strong> -> Parle: $${b.monto_fijo} ${premioItem > 0 ? `<span class="text-green">[+$${premioItem}]</span>` : ''}<br>`;
+                    }
+                });
+            }
+
+            let htmlString = `<strong>Jornada: ${selectedSearchTurn}</strong><br>`;
+            if(tData && tData.resultado) {
+                htmlString += `<span class="text-green">Tiro Oficial: <strong>${tData.resultado}</strong></span><br>`;
+            } else {
+                htmlString += `<span style="color:#6b7280; font-style:italic;">Sin tiro oficial registrado aún para este turno.</span><br>`;
+            }
+            htmlString += `<hr style='margin:6px 0; border: 0; border-top: 1px solid #ccc;'>`;
+
+            if (htmlFijos) htmlString += `<span style="text-decoration: underline; font-weight:bold;">FIJOS Y CORRIDOS:</span><br>${htmlFijos}<br>`;
+            if (htmlParles) htmlString += `<span style="text-decoration: underline; font-weight:bold;">PARLES:</span><br>${htmlParles}<br>`;
+            if (htmlCentenas) htmlString += `<span style="text-decoration: underline; font-weight:bold;">CENTENAS:</span><br>${htmlCentenas}`;
+
+            resBox.innerHTML = htmlString;
+            let totalNeto = acumLimpio - acumPremio;
+
+            document.getElementById('sum-limpio').innerText = `$${acumLimpio.toFixed(2)}`;
+            document.getElementById('sum-premio').innerText = `$${acumPremio.toFixed(2)}`;
+            
+            let totalElement = document.getElementById('sum-total');
+            if (totalNeto < 0) {
+                totalElement.innerText = `Ganas: $${Math.abs(totalNeto).toFixed(2)}`;
+                totalElement.className = "text-green";
+            } else {
+                totalElement.innerText = `Pierdes: $${totalNeto.toFixed(2)}`;
+                totalElement.className = "text-red";
+            }
             footerBox.style.display = 'block';
         }
 
-        // --- RELOJ Y CÁLCULO DINÁMICO DE JORNADAS ---
+        // --- CONTROL MENÚS Y MODALES ---
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('dots-menu');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+        function openModal(id) {
+            document.getElementById('dots-menu').style.display = 'none';
+            document.getElementById('modal-container').style.display = 'flex';
+            document.querySelectorAll('.modal-box').forEach(b => b.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('modal-container').style.display = 'none'; }
+        document.addEventListener('click', () => { document.getElementById('dots-menu').style.display = 'none'; });
+
+        async function fetchLimitados() {
+            const { data } = await _supabase.from('limitados').select('*');
+            const container = document.getElementById('db-limitados-list');
+            listaNumerosLimitadosGlobal = [];
+            if (!data || data.length === 0) { container.innerHTML = "No hay números bloqueados administrativamente."; return; }
+            
+            data.forEach(item => { if(item.numero) listaNumerosLimitadosGlobal.push(item.numero); });
+            container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
+        }
+
         function initClock() {
             function checkTime() {
                 const now = new Date();
                 const min = (now.getHours() * 60) + now.getMinutes();
                 const icon = document.getElementById('solar-icon');
                 const btnSend = document.getElementById('btn-main-send');
-                let nuevaJornada = "CERRADO";
 
                 if (min >= 360 && min <= 805) { 
                     icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
-                    nuevaJornada = "DIA"; 
-                    btnSend.disabled = false; btnSend.style.opacity = "1";
+                    currentJornadaGlobal = "DIA"; 
+                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
                 } else if (min >= 840 && min <= 1290) { 
                     icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
-                    nuevaJornada = "NOCHE"; 
-                    btnSend.disabled = false; btnSend.style.opacity = "1";
+                    currentJornadaGlobal = "NOCHE"; 
+                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
                 } else { 
                     icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
-                    nuevaJornada = "CERRADO"; 
-                    btnSend.disabled = true; btnSend.style.opacity = "0.4";
-                }
-
-                // SI SE DETECTA CAMBIO DE JORNADA EN TIEMPO REAL: Fuerza deslogueo por seguridad de sección
-                if (currentJornadaGlobal !== nuevaJornada && currentJornadaGlobal !== "CERRADO" && nuevaJornada !== "CERRADO") {
-                    currentJornadaGlobal = nuevaJornada;
-                    localStorage.removeItem('kb_session_user');
-                    localStorage.removeItem('kb_session_jornada');
-                    alert("La sección ha expirado. Por favor, inicie sesión nuevamente para la nueva jornada.");
-                    location.reload();
-                } else {
-                    currentJornadaGlobal = nuevaJornada;
+                    currentJornadaGlobal = "CERRADO"; 
+                    btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed";
                 }
             }
-            checkTime(); 
-            setInterval(checkTime, 15000); // Comprobación cada 15 segundos
-            
-            // Verificamos si existe sesión activa al cargar la página tras fijar la hora
-            verificarSesionGuardada();
+            checkTime(); setInterval(checkTime, 30000);
         }
 
         // --- TECLADO VIRTUAL ---
@@ -764,6 +946,10 @@
             if (!isNaN(key)) {
                 let segments = val.split(/[\-,\,]/);
                 let lastPart = segments[segments.length - 1] || "";
+                if(lastPart.includes(' ')) {
+                    let spaceParts = lastPart.split(' ');
+                    lastPart = spaceParts[spaceParts.length - 1];
+                }
                 if (lastPart.length === 2 && !val.includes('-') && !val.endsWith('-') && !val.endsWith(',') && !val.endsWith(' ')) {
                     val += ',';
                 }
@@ -773,15 +959,54 @@
 
         // --- ENVIAR JUGADAS ---
         async function guardarEnSupabase(tabla, payload, elementHtml) {
+            if (currentJornadaGlobal === "CERRADO") { alert("La sección está cerrada."); return; }
             payload.jornada = currentJornadaGlobal;
             const { status, error } = await _supabase.from(tabla).insert([payload]);
-            if (!error && (status === 201 || status === 200) && elementHtml) {
-                elementHtml.classList.add('processed');
+            if (!error && (status === 201 || status === 200)) {
+                if (elementHtml) elementHtml.classList.add('processed');
             }
+        }
+
+        async function borrarDeSupabase(tabla, numQuery) {
+            if (currentJornadaGlobal === "CERRADO") return;
+            await _supabase.from(tabla).delete().eq('numeros', numQuery).eq('usuario', currentUsuario).eq('jornada', currentJornadaGlobal);
+        }
+
+        function attachLongPressDelete(element, costValue, isBote, typeKey, numKey, fAmt = 0, cAmt = 0, dbTabla = 'jugadas') {
+            let timer;
+            function start() {
+                timer = setTimeout(() => {
+                    if (currentJornadaGlobal === "CERRADO") {
+                        alert("La sección está cerrada. No se pueden modificar ni borrar datos.");
+                        return;
+                    }
+                    if (confirm("¿Desea borrar esta jugada?")) {
+                        if(isBote) { totalBote -= costValue; if (totalBote < 0) totalBote = 0; } 
+                        else {
+                            totalLista -= costValue; if (totalLista < 0) totalLista = 0;
+                            if (typeKey === 'fijo') {
+                                memoriaFijos[numKey] = (memoriaFijos[numKey] || 0) - fAmt;
+                                memoriaCorridos[numKey] = (memoriaCorridos[numKey] || 0) - cAmt;
+                            } else if (typeKey === 'centena') {
+                                memoriaCentenas[numKey] = (memoriaCentenas[numKey] || 0) - fAmt;
+                            } else if (typeKey === 'parle') {
+                                memoriaParles[numKey] = (memoriaParles[numKey] || 0) - fAmt;
+                            }
+                        }
+                        borrarDeSupabase(dbTabla, numKey);
+                        updateCounters();
+                        element.remove();
+                    }
+                }, 1500); 
+            }
+            function cancel() { clearTimeout(timer); }
+            element.addEventListener('mousedown', start); element.addEventListener('touchstart', start, { passive: true });
+            element.addEventListener('mouseup', cancel); element.addEventListener('mouseleave', cancel); element.addEventListener('touchend', cancel);
         }
 
         function sendPlay() {
             if (currentJornadaGlobal === "CERRADO") return;
+
             let query = input.value.trim();
             if (!query || !query.includes('-')) return;
 
@@ -793,8 +1018,38 @@
             let mFijo = parseInt(amounts[0]) || 0; 
             let mCorrido = parseInt(amounts[1]) || 0;
 
-            if (leftSide.length === 2) {
-                processFijo(leftSide, mFijo, mCorrido);
+            if (leftSide.includes(' ')) {
+                let spaceParts = leftSide.split(/\s+/);
+                if (spaceParts.length === 2 && spaceParts[1].length === 1) {
+                    let centenaUnida = spaceParts[1] + spaceParts[0]; 
+                    processCentena(centenaUnida, mFijo);
+                    input.value = ""; return;
+                }
+            }
+
+            let tokens = leftSide.split(',');
+            let finalNumbers = [];
+            tokens.forEach(t => {
+                let cleanT = t.trim();
+                if(cleanT.includes('*')) {
+                    if(cleanT.startsWith('*')) {
+                        let unit = cleanT.replace('*', '');
+                        for(let i=0; i<=9; i++) finalNumbers.push(`${i}${unit}`);
+                    } else if(cleanT.endsWith('*')) {
+                        let dec = cleanT.replace('*', '');
+                        for(let i=0; i<=9; i++) finalNumbers.push(`${dec}${i}`);
+                    }
+                } else if(cleanT.length > 0) { finalNumbers.push(cleanT); }
+            });
+
+            if (tokens.length === 1 && (tokens[0].length === 2 || tokens[0].includes('*'))) {
+                finalNumbers.forEach(num => processFijo(num, mFijo, mCorrido));
+            } else {
+                if (finalNumbers.length === 1 && finalNumbers[0].length === 3) {
+                    processCentena(finalNumbers[0], mFijo);
+                } else if (finalNumbers.length >= 2) {
+                    processParle(finalNumbers, mFijo);
+                }
             }
             input.value = "";
         }
@@ -822,52 +1077,106 @@
                 attachLongPressDelete(el, costLista, false, 'fijo', num, fLista, cLista, 'jugadas');
                 guardarEnSupabase('jugadas', { usuario: currentUsuario, tipo: 'fijo', numeros: num, monto_fijo: fLista, monto_corrido: cLista, costo_total: costLista }, el);
             }
+            if (fBote > 0 || cBote > 0) {
+                let costBote = (fBote + cBote) * 0.8;
+                let elBote = createFijoElement(num, fBote, cBote, true);
+                totalBote += costBote;
+                attachLongPressDelete(elBote, costBote, true, 'fijo', num, 0, 0, 'botes');
+                guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'fijo', numeros: num, monto_fijo: fBote, monto_corrido: cBote, costo_total: costBote }, elBote);
+            }
             updateCounters();
         }
 
-        function attachLongPressDelete(element, costValue, isBote, typeKey, numKey, fAmt = 0, cAmt = 0, dbTabla = 'jugadas') {
-            let timer;
-            function start() {
-                timer = setTimeout(() => {
-                    if (confirm("¿Desea borrar esta jugada?")) {
-                        totalLista -= costValue;
-                        _supabase.from(dbTabla).delete().eq('numeros', numKey).eq('usuario', currentUsuario).eq('jornada', currentJornadaGlobal).then(() => {
-                            element.remove();
-                            updateCounters();
-                        });
-                    }
-                }, 1500);
+        function processCentena(num, monto) {
+            let acumulado = memoriaCentenas[num] || 0;
+            let cLista = 0, cBote = 0;
+
+            if (acumulado >= 50) { cBote = monto; } 
+            else if (acumulado + monto > 50) { cLista = 50 - acumulado; cBote = monto - cLista; } 
+            else { cLista = monto; }
+
+            memoriaCentenas[num] = acumulado + cLista;
+
+            if (cLista > 0) {
+                let el = createCentenaElement(num, cLista, false);
+                totalLista += cLista;
+                attachLongPressDelete(el, cLista, false, 'centena', num, cLista, 0, 'jugadas');
+                guardarEnSupabase('jugadas', { usuario: currentUsuario, tipo: 'centena', numeros: num, monto_fijo: cLista, costo_total: cLista }, el);
             }
-            function cancel() { clearTimeout(timer); }
-            element.addEventListener('mousedown', start); element.addEventListener('touchstart', start);
-            element.addEventListener('mouseup', cancel); element.addEventListener('touchend', cancel);
+            if (cBote > 0) {
+                let elBote = createCentenaElement(num, cBote, true);
+                totalBote += cBote;
+                attachLongPressDelete(elBote, cBote, true, 'centena', num, 0, 0, 'botes');
+                guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'centena', numeros: num, monto_fijo: cBote, costo_total: cBote }, elBote);
+            }
+            updateCounters();
         }
+
+        function processParle(numbers, monto) {
+            let pKey = numbers.slice().sort().join('-');
+            let acumulado = memoriaParles[pKey] || 0;
+            let pLista = 0, pBote = 0;
+
+            if (acumulado >= 50) { pBote = monto; } 
+            else if (acumulado + monto > 50) { pLista = 50 - acumulado; pBote = monto - pLista; } 
+            else { pLista = monto; }
+
+            memoriaParles[pKey] = acumulado + pLista;
+            let combs = (numbers.length * (numbers.length - 1)) / 2;
+
+            if (pLista > 0) {
+                let costLista = (combs * pLista) * 0.7;
+                let el = createParleVerticalElement(numbers, pLista, false);
+                totalLista += costLista;
+                attachLongPressDelete(el, costLista, false, 'parle', pKey, pLista, 0, 'jugadas');
+                guardarEnSupabase('jugadas', { usuario: currentUsuario, tipo: 'parle', numeros: pKey, monto_fijo: pLista, costo_total: costLista }, el);
+            }
+            if (pBote > 0) {
+                let costBote = (combs * pBote) * 0.7;
+                let elBote = createParleVerticalElement(numbers, pBote, true);
+                totalBote += costBote;
+                attachLongPressDelete(elBote, costBote, true, 'parle', pKey, 0, 0, 'botes');
+                guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'parle', numeros: pKey, monto_fijo: pBote, costo_total: costBote }, elBote);
+            }
+            updateCounters();
+        }
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === "Enter") sendPlay();
+        });
 
         function updateCounters() {
             document.getElementById('lbl-limpio-lista').innerText = totalLista.toFixed(2);
             document.getElementById('lbl-limpio-bote').innerText = totalBote.toFixed(2);
         }
 
-        function toggleMenu(e) { e.stopPropagation(); const menu = document.getElementById('dots-menu'); menu.style.display = (menu.style.display === 'block') ? 'none' : 'block'; }
-        function openModal(id) { document.getElementById('dots-menu').style.display = 'none'; document.getElementById('modal-container').style.display = 'flex'; document.querySelectorAll('.modal-box').forEach(b => b.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
-        function closeModal() { document.getElementById('modal-container').style.display = 'none'; }
-        document.addEventListener('click', () => { document.getElementById('dots-menu').style.display = 'none'; });
-
-        async function fetchLimitados() {
-            const { data } = await _supabase.from('limitados').select('*');
-            const container = document.getElementById('db-limitados-list');
-            if (container && data) container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
-        }
-
         function createFijoElement(num, fijo, corrido, isBote) {
             const container = document.getElementById('box-fijos');
             const div = document.createElement('div'); div.className = "row-item fijo-row";
-            div.innerHTML = `<div><span>${num}</span></div> <span class="amount-bubble">${fijo}</span> <span class="amount-bubble">${corrido}</span>`;
+            let bubbleStyle = isBote ? "amount-bubble bote-style" : "amount-bubble";
+            let boteLabel = isBote ? "<span class='bote-tag'>[Bote]</span>" : "";
+            div.innerHTML = `<div><span>${num}</span>${boteLabel}</div> <span class="${bubbleStyle}">${fijo}</span> <span class="${bubbleStyle}">${corrido > 0 ? corrido : 0}</span>`;
             container.prepend(div); return div;
         }
 
-        // Ejecución inicial del reloj
-        initClock();
+        function createCentenaElement(num, monto, isBote) {
+            const container = document.getElementById('box-parles');
+            const div = document.createElement('div'); div.className = "row-item parle-row";
+            let bubbleStyle = isBote ? "amount-bubble bote-style" : "amount-bubble";
+            let boteLabel = isBote ? "<span class='bote-tag'>[Bote]</span>" : "";
+            div.innerHTML = `<div class="centena-horizontal-block"><span>${num}</span>${boteLabel}</div><div class="parle-right-amount"><span class="${bubbleStyle}">${monto}</span></div>`;
+            container.prepend(div); return div;
+        }
+
+        function createParleVerticalElement(numbers, monto, isBote) {
+            const container = document.getElementById('box-parles');
+            const div = document.createElement('div'); div.className = "row-item parle-row";
+            let bubbleStyle = isBote ? "amount-bubble bote-style" : "amount-bubble";
+            let linesHtml = ""; numbers.forEach(num => { linesHtml += `<span>${num}</span>`; });
+            if(isBote) linesHtml += `<span class='bote-tag'>[Bote]</span>`;
+            div.innerHTML = `<div class="parle-vertical-numbers">${linesHtml}</div><div class="parle-right-amount"><span class="${bubbleStyle}">${monto}</span></div>`;
+            container.prepend(div); return div;
+        }
     </script>
 </body>
 </html>
