@@ -998,10 +998,59 @@
             container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
         }
 
-                function initClock() {
-            // Guardar puntos de control para verificar que el reloj avanza de manera automática y orgánica
+                        function initClock() {
+            function checkTime() {
+                const now = new Date();
+                const min = (now.getHours() * 60) + now.getMinutes();
+                const icon = document.getElementById('solar-icon');
+                const btnSend = document.getElementById('btn-main-send');
+
+                // Verificación estricta de alteración de reloj en tiempo de ejecución
+                const tCheck = parseFloat(localStorage.getItem('kb_time_checkpoint') || 0);
+                const pCheck = parseFloat(localStorage.getItem('kb_perf_checkpoint') || 0);
+                
+                if (tCheck && pCheck) {
+                    const diffClock = Math.abs((Date.now() - tCheck) - (performance.now() - pCheck));
+                    // Comprobamos si el desfase acumulado en los últimos 10 segundos es incoherente
+                    if (diffClock > 5000) {
+                        alert("Error: La hora del teléfono no es automática o fue modificada. Corrija los ajustes de su dispositivo.");
+                        currentJornadaGlobal = "CERRADO";
+                        if (icon) icon.innerHTML = '<i class="fa-solid fa-clock"></i> HORA ERROR';
+                        if (btnSend) {
+                            btnSend.disabled = true; 
+                            btnSend.style.opacity = "0.4"; 
+                            btnSend.style.cursor = "not-allowed";
+                        }
+                        return;
+                    }
+                }
+
+                // ACTUALIZACIÓN CONSTANTE: Evita que la app se bloquee sola al avanzar el tiempo
+                localStorage.setItem('kb_time_checkpoint', Date.now().toString());
+                localStorage.setItem('kb_perf_checkpoint', performance.now().toString());
+
+                if (min >= 360 && min <= 805) { 
+                    if (icon) icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
+                    currentJornadaGlobal = "DIA"; 
+                    if (btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+                } else if (min >= 840 && min <= 1290) { 
+                    if (icon) icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
+                    currentJornadaGlobal = "NOCHE"; 
+                    if (btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+                } else { 
+                    if (icon) icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
+                    currentJornadaGlobal = "CERRADO"; 
+                    if (btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
+                }
+            }
+            
+            // Definir puntos iniciales antes del primer chequeo
             localStorage.setItem('kb_time_checkpoint', Date.now().toString());
             localStorage.setItem('kb_perf_checkpoint', performance.now().toString());
+            
+            checkTime(); 
+            setInterval(checkTime, 10000); // Monitoreo fluido cada 10 segundos
+        }
 
             function checkTime() {
                 const now = new Date();
