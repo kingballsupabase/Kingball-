@@ -503,18 +503,41 @@
             verificarSesionGuardada();
         });
 
-                function verificarSesionGuardada() {
+                                function verificarSesionGuardada() {
             const sesionUsuario = localStorage.getItem('kb_session_user');
             const sesionJornada = localStorage.getItem('kb_session_jornada');
             
-            // SOLUCIÓN: Fecha local del teléfono en vez de ISOString
+            // CORRECCIÓN DÍA ADELANTADO: Obtenemos el día local real del teléfono
             const de = new Date();
             const hoyFecha = `${de.getFullYear()}-${String(de.getMonth() + 1).padStart(2, '0')}-${String(de.getDate()).padStart(2, '0')}`;
             
             const sesionFecha = localStorage.getItem('kb_session_fecha');
 
+            // CONTROL ESTRICTO: Validar si el reloj del sistema avanza de forma automática
+            const tiempoInicial = parseFloat(localStorage.getItem('kb_time_checkpoint') || 0);
+            const rendimientoInicial = parseFloat(localStorage.getItem('kb_perf_checkpoint') || 0);
+            
+            if (tiempoInicial && rendimientoInicial) {
+                const desvíoMilisegundos = Math.abs((Date.now() - tiempoInicial) - (performance.now() - rendimientoInicial));
+                // Si cambiaron la hora manualmente hay un desfase mayor a 5 segundos
+                if (desvíoMilisegundos > 5000) {
+                    alert("Se detectó un cambio manual en la hora del teléfono. Por favor, configure la hora en 'Automática' en los ajustes de su dispositivo para continuar.");
+                    cerrarSesionManual();
+                    return;
+                }
+            }
+
+            // Validación original de entrada directa
+            if (sesionUsuario && sesionJornada === currentJornadaGlobal && sesionFecha === hoyFecha) {
+                entrarDirectoAplicacion(sesionUsuario);
+            } else {
+                // Si cambió de sección o es otro día, limpia y solicita credenciales de seguridad
+                localStorage.removeItem('kb_session_user');
+                localStorage.removeItem('kb_session_jornada');
+                localStorage.removeItem('kb_session_fecha');
             }
         }
+
 
         async function entrarDirectoAplicacion(usuario) {
             currentUsuario = usuario;
@@ -665,8 +688,8 @@
         }
 
                 // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
-        async function cargarJornadaActual() {
-            // SOLUCIÓN: Obtiene año, mes y día de la hora local exacta del teléfono
+                async function cargarJornadaActual() {
+            // CORRECCIÓN DÍA ADELANTADO: Obtenemos el día local real en formato AAAA-MM-DD
             const de = new Date();
             const hoy = `${de.getFullYear()}-${String(de.getMonth() + 1).padStart(2, '0')}-${String(de.getDate()).padStart(2, '0')}`;
             
@@ -674,6 +697,68 @@
             document.getElementById('box-parles').innerHTML = "";
             totalLista = 0; totalBote = 0;
             updateCounters();
+
+            // Tu consulta original de jugadas usando el día corregido
+            const { data: jugadas, error: errJ } = await _supabase.from('jugadas')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .gte('created_at', `${hoy}T00:00:00Z`)
+                .lte('created_at', `${hoy}T23:59:59Z`);
+
+            if (!errJ && jugadas) {
+                jugadas.forEach(j => {
+                    if (j.jornada === currentJornadaGlobal || (!j.jornada)) { 
+                        totalLista += j.costo_total || 0;
+                        if (j.tipo === 'fijo') {
+                            memoriaFijos[j.numeros] = (memoriaFijos[j.numeros] || 0) + (j.monto_fijo || 0);
+                            memoriaCorridos[j.numeros] = (memoriaCorridos[j.numeros] || 0) + (j.monto_corrido || 0);
+                            let el = createFijoElement(j.numeros, j.monto_fijo, j.monto_corrido, false);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, j.costo_total, false, 'fijo', j.numeros, j.monto_fijo, j.monto_corrido, 'jugadas');
+                        } else if (j.tipo === 'centena') {
+                            memoriaCentenas[j.numeros] = (memoriaCentenas[j.numeros] || 0) + (j.monto_fijo || 0);
+                            let el = createCentenaElement(j.numeros, j.monto_fijo, false);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, j.costo_total, false, 'centena', j.numeros, j.monto_fijo, 0, 'jugadas');
+                        } else if (j.tipo === 'parle') {
+                            memoriaParles[j.numeros] = (memoriaParles[j.numeros] || 0) + (j.monto_fijo || 0);
+                            let el = createParleVerticalElement(j.numeros.split('-'), j.monto_fijo, false);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, j.costo_total, false, 'parle', j.numeros, j.monto_fijo, 0, 'jugadas');
+                        }
+                    }
+                });
+            }
+
+            // Tu consulta original de botes usando el día corregido
+            const { data: botes, error: errB } = await _supabase.from('botes')
+                .select('*')
+                .eq('usuario', currentUsuario)
+                .gte('created_at', `${hoy}T00:00:00Z`)
+                .lte('created_at', `${hoy}T23:59:59Z`);
+
+            if (!errB && botes) {
+                botes.forEach(b => {
+                    if (b.jornada === currentJornadaGlobal || (!b.jornada)) {
+                        totalBote += b.costo_total || 0;
+                        if (b.tipo === 'fijo') {
+                            let el = createFijoElement(b.numeros, b.monto_fijo, b.monto_corrido, true);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, b.costo_total, true, 'fijo', b.numeros, 0, 0, 'botes');
+                        } else if (b.tipo === 'centena') {
+                            let el = createCentenaElement(b.numeros, b.monto_fijo, true);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, b.costo_total, true, 'centena', b.numeros, 0, 0, 'botes');
+                        } else if (b.tipo === 'parle') {
+                            let el = createParleVerticalElement(b.numeros.split('-'), b.monto_fijo, true);
+                            el.classList.add('processed');
+                            attachLongPressDelete(el, b.costo_total, true, 'parle', b.numeros, 0, 0, 'botes');
+                        }
+                    }
+                });
+            }
+            updateCounters();
+        }
 
 
             const { data: jugadas, error: errJ } = await _supabase.from('jugadas')
@@ -913,29 +998,53 @@
             container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
         }
 
-        function initClock() {
+                function initClock() {
+            // Guardar puntos de control para verificar que el reloj avanza de manera automática y orgánica
+            localStorage.setItem('kb_time_checkpoint', Date.now().toString());
+            localStorage.setItem('kb_perf_checkpoint', performance.now().toString());
+
             function checkTime() {
                 const now = new Date();
                 const min = (now.getHours() * 60) + now.getMinutes();
                 const icon = document.getElementById('solar-icon');
                 const btnSend = document.getElementById('btn-main-send');
 
+                // Verificación estricta de alteración de reloj en tiempo de ejecución
+                const tCheck = parseFloat(localStorage.getItem('kb_time_checkpoint') || 0);
+                const pCheck = parseFloat(localStorage.getItem('kb_perf_checkpoint') || 0);
+                if (tCheck && pCheck) {
+                    const diffClock = Math.abs((Date.now() - tCheck) - (performance.now() - pCheck));
+                    if (diffClock > 5000) {
+                        alert("Error: La hora del teléfono no es automática o fue modificada. Corrija los ajustes de su dispositivo.");
+                        currentJornadaGlobal = "CERRADO";
+                        icon.innerHTML = '<i class="fa-solid fa-clock"></i> HORA ERROR';
+                        if (btnSend) {
+                            btnSend.disabled = true; 
+                            btnSend.style.opacity = "0.4"; 
+                            btnSend.style.cursor = "not-allowed";
+                        }
+                        return;
+                    }
+                }
+
                 if (min >= 360 && min <= 805) { 
                     icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
                     currentJornadaGlobal = "DIA"; 
-                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+                    if (btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
                 } else if (min >= 840 && min <= 1290) { 
                     icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
                     currentJornadaGlobal = "NOCHE"; 
-                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+                    if (btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
                 } else { 
                     icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
                     currentJornadaGlobal = "CERRADO"; 
-                    btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed";
+                    if (btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
                 }
             }
-            checkTime(); setInterval(checkTime, 30000);
+            checkTime(); 
+            setInterval(checkTime, 10000); // Monitoreo cada 10 segundos
         }
+
 
         // --- TECLADO VIRTUAL ---
         function kPress(key) {
