@@ -914,29 +914,88 @@
             container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
         }
 
+                // --- SISTEMA DE CONTROL DE SESIÓN PERSISTENTE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initClock(); // Calcula la sección horaria actual del cliente de forma estricta
+            verificarSesionGuardada();
+        });
+
+        function verificarSesionGuardada() {
+            const sesionUsuario = localStorage.getItem('kb_session_user');
+            const sesionJornada = localStorage.getItem('kb_session_jornada');
+            const hoyFecha = new Date().toISOString().split('T')[0];
+            const sesionFecha = localStorage.getItem('kb_session_fecha');
+
+            // Validar si la hora del sistema está en modo automático/coherente antes de restaurar sesión
+            const tiempoInicial = parseFloat(localStorage.getItem('kb_time_checkpoint') || 0);
+            const rendimientoInicial = parseFloat(localStorage.getItem('kb_perf_checkpoint') || 0);
+            
+            if (tiempoInicial && rendimientoInicial) {
+                const desvíoMilisegundos = Math.abs((Date.now() - tiempoInicial) - (performance.now() - rendimientoInicial));
+                // Si hay un desfase mayor a 5 segundos entre el reloj interno y la hora del sistema, se alteró la hora
+                if (desvíoMilisegundos > 5000) {
+                    alert("Se detectó un cambio manual en la hora del teléfono. Por favor, configure la hora en 'Automática' en los ajustes de su dispositivo para continuar.");
+                    cerrarSesionManual();
+                    return;
+                }
+            }
+
+            if (sesionUsuario && sesionJornada === currentJornadaGlobal && sesionFecha === hoyFecha) {
+                entrarDirectoAplicacion(sesionUsuario);
+            } else {
+                localStorage.removeItem('kb_session_user');
+                localStorage.removeItem('kb_session_jornada');
+                localStorage.removeItem('kb_session_fecha');
+            }
+        }
+
         function initClock() {
+            // Guardar puntos de control para verificar que el reloj avanza de manera automática y orgánica
+            localStorage.setItem('kb_time_checkpoint', Date.now().toString());
+            localStorage.setItem('kb_perf_checkpoint', performance.now().toString());
+
             function checkTime() {
                 const now = new Date();
                 const min = (now.getHours() * 60) + now.getMinutes();
                 const icon = document.getElementById('solar-icon');
                 const btnSend = document.getElementById('btn-main-send');
 
+                // Verificación estricta de alteración de reloj en tiempo de ejecución
+                const tCheck = parseFloat(localStorage.getItem('kb_time_checkpoint') || 0);
+                const pCheck = parseFloat(localStorage.getItem('kb_perf_checkpoint') || 0);
+                if (tCheck && pCheck) {
+                    const diffClock = Math.abs((Date.now() - tCheck) - (performance.now() - pCheck));
+                    if (diffClock > 5000) {
+                        alert("Error: La hora del teléfono no es automática o fue modificada. Corrija los ajustes de su dispositivo.");
+                        currentJornadaGlobal = "CERRADO";
+                        icon.innerHTML = '<i class="fa-solid fa-clock"></i> HORA ERROR';
+                        if (btnSend) {
+                            btnSend.disabled = true; 
+                            btnSend.style.opacity = "0.4"; 
+                            btnSend.style.cursor = "not-allowed";
+                        }
+                        return;
+                    }
+                }
+
                 if (min >= 360 && min <= 805) { 
                     icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
                     currentJornadaGlobal = "DIA"; 
-                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+                    if (btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
                 } else if (min >= 840 && min <= 1290) { 
                     icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
                     currentJornadaGlobal = "NOCHE"; 
-                    btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+                    if (btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
                 } else { 
                     icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
                     currentJornadaGlobal = "CERRADO"; 
-                    btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed";
+                    if (btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
                 }
             }
-            checkTime(); setInterval(checkTime, 30000);
+            checkTime(); 
+            setInterval(checkTime, 10000); // Monitoreo continuo cada 10 segundos para máxima seguridad
         }
+
 
         // --- TECLADO VIRTUAL ---
         function kPress(key) {
