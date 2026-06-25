@@ -503,22 +503,16 @@
             verificarSesionGuardada();
         });
 
-        function verificarSesionGuardada() {
+                function verificarSesionGuardada() {
             const sesionUsuario = localStorage.getItem('kb_session_user');
             const sesionJornada = localStorage.getItem('kb_session_jornada');
-            const hoyFecha = new Date().toISOString().split('T')[0];
+            
+            // SOLUCIÓN: Fecha local del teléfono en vez de ISOString
+            const de = new Date();
+            const hoyFecha = `${de.getFullYear()}-${String(de.getMonth() + 1).padStart(2, '0')}-${String(de.getDate()).padStart(2, '0')}`;
+            
             const sesionFecha = localStorage.getItem('kb_session_fecha');
 
-            // Si los datos existen, y corresponden a la misma fecha y sección/jornada horaria, entra directo
-            if (sesionUsuario && sesionJornada === currentJornadaGlobal && sesionFecha === hoyFecha) {
-                entrarDirectoAplicacion(sesionUsuario);
-            } else {
-                // Si cambió de sección o es otro día, limpia y solicita credenciales de seguridad
-                localStorage.removeItem('kb_session_user');
-                localStorage.removeItem('kb_session_jornada');
-                localStorage.removeItem('kb_session_fecha');
-            }
-        }
 
         async function entrarDirectoAplicacion(usuario) {
             currentUsuario = usuario;
@@ -669,43 +663,17 @@
         }
 
         // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
+              // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
         async function cargarJornadaActual() {
-            const hoy = new Date().toISOString().split('T')[0];
+            // SOLUCIÓN: Obtiene año, mes y día de la hora local exacta del teléfono
+            const de = new Date();
+            const hoy = `${de.getFullYear()}-${String(de.getMonth() + 1).padStart(2, '0')}-${String(de.getDate()).padStart(2, '0')}`;
             
             document.getElementById('box-fijos').innerHTML = "";
             document.getElementById('box-parles').innerHTML = "";
             totalLista = 0; totalBote = 0;
             updateCounters();
 
-            const { data: jugadas, error: errJ } = await _supabase.from('jugadas')
-                .select('*')
-                .eq('usuario', currentUsuario)
-                .gte('created_at', `${hoy}T00:00:00Z`)
-                .lte('created_at', `${hoy}T23:59:59Z`);
-
-            if (!errJ && jugadas) {
-                jugadas.forEach(j => {
-                    if (j.jornada === currentJornadaGlobal || (!j.jornada)) { 
-                        totalLista += j.costo_total || 0;
-                        if (j.tipo === 'fijo') {
-                            memoriaFijos[j.numeros] = (memoriaFijos[j.numeros] || 0) + (j.monto_fijo || 0);
-                            memoriaCorridos[j.numeros] = (memoriaCorridos[j.numeros] || 0) + (j.monto_corrido || 0);
-                            let el = createFijoElement(j.numeros, j.monto_fijo, j.monto_corrido, false);
-                            el.classList.add('processed');
-                            attachLongPressDelete(el, j.costo_total, false, 'fijo', j.numeros, j.monto_fijo, j.monto_corrido, 'jugadas');
-                        } else if (j.tipo === 'centena') {
-                            memoriaCentenas[j.numeros] = (memoriaCentenas[j.numeros] || 0) + (j.monto_fijo || 0);
-                            let el = createCentenaElement(j.numeros, j.monto_fijo, false);
-                            el.classList.add('processed');
-                            attachLongPressDelete(el, j.costo_total, false, 'centena', j.numeros, j.monto_fijo, 0, 'jugadas');
-                        } else if (j.tipo === 'parle') {
-                            memoriaParles[j.numeros] = (memoriaParles[j.numeros] || 0) + (j.monto_fijo || 0);
-                            let el = createParleVerticalElement(j.numeros.split('-'), j.monto_fijo, false);
-                            el.classList.add('processed');
-                            attachLongPressDelete(el, j.costo_total, false, 'parle', j.numeros, j.monto_fijo, 0, 'jugadas');
-                        }
-                    }
-                });
             }
 
             const { data: botes, error: errB } = await _supabase.from('botes')
