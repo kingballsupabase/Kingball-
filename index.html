@@ -495,25 +495,29 @@
         let totalLista = 0, totalBote = 0;
         const input = document.getElementById('main-input');
 
-        document.getElementById('search-date').valueAsDate = new Date();
+        // --- SOLUCIÓN DE DESFASE HORARIO (Evita problemas con el ISOString UTC de Supabase) ---
+        function getLocalDateString() {
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            return (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+        }
+
+        document.getElementById('search-date').value = getLocalDateString();
 
         // --- SISTEMA DE CONTROL DE SESIÓN PERSISTENTE ---
         window.addEventListener('DOMContentLoaded', () => {
-            initClock(); // Primero calcula la sección horaria actual del cliente
+            initClock(); 
             verificarSesionGuardada();
         });
 
         function verificarSesionGuardada() {
             const sesionUsuario = localStorage.getItem('kb_session_user');
             const sesionJornada = localStorage.getItem('kb_session_jornada');
-            const hoyFecha = new Date().toISOString().split('T')[0];
+            const hoyFecha = getLocalDateString();
             const sesionFecha = localStorage.getItem('kb_session_fecha');
 
-            // Si los datos existen, y corresponden a la misma fecha y sección/jornada horaria, entra directo
             if (sesionUsuario && sesionJornada === currentJornadaGlobal && sesionFecha === hoyFecha) {
                 entrarDirectoAplicacion(sesionUsuario);
             } else {
-                // Si cambió de sección o es otro día, limpia y solicita credenciales de seguridad
                 localStorage.removeItem('kb_session_user');
                 localStorage.removeItem('kb_session_jornada');
                 localStorage.removeItem('kb_session_fecha');
@@ -542,7 +546,7 @@
             e.preventDefault();
             deferredPrompt = e;
             const btnInstall = document.getElementById('btn-install-app');
-            if (btnInstall) btnInstall.style.display = 'flex'; // Muestra la opción en el menú contextual
+            if (btnInstall) btnInstall.style.display = 'flex'; 
         });
 
         function triggerAppInstallation() {
@@ -612,10 +616,9 @@
                 alert("Usuario o clave incorrectos en la base de datos.");
                 btn.disabled = false;
             } else {
-                // Guardar parámetros de control de sesión única por jornada horaria
                 localStorage.setItem('kb_session_user', u);
                 localStorage.setItem('kb_session_jornada', currentJornadaGlobal);
-                localStorage.setItem('kb_session_fecha', new Date().toISOString().split('T')[0]);
+                localStorage.setItem('kb_session_fecha', getLocalDateString());
                 
                 entrarDirectoAplicacion(u);
             }
@@ -638,6 +641,7 @@
             btn.disabled = false;
         }
 
+        // --- ACTUALIZACIÓN DE CLAVE CORREGIDA (Segura y condicional) ---
         async function actualizarClaveReal() {
             const vieja = document.getElementById('opt-old-pass').value.trim();
             const nueva = document.getElementById('opt-new-pass').value.trim();
@@ -645,21 +649,13 @@
             if(!vieja || !nueva) { alert("Por favor rellene ambos campos."); return; }
 
             const { data, error } = await _supabase.from('usuarios')
-                .select('*')
+                .update({ clave: nueva })
                 .eq('usuario', currentUsuario)
-                .eq('clave', vieja);
+                .eq('clave', vieja)
+                .select();
 
             if(error || !data || data.length === 0) {
-                alert("La contraseña actual es incorrecta.");
-                return;
-            }
-
-            const { error: updateError } = await _supabase.from('usuarios')
-                .update({ clave: nueva })
-                .eq('usuario', currentUsuario);
-
-            if(updateError) {
-                alert("Error al intentar cambiar la contraseña.");
+                alert("La contraseña actual es incorrecta o el usuario no existe.");
             } else {
                 alert("Contraseña actualizada con éxito.");
                 document.getElementById('opt-old-pass').value = "";
@@ -670,7 +666,7 @@
 
         // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
         async function cargarJornadaActual() {
-            const hoy = new Date().toISOString().split('T')[0];
+            const hoy = getLocalDateString();
             
             document.getElementById('box-fijos').innerHTML = "";
             document.getElementById('box-parles').innerHTML = "";
@@ -721,15 +717,15 @@
                         if (b.tipo === 'fijo') {
                             let el = createFijoElement(b.numeros, b.monto_fijo, b.monto_corrido, true);
                             el.classList.add('processed');
-                            attachLongPressDelete(el, b.costo_total, true, 'fijo', b.numeros, 0, 0, 'botes');
+                            attachLongPressDelete(el, b.costo_total, true, 'fijo', b.numeros, b.monto_fijo, b.monto_corrido, 'botes');
                         } else if (b.tipo === 'centena') {
                             let el = createCentenaElement(b.numeros, b.monto_fijo, true);
                             el.classList.add('processed');
-                            attachLongPressDelete(el, b.costo_total, true, 'centena', b.numeros, 0, 0, 'botes');
+                            attachLongPressDelete(el, b.costo_total, true, 'centena', b.numeros, b.monto_fijo, 0, 'botes');
                         } else if (b.tipo === 'parle') {
                             let el = createParleVerticalElement(b.numeros.split('-'), b.monto_fijo, true);
                             el.classList.add('processed');
-                            attachLongPressDelete(el, b.costo_total, true, 'parle', b.numeros, 0, 0, 'botes');
+                            attachLongPressDelete(el, b.costo_total, true, 'parle', b.numeros, b.monto_fijo, 0, 'botes');
                         }
                     }
                 });
@@ -972,6 +968,7 @@
             await _supabase.from(tabla).delete().eq('numeros', numQuery).eq('usuario', currentUsuario).eq('jornada', currentJornadaGlobal);
         }
 
+        // --- CONTROL DE BORRADO Y MEMORIA CORREGIDO PARA AMBAS TABLAS ---
         function attachLongPressDelete(element, costValue, isBote, typeKey, numKey, fAmt = 0, cAmt = 0, dbTabla = 'jugadas') {
             let timer;
             function start() {
@@ -981,18 +978,22 @@
                         return;
                     }
                     if (confirm("¿Desea borrar esta jugada?")) {
-                        if(isBote) { totalBote -= costValue; if (totalBote < 0) totalBote = 0; } 
-                        else {
+                        if(isBote) { 
+                            totalBote -= costValue; if (totalBote < 0) totalBote = 0; 
+                        } else {
                             totalLista -= costValue; if (totalLista < 0) totalLista = 0;
-                            if (typeKey === 'fijo') {
-                                memoriaFijos[numKey] = (memoriaFijos[numKey] || 0) - fAmt;
-                                memoriaCorridos[numKey] = (memoriaCorridos[numKey] || 0) - cAmt;
-                            } else if (typeKey === 'centena') {
-                                memoriaCentenas[numKey] = (memoriaCentenas[numKey] || 0) - fAmt;
-                            } else if (typeKey === 'parle') {
-                                memoriaParles[numKey] = (memoriaParles[numKey] || 0) - fAmt;
-                            }
                         }
+                        
+                        // Restar de la memoria local sin importar si vino de lista o bote para liberar los topes
+                        if (typeKey === 'fijo') {
+                            memoriaFijos[numKey] = Math.max(0, (memoriaFijos[numKey] || 0) - fAmt);
+                            memoriaCorridos[numKey] = Math.max(0, (memoriaCorridos[numKey] || 0) - cAmt);
+                        } else if (typeKey === 'centena') {
+                            memoriaCentenas[numKey] = Math.max(0, (memoriaCentenas[numKey] || 0) - fAmt);
+                        } else if (typeKey === 'parle') {
+                            memoriaParles[numKey] = Math.max(0, (memoriaParles[numKey] || 0) - fAmt);
+                        }
+
                         borrarDeSupabase(dbTabla, numKey);
                         updateCounters();
                         element.remove();
@@ -1067,8 +1068,8 @@
             else if (acumuladoC + corrido > 500) { cLista = 500 - acumuladoC; cBote = corrido - cLista; } 
             else { cLista = corrido; }
 
-            memoriaFijos[num] = acumuladoF + fLista;
-            memoriaCorridos[num] = acumuladoC + cLista;
+            memoriaFijos[num] = acumuladoF + fLista + fBote;
+            memoriaCorridos[num] = acumuladoC + cLista + cBote;
 
             if (fLista > 0 || cLista > 0) {
                 let costLista = (fLista + cLista) * 0.8;
@@ -1081,7 +1082,7 @@
                 let costBote = (fBote + cBote) * 0.8;
                 let elBote = createFijoElement(num, fBote, cBote, true);
                 totalBote += costBote;
-                attachLongPressDelete(elBote, costBote, true, 'fijo', num, 0, 0, 'botes');
+                attachLongPressDelete(elBote, costBote, true, 'fijo', num, fBote, cBote, 'botes');
                 guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'fijo', numeros: num, monto_fijo: fBote, monto_corrido: cBote, costo_total: costBote }, elBote);
             }
             updateCounters();
@@ -1095,7 +1096,7 @@
             else if (acumulado + monto > 50) { cLista = 50 - acumulado; cBote = monto - cLista; } 
             else { cLista = monto; }
 
-            memoriaCentenas[num] = acumulado + cLista;
+            memoriaCentenas[num] = acumulado + cLista + cBote;
 
             if (cLista > 0) {
                 let el = createCentenaElement(num, cLista, false);
@@ -1106,7 +1107,7 @@
             if (cBote > 0) {
                 let elBote = createCentenaElement(num, cBote, true);
                 totalBote += cBote;
-                attachLongPressDelete(elBote, cBote, true, 'centena', num, 0, 0, 'botes');
+                attachLongPressDelete(elBote, cBote, true, 'centena', num, cBote, 0, 'botes');
                 guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'centena', numeros: num, monto_fijo: cBote, costo_total: cBote }, elBote);
             }
             updateCounters();
@@ -1121,7 +1122,7 @@
             else if (acumulado + monto > 50) { pLista = 50 - acumulado; pBote = monto - pLista; } 
             else { pLista = monto; }
 
-            memoriaParles[pKey] = acumulado + pLista;
+            memoriaParles[pKey] = acumulado + pLista + pBote;
             let combs = (numbers.length * (numbers.length - 1)) / 2;
 
             if (pLista > 0) {
@@ -1135,7 +1136,7 @@
                 let costBote = (combs * pBote) * 0.7;
                 let elBote = createParleVerticalElement(numbers, pBote, true);
                 totalBote += costBote;
-                attachLongPressDelete(elBote, costBote, true, 'parle', pKey, 0, 0, 'botes');
+                attachLongPressDelete(elBote, costBote, true, 'parle', pKey, pBote, 0, 'botes');
                 guardarEnSupabase('botes', { usuario: currentUsuario, tipo: 'parle', numeros: pKey, monto_fijo: pBote, costo_total: costBote }, elBote);
             }
             updateCounters();
@@ -1179,4 +1180,4 @@
         }
     </script>
 </body>
-                </html>
+</html>
