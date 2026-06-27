@@ -249,40 +249,40 @@ async function fetchLimitados() {
 }
 
 async function initClock() {
-    async function checkTime() {
-        const icon = document.getElementById('solar-icon');
-        const btnSend = document.getElementById('btn-main-send');
+    const icon = document.getElementById('solar-icon');
+    const btnSend = document.getElementById('btn-main-send');
 
+    // ESTADO INICIAL SEGURO: Mientras se conecta a internet, la app está bloqueada
+    if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CARGANDO...';
+    if (btnSend) { 
+        btnSend.disabled = true; 
+        btnSend.style.opacity = "0.4"; 
+        btnSend.style.cursor = "not-allowed"; 
+    }
+    currentJornadaGlobal = "CERRADO"; 
+
+    async function checkTime() {
         try {
-            // 1. Consultamos una API ultra-ligera y precisa (TimeAPI) configurada para Cuba
+            // Consultamos la hora oficial de Cuba en internet
             const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
-            
             if (!response.ok) throw new Error('Servidor de hora no disponible');
             
             const data = await response.json();
-            
-            // 2. EXTRAEMOS LA HORA Y MINUTO PUROS DEL SERVIDOR
-            // Al mapear directamente las propiedades numéricas del JSON, el reloj del teléfono pierde el control.
             const serverHour = parseInt(data.hour, 10);
             const serverMinute = parseInt(data.minute, 10);
             
-            // 3. Calculamos los minutos exactos del día oficial en Cuba
+            // Minutos transcurridos en el día oficial de Cuba
             const min = (serverHour * 60) + serverMinute;
 
-            // RANGOS DE HORARIOS DE RECOGIDA (Kingball estándar)
-            // DÍA: 06:00 AM (360 min) hasta las 01:25 PM (805 min)
+            // REGLAS DE HORARIOS DE KINGBALL
             if (min >= 360 && min <= 805) { 
                 if(icon) icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
                 currentJornadaGlobal = "DIA"; 
                 if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
-            
-            // NOCHE: 02:00 PM (840 min) hasta las 09:30 PM (1290 min)
             } else if (min >= 840 && min <= 1290) { 
                 if(icon) icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
                 currentJornadaGlobal = "NOCHE"; 
                 if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
-            
-            // FUERA DE TIEMPO / CERRADO
             } else { 
                 if(icon) icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
                 currentJornadaGlobal = "CERRADO"; 
@@ -290,24 +290,24 @@ async function initClock() {
             }
 
         } catch (error) {
-            console.error("Fallo crítico de sincronización horaria:", error);
-            // PROTECCIÓN ANTI-SABOTAJE: Si quitan el internet, activan modo avión 
-            // o intentan congelar la app, el sistema bloquea el botón de inmediato.
-            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> CONECTANDO...';
+            console.error("Error de sincronización:", error);
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> ERROR CONEXIÓN';
             if(btnSend) { 
                 btnSend.disabled = true; 
                 btnSend.style.opacity = "0.4"; 
                 btnSend.style.cursor = "not-allowed"; 
             }
+            currentJornadaGlobal = "CERRADO";
         }
     }
 
-    // Ejecución inicial obligatoria al abrir la aplicación
+    // Ejecuta la consulta inmediatamente
     await checkTime(); 
     
-    // Intervalo de re-verificación a los 45 segundos para controlar el consumo de datos en Cuba
+    // Sigue verificando cada 45 segundos
     setInterval(checkTime, 45000); 
 }
+
 
 
 
