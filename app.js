@@ -250,27 +250,35 @@ async function fetchLimitados() {
 
 function initClock() {
     function checkTime() {
-        const now = new Date();
-        const min = (now.getHours() * 60) + now.getMinutes();
+        // Obtener la hora actual formateada explícitamente para la zona horaria de Cuba
+        const cubaTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Havana" });
+        const nowCuba = new Date(cubaTimeStr);
+        
+        // Calcular los minutos transcurridos en el día en Cuba
+        const min = (nowCuba.getHours() * 60) + nowCuba.getMinutes();
+        
         const icon = document.getElementById('solar-icon');
         const btnSend = document.getElementById('btn-main-send');
 
+        // Mismas reglas de horarios, pero ahora basadas estrictamente en Cuba
         if (min >= 360 && min <= 805) { 
             icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
             currentJornadaGlobal = "DIA"; 
-            btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+            if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
         } else if (min >= 840 && min <= 1290) { 
             icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
             currentJornadaGlobal = "NOCHE"; 
-            btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer";
+            if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
         } else { 
             icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
             currentJornadaGlobal = "CERRADO"; 
-            btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed";
+            if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
         }
     }
-    checkTime(); setInterval(checkTime, 30000);
+    checkTime(); 
+    setInterval(checkTime, 30000); // Se actualiza cada 30 segundos
 }
+
 
 function toggleKeyboardVisibility() {
     const kb = document.getElementById('kb-grid-element');
