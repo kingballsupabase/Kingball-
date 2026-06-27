@@ -249,10 +249,18 @@ async function fetchLimitados() {
 }
 
 async function initClock() {
+async function initClock() {
     const icon = document.getElementById('solar-icon');
     const btnSend = document.getElementById('btn-main-send');
+    const clockEl = document.getElementById('digital-clock');
 
-    // ESTADO INICIAL SEGURO: Mientras se conecta a internet, la app está bloqueada
+    // Variables internas para mantener el tiempo corriendo segundo a segundo
+    let localHour = 0;
+    let localMinute = 0;
+    let localSecond = 0;
+    let clockInterval = null;
+
+    // Estado inicial seguro
     if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CARGANDO...';
     if (btnSend) { 
         btnSend.disabled = true; 
@@ -261,18 +269,49 @@ async function initClock() {
     }
     currentJornadaGlobal = "CERRADO"; 
 
-    async function checkTime() {
+    // Función 1: Actualiza el diseño del reloj digital en la pantalla segundo a segundo
+    function updateDigitalClock() {
+        if (!clockEl) return;
+
+        // Avanzar el tiempo un segundo
+        localSecond++;
+        if (localSecond >= 60) { localSecond = 0; localMinute++; }
+        if (localMinute >= 60) { localMinute = 0; localHour++; }
+        if (localHour >= 24) { localHour = 0; }
+
+        // Formatear a formato de 12 horas (AM/PM) para Cuba
+        const ampm = localHour >= 12 ? 'PM' : 'AM';
+        let displayHour = localHour % 12;
+        displayHour = displayHour ? displayHour : 12; // El 0 se convierte en 12
+
+        // Añadir ceros a la izquierda para que se vea limpio (03:05:09)
+        const strHours = String(displayHour).padStart(2, '0');
+        const strMinutes = String(localMinute).padStart(2, '0');
+        const strSeconds = String(localSecond).padStart(2, '0');
+
+        // Pintar la hora en el HTML
+        clockEl.innerText = `${strHours}:${strMinutes}:${strSeconds} ${ampm}`;
+    }
+
+    // Función 2: Sincroniza las reglas de bloqueo con el servidor de internet
+    async function syncWithServer() {
         try {
-            // Consultamos la hora oficial de Cuba en internet
             const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
             if (!response.ok) throw new Error('Servidor de hora no disponible');
             
             const data = await response.json();
-            const serverHour = parseInt(data.hour, 10);
-            const serverMinute = parseInt(data.minute, 10);
             
-            // Minutos transcurridos en el día oficial de Cuba
-            const min = (serverHour * 60) + serverMinute;
+            // Sincronizamos nuestro reloj interno con la hora exacta de internet
+            localHour = parseInt(data.hour, 10);
+            localMinute = parseInt(data.minute, 10);
+            localSecond = parseInt(data.second, 10);
+
+            // Iniciar el segundero si no está corriendo todavía
+            if (!clockInterval) {
+                clockInterval = setInterval(updateDigitalClock, 1000);
+            }
+
+            const min = (localHour * 60) + localMinute;
 
             // REGLAS DE HORARIOS DE KINGBALL
             if (min >= 360 && min <= 805) { 
@@ -291,7 +330,7 @@ async function initClock() {
 
         } catch (error) {
             console.error("Error de sincronización:", error);
-            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> ERROR CONEXIÓN';
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> DESCONECTADO';
             if(btnSend) { 
                 btnSend.disabled = true; 
                 btnSend.style.opacity = "0.4"; 
@@ -301,12 +340,13 @@ async function initClock() {
         }
     }
 
-    // Ejecuta la consulta inmediatamente
-    await checkTime(); 
+    // Primera sincronización forzada
+    await syncWithServer(); 
     
-    // Sigue verificando cada 45 segundos
-    setInterval(checkTime, 45000); 
+    // Re-comprobar el estado de los límites cada 60 segundos por seguridad
+    setInterval(syncWithServer, 60000); 
 }
+
 
 
 
