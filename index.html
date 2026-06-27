@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KingBall Web">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIktpbmdCYWxsIFdlYiIsCiAgInNob3J0X25hbWUiOiAiS2luZ0JhbGwiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBkMWIyYSIsCiAgInRoZW1lX2NvbG9yIjogIiM0NjgyQjQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi8yNDg5LzI0ODk0NjMucG5nIiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIktpbmdCYWxsIFdlYiIsCiAgInNob3J0X25hbWUiOiAiS2luZ0JhbGwiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBkMWIyYSIsCiAgInRoZW1lX2NvbG9yIjogIiM0NjgyQjQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGicolY29tLzUxMi8yNDg5Lz2NDg5NDYzLnBuZyIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2UvcG5nIgogICAgfQogIF0KfQ==">
 
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -70,7 +70,10 @@
         <header>
             <div class="header-left">
                 <div class="location-badge"><i class="fa-solid fa-caret-right"></i> FLORIDA</div>
-                <div class="time-badge" id="solar-icon"></div>
+                <div class="time-badge">
+                    <span id="solar-icon"></span>
+                    <span id="digital-clock" style="margin-left: 8px; font-weight: bold; font-family: monospace; letter-spacing: 0.5px;">--:--:-- --</span>
+                </div>
             </div>
             <div class="header-right">
                 <div>Lista: <span id="lbl-limpio-lista" style="color:#111">0.00</span></div>
