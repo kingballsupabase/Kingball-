@@ -248,36 +248,60 @@ async function fetchLimitados() {
     container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
 }
 
-function initClock() {
-    function checkTime() {
-        // Obtener la hora actual formateada explícitamente para la zona horaria de Cuba
-        const cubaTimeStr = new Date().toLocaleString("en-US", { timeZone: "America/Havana" });
-        const nowCuba = new Date(cubaTimeStr);
-        
-        // Calcular los minutos transcurridos en el día en Cuba
-        const min = (nowCuba.getHours() * 60) + nowCuba.getMinutes();
-        
+async function initClock() {
+    async function checkTime() {
         const icon = document.getElementById('solar-icon');
         const btnSend = document.getElementById('btn-main-send');
 
-        // Mismas reglas de horarios, pero ahora basadas estrictamente en Cuba
-        if (min >= 360 && min <= 805) { 
-            icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
-            currentJornadaGlobal = "DIA"; 
-            if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
-        } else if (min >= 840 && min <= 1290) { 
-            icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
-            currentJornadaGlobal = "NOCHE"; 
-            if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
-        } else { 
-            icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
-            currentJornadaGlobal = "CERRADO"; 
+        try {
+            // 1. Solicitamos la hora oficial de la zona America/Havana a un servidor seguro
+            const response = await fetch('https://worldtimeapi.org/api/timezone/America/Havana');
+            
+            if (!response.ok) throw new Error('Error al consultar servidor de hora');
+            
+            const data = await response.json();
+            
+            // 2. Extraemos la fecha y hora oficial del servidor (viene en formato ISO)
+            // Ejemplo: "2026-06-27T15:45:00.123456-04:00"
+            const datetimeStr = data.datetime; 
+            
+            // Creamos un objeto de fecha basado estrictamente en la respuesta del servidor
+            const nowCuba = new Date(datetimeStr);
+            
+            // 3. Calculamos los minutos del día en Cuba de forma real
+            const min = (nowCuba.getHours() * 60) + nowCuba.getMinutes();
+
+            // Mismas reglas de horarios basadas en la hora real del servidor
+            if (min >= 360 && min <= 805) { 
+                icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
+                currentJornadaGlobal = "DIA"; 
+                if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+            } else if (min >= 840 && min <= 1290) { 
+                icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
+                currentJornadaGlobal = "NOCHE"; 
+                if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+            } else { 
+                icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
+                currentJornadaGlobal = "CERRADO"; 
+                if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
+            }
+
+        } catch (error) {
+            console.error("Error obteniendo la hora del servidor:", error);
+            // Plan de contingencia: Si falla la red o la API, por seguridad bloqueamos el botón
+            // para evitar que metan jugadas falsas fuera de hora.
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> ERROR RED';
             if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
         }
     }
-    checkTime(); 
-    setInterval(checkTime, 30000); // Se actualiza cada 30 segundos
+
+    // Ejecutar de inmediato al cargar
+    await checkTime(); 
+    
+    // Como ahora consulta a internet, lo ideal es verificar cada 60 segundos para no saturar los datos del usuario
+    setInterval(checkTime, 60000); 
 }
+
 
 
 function toggleKeyboardVisibility() {
