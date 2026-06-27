@@ -254,53 +254,61 @@ async function initClock() {
         const btnSend = document.getElementById('btn-main-send');
 
         try {
-            // 1. Solicitamos la hora oficial de la zona America/Havana a un servidor seguro
-            const response = await fetch('https://worldtimeapi.org/api/timezone/America/Havana');
+            // 1. Consultamos una API ultra-ligera y precisa (TimeAPI) configurada para Cuba
+            const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
             
-            if (!response.ok) throw new Error('Error al consultar servidor de hora');
+            if (!response.ok) throw new Error('Servidor de hora no disponible');
             
             const data = await response.json();
             
-            // 2. Extraemos la fecha y hora oficial del servidor (viene en formato ISO)
-            // Ejemplo: "2026-06-27T15:45:00.123456-04:00"
-            const datetimeStr = data.datetime; 
+            // 2. EXTRAEMOS LA HORA Y MINUTO PUROS DEL SERVIDOR
+            // Al mapear directamente las propiedades numéricas del JSON, el reloj del teléfono pierde el control.
+            const serverHour = parseInt(data.hour, 10);
+            const serverMinute = parseInt(data.minute, 10);
             
-            // Creamos un objeto de fecha basado estrictamente en la respuesta del servidor
-            const nowCuba = new Date(datetimeStr);
-            
-            // 3. Calculamos los minutos del día en Cuba de forma real
-            const min = (nowCuba.getHours() * 60) + nowCuba.getMinutes();
+            // 3. Calculamos los minutos exactos del día oficial en Cuba
+            const min = (serverHour * 60) + serverMinute;
 
-            // Mismas reglas de horarios basadas en la hora real del servidor
+            // RANGOS DE HORARIOS DE RECOGIDA (Kingball estándar)
+            // DÍA: 06:00 AM (360 min) hasta las 01:25 PM (805 min)
             if (min >= 360 && min <= 805) { 
-                icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
+                if(icon) icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
                 currentJornadaGlobal = "DIA"; 
                 if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+            
+            // NOCHE: 02:00 PM (840 min) hasta las 09:30 PM (1290 min)
             } else if (min >= 840 && min <= 1290) { 
-                icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
+                if(icon) icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
                 currentJornadaGlobal = "NOCHE"; 
                 if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+            
+            // FUERA DE TIEMPO / CERRADO
             } else { 
-                icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
+                if(icon) icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
                 currentJornadaGlobal = "CERRADO"; 
                 if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
             }
 
         } catch (error) {
-            console.error("Error obteniendo la hora del servidor:", error);
-            // Plan de contingencia: Si falla la red o la API, por seguridad bloqueamos el botón
-            // para evitar que metan jugadas falsas fuera de hora.
-            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> ERROR RED';
-            if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
+            console.error("Fallo crítico de sincronización horaria:", error);
+            // PROTECCIÓN ANTI-SABOTAJE: Si quitan el internet, activan modo avión 
+            // o intentan congelar la app, el sistema bloquea el botón de inmediato.
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> CONECTANDO...';
+            if(btnSend) { 
+                btnSend.disabled = true; 
+                btnSend.style.opacity = "0.4"; 
+                btnSend.style.cursor = "not-allowed"; 
+            }
         }
     }
 
-    // Ejecutar de inmediato al cargar
+    // Ejecución inicial obligatoria al abrir la aplicación
     await checkTime(); 
     
-    // Como ahora consulta a internet, lo ideal es verificar cada 60 segundos para no saturar los datos del usuario
-    setInterval(checkTime, 60000); 
+    // Intervalo de re-verificación a los 45 segundos para controlar el consumo de datos en Cuba
+    setInterval(checkTime, 45000); 
 }
+
 
 
 
