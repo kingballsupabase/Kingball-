@@ -2,11 +2,17 @@ const memoriaFijos = {}, memoriaCorridos = {}, memoriaCentenas = {}, memoriaParl
 let totalLista = 0, totalBote = 0;
 const input = document.getElementById('main-input');
 
-document.getElementById('search-date').valueAsDate = new Date();
+// Variables globales para el segundero del reloj
+let localHour = new Date().getHours();
+let localMinute = new Date().getMinutes();
+let localSecond = new Date().getSeconds();
+
+// Setea la fecha de hoy en el calendario usando el huso horario local de forma limpia
+document.getElementById('search-date').value = new Date().toLocaleDateString('en-CA');
 
 // --- CARGA AUTOMÁTICA DE DATOS DE LA JORNADA ---
 async function cargarJornadaActual() {
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = new Date().toLocaleDateString('en-CA');
     
     document.getElementById('box-fijos').innerHTML = "";
     document.getElementById('box-parles').innerHTML = "";
@@ -248,202 +254,77 @@ async function fetchLimitados() {
     container.innerHTML = data.map(item => `• <strong>${item.numero}</strong>: ${item.motivo}`).join('<br>');
 }
 
-async function initClock() {
-    const icon = document.getElementById('solar-icon');
-    const btnSend = document.getElementById('btn-main-send');
+// --- SISTEMA DE RELOJ DIGITAL Y CONTROL DE HORARIO ---
+function moverRelojDigital() {
+    localSecond++;
+    if (localSecond >= 60) { localSecond = 0; localMinute++; }
+    if (localMinute >= 60) { localMinute = 0; localHour++; }
+    if (localHour >= 24) { localHour = 0; }
+
     const clockEl = document.getElementById('digital-clock');
-
-    // Variables internas para mantener el tiempo corriendo segundo a segundo
-    let localHour = 0;
-    let localMinute = 0;
-    let localSecond = 0;
-    let clockInterval = null;
-
-    // Estado inicial seguro
-    if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> CARGANDO...';
-    if (btnSend) { 
-        btnSend.disabled = true; 
-        btnSend.style.opacity = "0.4"; 
-        btnSend.style.cursor = "not-allowed"; 
-    }
-    currentJornadaGlobal = "CERRADO"; 
-
-    // Función 1: Actualiza el diseño del reloj digital en la pantalla segundo a segundo
-    function updateDigitalClock() {
-        if (!clockEl) return;
-
-        // Avanzar el tiempo un segundo
-        localSecond++;
-        if (localSecond >= 60) { localSecond = 0; localMinute++; }
-        if (localMinute >= 60) { localMinute = 0; localHour++; }
-        if (localHour >= 24) { localHour = 0; }
-
-        // Formatear a formato de 12 horas (AM/PM) para Cuba
-        const ampm = localHour >= 12 ? 'PM' : 'AM';
-        let displayHour = localHour % 12;
-        displayHour = displayHour ? displayHour : 12; // El 0 se convierte en 12
-
-        // Añadir ceros a la izquierda para que se vea limpio (03:05:09)
-        const strHours = String(displayHour).padStart(2, '0');
-        const strMinutes = String(localMinute).padStart(2, '0');
-        const strSeconds = String(localSecond).padStart(2, '0');
-
-        // Pintar la hora en el HTML
-        clockEl.innerText = `${strHours}:${strMinutes}:${strSeconds} ${ampm}`;
-    }
-
-    // Función 2: Sincroniza las reglas de bloqueo con el servidor de internet
-    async function syncWithServer() {
-        try {
-            const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
-            if (!response.ok) throw new Error('Servidor de hora no disponible');
-            
-            const data = await response.json();
-            
-            // Sincronizamos nuestro reloj interno con la hora exacta de internet
-            localHour = parseInt(data.hour, 10);
-            localMinute = parseInt(data.minute, 10);
-function initClock() {
-    const icon = document.getElementById('solar-icon');
-    const btnSend = document.getElementById('btn-main-send');
-    const clockEl = document.getElementById('digital-clock');
-
-    // Inicializamos las variables con una hora por defecto aproximada por seguridad
-    let localHour = new Date().getHours();
-    let localMinute = new Date().getMinutes();
-    let localSecond = new Date().getSeconds();
-
-    // 1. INICIAR EL RELOJ DIGITAL DE INMEDIATO (Síncrono)
-    // Esto corre al instante en milisegundos, permitiendo que auth.js trabaje sin trabar la sesión
-    setInterval(function updateDigitalClock() {
-        localSecond++;
-        if (localSecond >= 60) { localSecond = 0; localMinute++; }
-        if (localMinute >= 60) { localMinute = 0; localHour++; }
-        if (localHour >= 24) { localHour = 0; }
-
-        if (!clockEl) return;
-        
-        const ampm = localHour >= 12 ? 'PM' : 'AM';
-        let displayHour = localHour % 12;
-        displayHour = displayHour ? displayHour : 12;
-
-        const strHours = String(displayHour).padStart(2, '0');
-        const strMinutes = String(localMinute).padStart(2, '0');
-        const strSeconds = String(localSecond).padStart(2, '0');
-
-        clockEl.innerText = `${strHours}:${strMinutes}:${strSeconds} ${ampm}`;
-    }, 1000);
-
-    // Estado inicial seguro en la interfaz mientras se verifica el servidor
-    if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VERIFICANDO...';
-    currentJornadaGlobal = "CERRADO"; 
-
-    // 2. FUNCIÓN DE SINCRONIZACIÓN ASÍNCRONA CON INTERNET
-    async function syncWithServer() {
-        try {
-            const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
-            if (!response.ok) throw new Error('Servidor de hora fuera de servicio');
-            
-            const data = await response.json();
-            
-            // Sincronizamos las variables del segundero con el servidor de Cuba de forma silenciosa
-            localHour = parseInt(data.hour, 10);
-            localMinute = parseInt(data.minute, 10);
-            localSecond = parseInt(data.second, 10);
-
-            const min = (localHour * 60) + localMinute;
-function initClock() {
-    const icon = document.getElementById('solar-icon');
-    const btnSend = document.getElementById('btn-main-send');
-    const clockEl = document.getElementById('digital-clock');
-
-    // Inicializamos las variables con una hora por defecto aproximada por seguridad
-    let localHour = new Date().getHours();
-    let localMinute = new Date().getMinutes();
-    let localSecond = new Date().getSeconds();
-
-    // 1. INICIAR EL RELOJ DIGITAL DE INMEDIATO (Síncrono)
-    // Esto corre al instante en milisegundos, permitiendo que auth.js trabaje sin trabar la sesión
-    setInterval(function updateDigitalClock() {
-        localSecond++;
-        if (localSecond >= 60) { localSecond = 0; localMinute++; }
-        if (localMinute >= 60) { localMinute = 0; localHour++; }
-        if (localHour >= 24) { localHour = 0; }
-
-        if (!clockEl) return;
-        
-        const ampm = localHour >= 12 ? 'PM' : 'AM';
-        let displayHour = localHour % 12;
-        displayHour = displayHour ? displayHour : 12;
-
-        const strHours = String(displayHour).padStart(2, '0');
-        const strMinutes = String(localMinute).padStart(2, '0');
-        const strSeconds = String(localSecond).padStart(2, '0');
-
-        clockEl.innerText = `${strHours}:${strMinutes}:${strSeconds} ${ampm}`;
-    }, 1000);
-
-    // Estado inicial seguro en la interfaz mientras se verifica el servidor
-    if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VERIFICANDO...';
-    currentJornadaGlobal = "CERRADO"; 
-
-    // 2. FUNCIÓN DE SINCRONIZACIÓN ASÍNCRONA CON INTERNET
-    async function syncWithServer() {
-        try {
-            const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
-            if (!response.ok) throw new Error('Servidor de hora fuera de servicio');
-            
-            const data = await response.json();
-            
-            // Sincronizamos las variables del segundero con el servidor de Cuba de forma silenciosa
-            localHour = parseInt(data.hour, 10);
-            localMinute = parseInt(data.minute, 10);
-            localSecond = parseInt(data.second, 10);
-
-            const min = (localHour * 60) + localMinute;
-
-            // VALIDACIÓN DE JORNADAS DE RECOJIDA
-            if (min >= 360 && min <= 805) { 
-                if(icon) icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
-                currentJornadaGlobal = "DIA"; 
-                if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
-            } else if (min >= 840 && min <= 1290) { 
-                if(icon) icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
-                currentJornadaGlobal = "NOCHE"; 
-                if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
-            } else { 
-                if(icon) icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
-                currentJornadaGlobal = "CERRADO"; 
-                if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
-            }
-
-        } catch (error) {
-            console.error("Error sincronizando hora oficial:", error);
-            // Si el internet falla, mantenemos el botón cerrado por seguridad anti-trampas
-            if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> DESCONECTADO';
-            if(btnSend) { 
-                btnSend.disabled = true; 
-                btnSend.style.opacity = "0.4"; 
-                btnSend.style.cursor = "not-allowed"; 
-            }
-            currentJornadaGlobal = "CERRADO";
-        }
-    }
-
-    // Ejecutamos la sincronización en segundo plano sin usar 'await' al inicio
-    // para que no interrumpa la lectura de la sesión de Supabase
-    syncWithServer(); 
+    if (!clockEl) return;
     
-    // Sigue comprobando el servidor cada 45 segundos para controlar los cortes de tiradas
-    setInterval(syncWithServer, 45000); 
+    const ampm = localHour >= 12 ? 'PM' : 'AM';
+    let displayHour = localHour % 12;
+    displayHour = displayHour ? displayHour : 12;
+
+    const strHours = String(displayHour).padStart(2, '0');
+    const strMinutes = String(localMinute).padStart(2, '0');
+    const strSeconds = String(localSecond).padStart(2, '0');
+
+    clockEl.innerText = `${strHours}:${strMinutes}:${strSeconds} ${ampm}`;
 }
 
+async function syncWithServer() {
+    const icon = document.getElementById('solar-icon');
+    const btnSend = document.getElementById('btn-main-send');
 
+    try {
+        const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
+        if (!response.ok) throw new Error('Servidor fuera de servicio');
+        
+        const data = await response.json();
+        
+        localHour = parseInt(data.hour, 10);
+        localMinute = parseInt(data.minute, 10);
+        localSecond = parseInt(data.second, 10);
 
+        const min = (localHour * 60) + localMinute;
 
+        if (min >= 360 && min <= 805) { 
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-sun"></i> DIA'; 
+            currentJornadaGlobal = "DIA"; 
+            if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+        } else if (min >= 840 && min <= 1290) { 
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-moon"></i> NOCHE'; 
+            currentJornadaGlobal = "NOCHE"; 
+            if(btnSend) { btnSend.disabled = false; btnSend.style.opacity = "1"; btnSend.style.cursor = "pointer"; }
+        } else { 
+            if(icon) icon.innerHTML = '<i class="fa-solid fa-clock"></i> CERRADO'; 
+            currentJornadaGlobal = "CERRADO"; 
+            if(btnSend) { btnSend.disabled = true; btnSend.style.opacity = "0.4"; btnSend.style.cursor = "not-allowed"; }
+        }
 
+    } catch (error) {
+        console.error("Error sincronizando hora oficial:", error);
+        if(icon) icon.innerHTML = '<i class="fa-solid fa-wifi"></i> DESCONECTADO';
+        if(btnSend) { 
+            btnSend.disabled = true; 
+            btnSend.style.opacity = "0.4"; 
+            btnSend.style.cursor = "not-allowed"; 
+        }
+        currentJornadaGlobal = "CERRADO";
+    }
+}
 
+function initClock() {
+    const icon = document.getElementById('solar-icon');
+    if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...';
 
+    setInterval(moverRelojDigital, 1000);
+    syncWithServer();
+    setInterval(syncWithServer, 45000);
+}
 
 function toggleKeyboardVisibility() {
     const kb = document.getElementById('kb-grid-element');
@@ -527,7 +408,6 @@ function attachLongPressDelete(element, costValue, isBote, typeKey, numKey, fAmt
     element.addEventListener('mouseup', cancel); element.addEventListener('mouseleave', cancel); element.addEventListener('touchend', cancel);
 }
 
-// ... Continúa debajo con la segmentación de comandos ...
 function sendPlay() {
     if (currentJornadaGlobal === "CERRADO") return;
 
