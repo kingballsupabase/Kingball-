@@ -352,6 +352,55 @@ function initClock() {
             localSecond = parseInt(data.second, 10);
 
             const min = (localHour * 60) + localMinute;
+function initClock() {
+    const icon = document.getElementById('solar-icon');
+    const btnSend = document.getElementById('btn-main-send');
+    const clockEl = document.getElementById('digital-clock');
+
+    // Inicializamos las variables con una hora por defecto aproximada por seguridad
+    let localHour = new Date().getHours();
+    let localMinute = new Date().getMinutes();
+    let localSecond = new Date().getSeconds();
+
+    // 1. INICIAR EL RELOJ DIGITAL DE INMEDIATO (Síncrono)
+    // Esto corre al instante en milisegundos, permitiendo que auth.js trabaje sin trabar la sesión
+    setInterval(function updateDigitalClock() {
+        localSecond++;
+        if (localSecond >= 60) { localSecond = 0; localMinute++; }
+        if (localMinute >= 60) { localMinute = 0; localHour++; }
+        if (localHour >= 24) { localHour = 0; }
+
+        if (!clockEl) return;
+        
+        const ampm = localHour >= 12 ? 'PM' : 'AM';
+        let displayHour = localHour % 12;
+        displayHour = displayHour ? displayHour : 12;
+
+        const strHours = String(displayHour).padStart(2, '0');
+        const strMinutes = String(localMinute).padStart(2, '0');
+        const strSeconds = String(localSecond).padStart(2, '0');
+
+        clockEl.innerText = `${strHours}:${strMinutes}:${strSeconds} ${ampm}`;
+    }, 1000);
+
+    // Estado inicial seguro en la interfaz mientras se verifica el servidor
+    if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> VERIFICANDO...';
+    currentJornadaGlobal = "CERRADO"; 
+
+    // 2. FUNCIÓN DE SINCRONIZACIÓN ASÍNCRONA CON INTERNET
+    async function syncWithServer() {
+        try {
+            const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=America/Havana');
+            if (!response.ok) throw new Error('Servidor de hora fuera de servicio');
+            
+            const data = await response.json();
+            
+            // Sincronizamos las variables del segundero con el servidor de Cuba de forma silenciosa
+            localHour = parseInt(data.hour, 10);
+            localMinute = parseInt(data.minute, 10);
+            localSecond = parseInt(data.second, 10);
+
+            const min = (localHour * 60) + localMinute;
 
             // VALIDACIÓN DE JORNADAS DE RECOJIDA
             if (min >= 360 && min <= 805) { 
@@ -388,6 +437,7 @@ function initClock() {
     // Sigue comprobando el servidor cada 45 segundos para controlar los cortes de tiradas
     setInterval(syncWithServer, 45000); 
 }
+
 
 
 
